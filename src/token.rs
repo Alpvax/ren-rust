@@ -29,6 +29,8 @@ pub enum Token<'s> {
     Namespace(&'s str),
     #[regex(r"([a-z][A-Za-z0-9]*)")]
     VarName(&'s str),
+    #[regex(r"_([a-z][A-Za-z0-9]*)?")]
+    Wildcard(&'s str),
 
     #[regex(r"//[^\r\n]*", |l| &l.slice()[2..])]
     Comment(&'s str),
@@ -112,13 +114,10 @@ pub enum Token<'s> {
     #[token("%")]
     OpMod, //infixRight 8
 
-
     #[token("undefined")]
     Undefined,
     #[regex("true|false", |l| l.slice().parse())]
     Bool(bool),
-
-    EOF,
 
     #[error]
     #[regex(r"\s+", logos::skip)]
