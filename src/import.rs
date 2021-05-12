@@ -1,6 +1,6 @@
-use crate::Token;
 use crate::names::{Namespace, VarName};
 use crate::parser::{ParseError, Parser, Statement};
+use crate::Token;
 
 #[derive(Debug)]
 pub struct Import {
@@ -19,56 +19,36 @@ impl Import {
     }
 }
 
-pub fn parse_import<'s>(parser: &mut Parser<'s>) -> Result<Statement, ParseError<'s>> {
-    let mut tok = lexer.next().ok_or(ParseError::UnexpectedEOF)?;
-    let path = parse_str(tok).or_else(|tok| {
-        Err(ParseError::UnexpectedToken(
-            tok,
-            "Expected string <path>".to_owned(),
-        ))
-    })?;
-    let namespace =
-        if let Token::KWAs = lexer.next().ok_or(ParseError::UnexpectedEOF)? {
-            let tok = lexer.next().ok_or(ParseError::UnexpectedEOF)?;
-            if let Token::Namespace(ns) = tok {
-                Some(ns)
-            } else {
-                Err(ParseError::UnexpectedToken(
-                    tok,
-                    "Expected namespace".to_owned(),
-                ))?
-            }
+pub fn parse_import<'s>(parser: &'s mut Parser<'s>) -> Result<Statement, ParseError<'s>> {
+    todo!("Parse import")
+    /*let path = parser.expect_string()?;
+    let namespace = if let Token::KWAs = parser.next_token() {
+        if let Token::Namespace(ns) = parser.next_token() {
+            Some(vec![ns]) //TODO: return multiple
         } else {
-            None
-        };
-    let exposing =
-        if let Token::KWExposing = lexer.next().ok_or(ParseError::UnexpectedEOF)? {
-            tok = lexer.next().ok_or(ParseError::UnexpectedEOF)?;
-            if let Token::CurlyOpen = tok {
-                let mut vec = Vec::new();
-                loop {
-                    tok = lexer.next().ok_or(ParseError::UnexpectedEOF)?;
-                    match tok {
-                        Token::VarName(n) => vec.push(n),
-                        Token::Comma => continue,
-                        Token::CurlyClose => break,
-                        _ => Err(ParseError::UnexpectedToken(
-                            tok,
-                            "Expected comma seperated list of names".to_owned(),
-                        ))?,
-                    }
+            Err(parser.unexpected_token("Expected namespace"))?
+        }
+    } else {
+        None
+    };
+    let exposing = if let Token::KWExposing = parser.next_token() {
+        if let Token::CurlyOpen = parser.next_token() {
+            let mut vec = Vec::new();
+            loop {
+                match parser.next_token() {
+                    Token::VarName(n) => vec.push(n),
+                    Token::Comma => continue,
+                    Token::CurlyClose => break,
+                    Token::EOF => Err(ParseError::UnexpectedEOF)?,
+                    _ => Err(parser.unexpected_token("Expected comma seperated list of names"))?,
                 }
-                Some(vec)
-            } else {
-                Err(ParseError::UnexpectedToken(
-                    tok,
-                    "Expected opening curly brace".to_owned(),
-                ))?
             }
+            Some(vec)
         } else {
-            None
-        };
-    Ok(Statement::Import(Import::new(
-        path, namespace, exposing,
-    )))
+            Err(parser.unexpected_token("Expected opening curly brace"))?
+        }
+    } else {
+        None
+    };
+    Ok(Statement::Import(Import::new(path, namespace, exposing)))*/
 }
