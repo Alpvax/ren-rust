@@ -1,7 +1,9 @@
-mod import;
+#![allow(dead_code)]
+
 mod names;
 mod parser;
 mod token;
+mod value;
 
 use logos::Logos;
 pub use token::Token;
@@ -25,5 +27,8 @@ let baz = 34 |> a >> b
 let a = fun c => c * 1000"#;
 
 fn main() {
+    let f = value::Value::function(2);
+    println!("{:?}", f.get_num_args());
+
     println!("{:?}", parser::parse(Token::lexer(SAMPLE)));
 }

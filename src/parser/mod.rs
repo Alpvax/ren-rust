@@ -1,6 +1,6 @@
-use logos::Lexer;
+use logos;
 
-use crate::import::Import;
+pub mod import;
 use crate::Token;
 
 /**
@@ -8,13 +8,13 @@ use crate::Token;
  */
 #[derive(Debug)]
 pub enum Statement {
-    Import(Import),
+    Import(import::Import),
     Function(),
     Variable(),
 }
 
 type ParseError = ();
 
-pub fn parse<'s>(mut lexer: logos::Lexer<'s, Token<'s>>) -> Result<Vec<Statement>, ParseError> {
+pub fn parse<'s>(mut _lexer: logos::Lexer<'s, Token<'s>>) -> Result<Vec<Statement>, ParseError> {
     todo!("Parse tokens")
 }
