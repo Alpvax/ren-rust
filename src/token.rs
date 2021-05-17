@@ -14,10 +14,12 @@ pub enum Token<'s> {
     KWFun,
     #[token("pub")]
     KWPub,
-    #[token("where")]
+    /*#[token("where")]
     KWWhere,
     #[token("and")]
-    KWAnd,
+    KWAnd,*/
+    #[token("ret")]
+    KWRet,
     #[token("if")]
     KWIf,
     #[token("then")]
@@ -121,6 +123,7 @@ pub enum Token<'s> {
 
     #[error]
     #[regex(r"\s+", logos::skip)]
+    #[token("ren")] // 'ren' keyword reserved for future use
     Error,
 }
 

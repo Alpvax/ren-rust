@@ -1,5 +1,7 @@
 use logos;
 
+pub mod declaration;
+pub mod expression;
 pub mod import;
 use crate::Token;
 

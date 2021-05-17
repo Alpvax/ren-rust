@@ -72,6 +72,58 @@ pub enum ValueType {
     Undefined,
     Unknown,
 }
+impl ValueType {
+    pub fn func_param_types(&self) -> Option<Vec<ValueType>> {
+        self.function_type().map(|(p, _)| p)
+    }
+    pub fn function_type(&self) -> Option<(Vec<ValueType>, ValueType)> {
+        if let ValueType::Function(a, b) = self {
+            let mut res = vec![*a.clone()];
+            let mut t = *b.clone();
+            while let ValueType::Function(a, b) = t {
+                res.push(*a);
+                t = *b;
+            }
+            Some((res, t))
+        } else {
+            None
+        }
+    }
+    pub fn function(params: Vec<ValueType>, ret_type: ValueType) -> Self {
+        if params.len() > 0 {
+            let mut t = ret_type;
+            for p_t in params.into_iter().rev() {
+                t = ValueType::Function(Box::new(p_t), Box::new(t));
+            }
+            t
+        } else {
+            Self::Unknown
+        }
+    }
+    pub fn function_n(num_args: ParamCount) -> Self {
+        let mut t = ValueType::Function(Box::new(ValueType::Unknown), Box::new(ValueType::Unknown));
+        for _ in 1..num_args {
+            t = ValueType::Function(Box::new(ValueType::Unknown), Box::new(t));
+        }
+        t
+    }
+    /*pub fn default_value<T>(self) -> Value<T>
+    where T: ValueTypeMapper {
+        Value {
+            v_type: self,
+            value: match &self {
+                ValueType::Function(..) => (),
+                ValueType::Object(..) => HashMap::new(),
+                ValueType::Array(..) => Vec::new(),
+                ValueType::Number => 0,
+                ValueType::String => String::new(),
+                ValueType::Boolean => false,
+                ValueType::Undefined => (),
+                ValueType::Unknown => (),
+            }
+        }
+    }*/
+}
 
 #[allow(dead_code)]
 impl Value {
@@ -86,14 +138,24 @@ impl Value {
             value: v,
         }
     }
-    pub fn function(num_args: ParamCount) -> Self {
-        let mut t = ValueType::Function(Box::new(ValueType::Unknown), Box::new(ValueType::Unknown));
-        for _ in 1..num_args {
-            t = ValueType::Function(Box::new(ValueType::Unknown), Box::new(t));
-        }
-        Self {
-            v_type: t,
-            value: (), //TODO: function value
+    pub fn from_type<T>(v_type: ValueType, value: T) -> Value<T>
+    where
+        T: ValueTypeMapper,
+    {
+        Value { v_type, value }
+    }
+    pub fn function_n(num_args: ParamCount) -> Self {
+        Self::from_type(ValueType::function_n(num_args), ())
+    }
+    pub fn function(params: Vec<ValueType>, ret_type: ValueType) -> Self {
+        let t = ValueType::function(params, ret_type);
+        if let ValueType::Function(..) = t {
+            Self {
+                v_type: t,
+                value: (), //TODO: function value
+            }
+        } else {
+            Self::undefined()
         }
     }
     pub fn get_num_args(&self) -> ParamCount {
@@ -195,6 +257,43 @@ mod tests {
                 v_type: VT::Number,
                 value: 5u8,
             }
+        );
+    }
+    #[test]
+    fn test_function_type() {
+        assert_eq!(
+            Value::from_type(VT::function_n(2), ()),
+            Value {
+                v_type: VT::Function(
+                    Box::new(VT::Unknown),
+                    Box::new(VT::Function(Box::new(VT::Unknown), Box::new(VT::Unknown)))
+                ),
+                value: (),
+            }
+        );
+        assert_eq!(
+            Value::function(vec![VT::String, VT::String, VT::Number], VT::Number),
+            Value {
+                v_type: VT::Function(
+                    Box::new(VT::String),
+                    Box::new(VT::Function(
+                        Box::new(VT::String),
+                        Box::new(VT::Function(Box::new(VT::Number), Box::new(VT::Number),))
+                    ))
+                ),
+                value: (),
+            }
+        );
+        assert_eq!(
+            VT::Function(
+                Box::new(VT::String),
+                Box::new(VT::Function(
+                    Box::new(VT::Number),
+                    Box::new(VT::Array(vec![VT::String, VT::Number]))
+                ))
+            )
+            .func_param_types(),
+            Some(vec![VT::String, VT::Number])
         );
     }
 }

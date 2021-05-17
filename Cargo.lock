@@ -7,6 +7,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6736e2428df2ca2848d846c43e88745121a6654696e349ce0054a420815a7409"
 
 [[package]]
+name = "derive_tokentype"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -40,6 +48,7 @@ dependencies = [
 name = "parser-rust"
 version = "0.1.0"
 dependencies = [
+ "derive_tokentype",
  "logos",
 ]
 
