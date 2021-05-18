@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::expression::Expression;
-use crate::names::VarName;
+use crate::ast::VarName;
 
 pub enum DeclarationType {
     Function(usize),

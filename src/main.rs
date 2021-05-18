@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-mod names;
+mod ast;
 mod parser;
 mod token;
 mod value;
@@ -53,5 +53,5 @@ fn main() {
         <T as SimplifiedEnum>::Simple::from(T::C),
     );
 
-    println!("{:?}", parser::parse(Token::lexer(SAMPLE)));
+    println!("{:?}", parser::parse(Token::lexer(SAMPLE).spanned()));
 }

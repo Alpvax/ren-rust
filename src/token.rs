@@ -14,10 +14,6 @@ pub enum Token<'s> {
     KWFun,
     #[token("pub")]
     KWPub,
-    /*#[token("where")]
-    KWWhere,
-    #[token("and")]
-    KWAnd,*/
     #[token("ret")]
     KWRet,
     #[token("if")]
@@ -125,6 +121,9 @@ pub enum Token<'s> {
     #[regex(r"\s+", logos::skip)]
     #[token("ren")] // 'ren' keyword reserved for future use
     Error,
+
+    // Manually added when end of input is reached (no more tokens)
+    EOF,
 }
 
 fn parse_usize_base<'s>(radix: u32) -> impl FnMut(&mut Lexer<'s, Token<'s>>) -> usize {

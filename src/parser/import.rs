@@ -1,18 +1,26 @@
-use crate::names::{Namespace, VarName};
+use crate::ast::import::Import;
 
-#[derive(Debug)]
-pub struct Import {
-    path: String,
-    namespace: Option<Vec<Namespace>>,
-    exposing: Option<Vec<VarName>>,
+use super::{Builder, ModuleParser};
+
+pub struct ImportParser {
+    parent: ModuleParser,
 }
+impl Builder<Import, ()> for ImportParser {
+    fn accept_token(self, token: &super::NextToken) -> super::BuilderResult<Import, Self, ()>
+    where
+        Self: Sized,
+    {
+        todo!()
+    }
 
-impl Import {
-    pub fn new(path: &str, namespace: Option<Vec<&str>>, exposing: Option<Vec<&str>>) -> Import {
-        Import {
-            path: path.to_owned(),
-            namespace: namespace.map(|v| v.iter().map(|&s| s.to_owned()).collect()),
-            exposing: exposing.map(|v| v.iter().map(|&s| s.to_owned()).collect()),
-        }
+    fn accept_value<V>(&self, value: V) -> Result<Self, ()>
+    where
+        Self: Sized,
+    {
+        todo!()
+    }
+
+    fn _map_unfinished_to_error(self) -> () {
+        todo!()
     }
 }
