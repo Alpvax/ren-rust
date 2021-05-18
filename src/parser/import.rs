@@ -6,18 +6,20 @@ pub struct ImportParser {
     parent: ModuleParser,
 }
 impl Builder<Import, ()> for ImportParser {
-    fn accept_token(self, token: &super::NextToken) -> super::BuilderResult<Import, Self, ()>
+    type SubValues = ();
+
+    fn accept_token(self, _token: &super::NextToken) -> super::BuilderResult<Import, Self, ()>
     where
         Self: Sized,
     {
         todo!()
     }
 
-    fn accept_value<V>(&self, value: V) -> Result<Self, ()>
+    fn accept_value<V>(self, _value: Self::SubValues) -> Result<Self, ()>
     where
         Self: Sized,
     {
-        todo!()
+        Err(())
     }
 
     fn _map_unfinished_to_error(self) -> () {

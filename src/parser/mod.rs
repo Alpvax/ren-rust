@@ -37,43 +37,71 @@ where
     }
 }
 
-//trait Builder<T, E, V = (), SE = ()> {
+trait SubParser<V, P> {
+    fn new_subparser(self) -> P;
+}
+
+//trait Builder<T, E, SE = ()> {
+//    type SubValues;
 //    type SubParsers: Builder<V, SE>;
 trait Builder<T, E> {
+    type SubValues;
     fn accept_token(self, token: &NextToken) -> BuilderResult<T, Self, E>
     where
         Self: Sized;
-    fn accept_value<V>(&self, value: V) -> Result<Self, E>
+    fn accept_value<V>(self, value: Self::SubValues) -> Result<Self, E>
     where
         Self: Sized;
     fn _map_unfinished_to_error(self) -> E;
 }
 
+enum ModuleValues {
+    Import(ast::import::Import),
+    Declaration(ast::declaration::Declaration),
+}
+
 struct ModuleParser {
     imports_done: bool,
-    imports_parser: (),
+    imports: Vec<ast::import::Import>,
+    declarations: Vec<ast::declaration::Declaration>,
 }
 impl ModuleParser {
     fn new() -> Self {
         Self {
             imports_done: false,
-            imports_parser: (),
+            imports: Vec::new(),
+            declarations: Vec::new(),
         }
     }
 }
 impl Builder<ast::Module, ParseError> for ModuleParser {
-    fn accept_token(self, token: &NextToken) -> BuilderResult<ast::Module, Self, ParseError>
+    type SubValues = ModuleValues;
+
+    fn accept_token(self, _token: &NextToken) -> BuilderResult<ast::Module, Self, ParseError>
     where
         Self: Sized,
     {
         todo!()
     }
 
-    fn accept_value<V>(&self, value: V) -> Result<Self, ParseError>
+    fn accept_value<V>(mut self, value: Self::SubValues) -> Result<Self, ParseError>
     where
         Self: Sized,
     {
-        todo!("SubParsers")
+        match value {
+            ModuleValues::Import(i) => {
+                if self.imports_done {
+                    return Err(ParseError::ImportBelowDeclarations);
+                } else {
+                    self.imports.push(i);
+                }
+            }
+            ModuleValues::Declaration(d) => {
+                self.imports_done = true;
+                self.declarations.push(d);
+            }
+        };
+        Ok(self)
     }
 
     fn _map_unfinished_to_error(self) -> ParseError {
@@ -83,19 +111,15 @@ impl Builder<ast::Module, ParseError> for ModuleParser {
 
 #[derive(Debug)]
 pub enum ParseError {
+    ImportBelowDeclarations,
     UnexpectedEOF,
 }
 
 pub fn parse<'s>(mut lexer: logos::SpannedIter<'s, Token<'s>>) -> Result<ast::Module, ParseError> {
     let mut parser = ModuleParser::new();
-    let mut result;
     let mut token = lexer.next().unwrap_or((Token::EOF, logos::Span::default()));
     loop {
-        result = parser.accept_token(&token);
-        if let (Token::EOF, _) = &token {
-            return result.finished();
-        }
-        match result {
+        match parser.accept_token(&token) {
             BuilderResult::Done(v, p) => {
                 if let Some(p) = p {
                     parser = p;
