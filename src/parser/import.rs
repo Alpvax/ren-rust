@@ -1,28 +1,18 @@
 use crate::ast::import::Import;
 
-use super::{Builder, ModuleParser};
+use super::{ModuleParser, ParseTokenResult, TokenParser};
 
 pub struct ImportParser {
     parent: ModuleParser,
 }
-impl Builder<Import, ()> for ImportParser {
-    type SubValues = ();
+impl TokenParser<Import, ()> for ImportParser {
+    type SubParsers = ();
 
-    fn accept_token(self, _token: &super::NextToken) -> super::BuilderResult<Import, Self, ()>
-    where
-        Self: Sized,
-    {
+    fn accept_token(&mut self, token: &super::NextToken) -> ParseTokenResult<Import, (), Self::SubParsers> {
         todo!()
     }
 
-    fn accept_value<V>(self, _value: Self::SubValues) -> Result<Self, ()>
-    where
-        Self: Sized,
-    {
-        Err(())
-    }
-
-    fn _map_unfinished_to_error(self) -> () {
+    fn accept_value(&mut self, value: super::ParserValueType<Self, Import, ()>) -> ParseTokenResult<Import, (), Self::SubParsers> {
         todo!()
     }
 }

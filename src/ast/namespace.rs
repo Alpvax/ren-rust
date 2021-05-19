@@ -10,8 +10,18 @@ pub struct Module {
     name: Option<Namespace>,
     namespace: NamespaceType,
 }
+impl Module {
+    #[deprecated]
+    pub fn new() -> Self {
+        Self {
+            path: String::new(),
+            name: None,
+            namespace: NamespaceType::default(),
+        }
+    }
+}
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct NamespaceType {
     public: HashMap<Identifier, ValueType>,
     internal: HashMap<Identifier, ValueType>,
