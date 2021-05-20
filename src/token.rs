@@ -1,6 +1,15 @@
+use std::collections::HashMap;
+use std::str::FromStr;
+
 use logos::{Lexer, Logos};
 
+#[derive(Debug, Default, Clone)]
+pub struct LexerExtras {
+    comments: HashMap<usize, String>,
+}
+
 #[derive(Logos, Debug, Clone, Copy, PartialEq)]
+#[logos(extras = LexerExtras)]
 pub enum Token<'s> {
     #[token("import")]
     KWImport,
@@ -30,8 +39,7 @@ pub enum Token<'s> {
     #[regex(r"_([a-z][A-Za-z0-9]*)?")]
     Wildcard(&'s str),
 
-    //TODO: add comments to extras, so that lines can be tagged with comments in future
-    #[regex(r"//[^\r\n]*", logos::skip)]
+    #[regex(r"//[^\r\n]*", parse_comment)]
     Comment,
 
     #[regex(r#""(?:\\"|[^"])*""#, trim_quotes)]
@@ -39,9 +47,9 @@ pub enum Token<'s> {
     #[regex(r#"'(?:\\"|[^"])*'"#, trim_quotes)]
     StrSingle(&'s str),
 
-    #[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", |l| l.slice().parse())]
+    #[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", parse_slice)]
     Float(f64),
-    #[regex(r"0|[1-9][0-9]*", |l| l.slice().parse())]
+    #[regex(r"0|[1-9][0-9]*", parse_slice)]
     Int(isize),
     #[regex(r"0[xX][0-9a-fA-F]+", callback = parse_usize_base(16))]
     HexNumber(usize),
@@ -115,7 +123,7 @@ pub enum Token<'s> {
 
     #[token("undefined")]
     Undefined,
-    #[regex("true|false", |l| l.slice().parse())]
+    #[regex("true|false", parse_slice)]
     Bool(bool),
 
     #[error]
@@ -125,6 +133,14 @@ pub enum Token<'s> {
 
     // Manually added when end of input is reached (no more tokens)
     EOF,
+}
+
+fn parse_slice<'s, T: FromStr>(lex: &mut Lexer<'s, Token<'s>>) -> Result<T, T::Err> {
+    lex.slice().parse()
+}
+
+fn parse_comment<'s>(lex: &mut Lexer<'s, Token<'s>>) {
+    lex.extras.comments.insert(lex.span().start, lex.slice().to_owned());
 }
 
 fn parse_usize_base<'s>(radix: u32) -> impl FnMut(&mut Lexer<'s, Token<'s>>) -> usize {
