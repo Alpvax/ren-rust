@@ -30,8 +30,9 @@ pub enum Token<'s> {
     #[regex(r"_([a-z][A-Za-z0-9]*)?")]
     Wildcard(&'s str),
 
-    #[regex(r"//[^\r\n]*", |l| &l.slice()[2..])]
-    Comment(&'s str),
+    //TODO: add comments to extras, so that lines can be tagged with comments in future
+    #[regex(r"//[^\r\n]*", logos::skip)]
+    Comment,
 
     #[regex(r#""(?:\\"|[^"])*""#, trim_quotes)]
     StrDbl(&'s str),
