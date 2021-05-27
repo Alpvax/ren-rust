@@ -59,6 +59,14 @@ impl<const N: usize> LexemeGroup<N> {
         }
         res
     }
+    pub fn as_token_array_unchecked(&self) -> [&Token; N] {
+        self.as_token_array()
+            .iter()
+            .map(|&o| o.unwrap())
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap()
+    }
     pub fn len_total(&self) -> usize {
         self.size
     }
@@ -68,7 +76,7 @@ impl<const N: usize> LexemeGroup<N> {
     pub fn is_complete(&self) -> bool {
         self.len_total() == self.len_valid()
     }
-    pub fn get(&self, index: usize) -> Option<&Lexeme>{
+    pub fn get(&self, index: usize) -> Option<&Lexeme> {
         self.values.get(index)
     }
     pub fn subgroup<const START: usize, const LEN: usize>(&self) -> LexemeGroup<LEN> {
@@ -91,6 +99,33 @@ impl<const N: usize> From<&[Lexeme]> for LexemeGroup<N> {
         Self {
             size: N,
             values: arr.into(),
+        }
+    }
+}
+/// Assumes [Some... None] (i.e. no None after Some entries, otherwise order is lost)
+impl<const N: usize> From<[Option<Lexeme>; N]> for LexemeGroup<N> {
+    fn from(arr: [Option<Lexeme>; N]) -> Self {
+        Self {
+            size: N,
+            values: arr.iter().filter_map(|o| o.clone()).collect(),
+        }
+    }
+}
+/// Assumes [Some... None] (i.e. no None after Some entries, otherwise order is lost)
+impl<const N: usize> From<[Option<&Lexeme>; N]> for LexemeGroup<N> {
+    fn from(arr: [Option<&Lexeme>; N]) -> Self {
+        Self {
+            size: N,
+            values: arr.iter().filter_map(|&o| o.map(|l| l.clone())).collect(),
+        }
+    }
+}
+/// Assumes [Some... None] (i.e. no None after Some entries, otherwise order is lost)
+impl<const N: usize> From<&[Option<Lexeme>]> for LexemeGroup<N> {
+    fn from(arr: &[Option<Lexeme>]) -> Self {
+        Self {
+            size: N,
+            values: arr.iter().filter_map(|o| o.clone()).collect(),
         }
     }
 }
@@ -141,7 +176,7 @@ impl<'s> Lexer<'s> {
             None
         }
     }
-    pub fn peek_n<const N: usize>(&mut self) -> [Option<&Lexeme>; N] {
+    pub fn peek_n<const N: usize>(&mut self) -> LexemeGroup<N> {
         self._peek_to_n(N);
         let mut res = [None; N];
         for (i, l) in self.peekable.iter().enumerate() {
@@ -150,15 +185,21 @@ impl<'s> Lexer<'s> {
             }
             res[i] = Some(l);
         }
-        res
+        res.into()
     }
-    pub fn peek_n_exact<const N: usize>(&mut self) -> Option<&[Lexeme; N]> {
+    pub fn peek_n_exact<const N: usize>(&mut self) -> Option<LexemeGroup<N>> {
         self._peek_to_n(N);
         if self.peekable.len() < N {
             None
         } else {
-            Some(self.peekable.as_slices().0[..N].try_into().unwrap())
+            Some(self.peekable.as_slices().0[..N].into()) //try_into().unwrap())
         }
+    }
+    pub fn next_token(&mut self) -> Option<Token> {
+        self.next().map(|l| l.token)
+    }
+    pub fn peek_token(&mut self) -> Option<&Token> {
+        self.peek().map(|l| &l.token)
     }
 }
 impl Iterator for Lexer<'_> {

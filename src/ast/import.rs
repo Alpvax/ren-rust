@@ -16,7 +16,7 @@ impl Import {
         }
     }
     pub fn new_from_owned(
-        path: &str,
+        path: String,
         namespace: Option<Vec<String>>,
         exposing: Option<Vec<String>>,
     ) -> Import {

@@ -1,143 +1,192 @@
-use logos::{Span, SpannedIter};
 mod lexer;
 
 use crate::ast;
-pub use lexer::Token;
+pub use lexer::{Lexer, Token};
 
-macro_rules! parent_parser {
-    ($p:ty, $o:ty, $e:ty, {$u:item $p_e: item}) => {
-        impl Parser for $p {
-            type Output = $o;
-            type Error = $e;
-            fn try_parse_token(&mut self, token: crate::parser::SpannedToken) -> crate::parser::TokenParseResult {
-                if let Some(s) = self.get_subparser() {
-                    s.try_parse_token(token)
-                } else {
-                    let (r, c) = self.parse_token(token);
-                    let fallback = if c { crate::parser::TokenParseResult::Continue } else { crate::parser::TokenParseResult::Retry };
-                    match r {
-                        crate::parser::ParentParserTokenResult::Done => crate::parser::TokenParseResult::Done,
-                        crate::parser::ParentParserTokenResult::Continue => crate::parser::TokenParseResult::Continue,
-                        crate::parser::ParentParserTokenResult::SubParser(s) => {
-                            self.start_subparser(s);
-                            fallback
-                        },
-                        crate::parser::ParentParserTokenResult::Error(e) => {
-                            self.push_error(e);
-                            crate::parser::TokenParseResult::Continue
-                        },
-                    }
+#[derive(Debug)]
+pub struct ModuleBuilder {
+    imports: Vec<ast::import::Import>,
+    declarations: Vec<() /*ast::declaration::Declaration*/>,
+}
+impl ModuleBuilder {
+    pub fn new() -> Self {
+        Self {
+            imports: Vec::new(),
+            declarations: Vec::new(),
+        }
+    }
+}
+
+fn consume_whitespace(lexer: &mut Lexer) -> bool {
+    if let Some(Token::Whitespace) = lexer.peek_token() {
+        lexer.next();
+        true
+    } else {
+        false
+    }
+}
+
+pub enum NamespaceError {
+    None,
+    InvalidTokenNs,
+    InvalidTokenSep,
+    TrailingPeriod,
+}
+impl Into<String> for NamespaceError {
+    fn into(self) -> String {
+        match self {
+            NamespaceError::None => "No namespace token",
+            NamespaceError::InvalidTokenNs => "Invalid segment. Expected a Namespace token",
+            NamespaceError::InvalidTokenSep => "Invalid segment. Expected a Period token",
+            NamespaceError::TrailingPeriod => "A trailing '.' is not allowed in a namespace",
+        }
+        .to_owned()
+    }
+}
+pub fn parse_namespace(lexer: &mut Lexer) -> Result<Vec<ast::Namespace>, NamespaceError> {
+    match lexer.next_token() {
+        Some(Token::Namespace(s)) => {
+            let mut ns = vec![s];
+            loop {
+                match lexer.peek_token() {
+                    Some(Token::Whitespace) | None => break,
+                    Some(Token::Period) => match (lexer.next(), lexer.next_token()) {
+                        (_, Some(Token::Namespace(s))) => ns.push(s),
+                        (_, Some(_)) => return Err(NamespaceError::InvalidTokenNs),
+                        (_, None) => return Err(NamespaceError::TrailingPeriod),
+                    },
+                    _ => return Err(NamespaceError::InvalidTokenSep),
                 }
             }
-            $u
-            $p_e
+            Ok(ns)
         }
-    };
-}
-
-pub mod module;
-
-pub type SpannedToken<'s> = (crate::Token<'s>, Span);
-
-pub type ParserResult<T, E> = Result<T, Vec<ParserError<E>>>;
-pub type ParserError<E> = (E, Span);
-
-pub enum TokenParseResult {
-    Done,
-    Continue,
-    Retry,
-}
-
-pub trait Parser {
-    type Output;
-    type Error;
-    fn try_parse_token(&mut self, token: SpannedToken) -> TokenParseResult;
-    fn unwrap(self) -> Result<Self::Output, Vec<Self::Error>>;
-    fn push_error(&mut self, error: Self::Error);
-}
-
-pub enum SimpleParserTokenResult<E> {
-    Done,
-    Continue,
-    Error(E),
-}
-
-pub trait SimpleParser: Parser {
-    fn parse_token(&mut self, token: SpannedToken) -> (SimpleParserTokenResult<Self::Error>, bool);
-    fn try_parse_token(&mut self, token: SpannedToken) -> TokenParseResult {
-        match self.parse_token(token) {
-            (SimpleParserTokenResult::Done, _) => TokenParseResult::Done,
-            (_, true) => TokenParseResult::Continue,
-            (_, false) => TokenParseResult::Retry,
-        }
+        _ => Err(NamespaceError::None),
     }
 }
 
-pub enum ParentParserTokenResult<E, S> {
-    Done,
-    Continue,
-    SubParser(S),
-    Error(E),
-}
-impl<SE, PE, S> From<ParentParserTokenResult<PE, S>> for SimpleParserTokenResult<SE>
-where
-    PE: Into<SE>,
-{
-    fn from(r: ParentParserTokenResult<PE, S>) -> Self {
-        match r {
-            ParentParserTokenResult::Done => Self::Done,
-            ParentParserTokenResult::Continue | ParentParserTokenResult::SubParser(_) => {
-                Self::Continue
+type ImportError = String;
+pub fn parse_import(lexer: &mut Lexer) -> Result<ast::import::Import, ImportError> {
+    let path = match (lexer.next_token(), lexer.next_token(), lexer.next_token()) {
+        (None, ..) => Err("no tokens to parse".to_owned()),
+        (Some(Token::KWImport), Some(Token::Whitespace), Some(Token::String(s))) => Ok(s),
+        (Some(Token::KWImport), Some(Token::Whitespace), t) => {
+            Err(format!("Missing path: {:?}", t))
+        }
+        (Some(Token::KWImport), ..) => Err(
+            "The \"import\" keyword must be followed by whitespace, then a string path".to_owned(),
+        ),
+        (_, ..) => Err("import statements must start with the \"import\" keyword".to_owned()),
+    }?;
+    let namespace = if let [Some(Token::Whitespace), Some(Token::KWAs)] =
+        lexer.peek_n::<2>().as_token_array()
+    {
+        lexer.next();
+        lexer.next();
+        match lexer.next_token() {
+            Some(Token::Whitespace) => parse_namespace(lexer).map(Some).map_err(NamespaceError::into),
+            _ => Err("The \"as\" keyword in an import statement must be followed by a '.' seperated namespace".to_owned())
+        }
+        /*match (lexer.next(), lexer.next_token(), lexer.next_token()) {
+            (_, Some(Token::Whitespace), Some(Token::Namespace(s))) => {
+                let mut ns = vec![s];
+                loop {
+                    match lexer.peek_token() {
+                        Some(Token::Whitespace) | None => break,
+                        Some(Token::Period) => {
+                            match (lexer.next(), lexer.next_token()) {
+                                (_, Some(Token::Namespace(s))) => ns.push(*s),
+                                (_, Some(_)) => return Err("A namespace must consist of a series of Namespace tokens seperated by '.' tokens".to_owned()),
+                                (_, None) => return Err("A trailing '.' is not allowed in a namespace".to_owned()),
+                            }
+                        },
+                        _ => return Err("The \"as\" keyword in an import statement must be followed by a '.' seperated namespace with no spaces".to_owned())
+                    }
+                }
+                Ok(Some(ns))
+            },
+            _ => Err("The \"as\" keyword in an import statement must be followed by a '.' seperated namespace".to_owned())
+        }*/
+    } else {
+        Ok(None)
+    }?;
+    let exposing = if let [Some(Token::Whitespace), Some(Token::KWExposing)] =
+        lexer.peek_n::<2>().as_token_array()
+    {
+        lexer.next();
+        lexer.next();
+        consume_whitespace(lexer);
+        if let Some(Token::CurlyOpen) = lexer.next_token() {
+            let mut names = Vec::new();
+            loop {
+                consume_whitespace(lexer);
+                match lexer.peek_token() {
+                    Some(Token::VarName(_)) => {
+                        if let Some(Token::VarName(s)) = lexer.next_token() {
+                            names.push(s);
+                            consume_whitespace(lexer);
+                            if let Some(Token::Comma) = lexer.peek_token() {
+                                lexer.next();
+                                consume_whitespace(lexer);
+                            }
+                        }
+                    }
+                    Some(Token::CurlyClose) => {
+                        lexer.next();
+                        break;
+                    }
+                    None => return Err("Non-closed exposing block".to_owned()),
+                    _ => return Err("Invalid token in exposing block".to_owned()),
+                }
             }
-            ParentParserTokenResult::Error(e) => Self::Error(e.into()),
-        }
-    }
-}
-
-pub trait ParentParser: Parser {
-    type SubParser: Parser;
-    //type Error: From<<<Self as ParentParser>::SubParser as Parser>::Error>;
-    fn get_subparser(&mut self) -> Option<&mut Self::SubParser>;
-    fn start_subparser(&mut self, sub: Self::SubParser);
-    fn parse_token(
-        &mut self,
-        token: SpannedToken,
-    ) -> (ParentParserTokenResult<Self::Error, Self::SubParser>, bool);
-    /*fn try_parse_token(&mut self, token: Token) -> TokenParseResult {
-        if let Some(s) = self.get_subparser() {
-            s.try_parse_token(token)
+            if names.len() > 0 {
+                Ok(Some(names))
+            } else {
+                Err("the contents of the exposing block must be a comma seperated list of VarName tokens".to_owned())
+            }
         } else {
-            let (r, c) = self.parse_token(token);
-            let fallback = if c { TokenParseResult::Continue } else { TokenParseResult::Retry };
-            match r {
-                ParentParserTokenResult::Done => TokenParseResult::Done,
-                ParentParserTokenResult::Continue => TokenParseResult::Continue,
-                ParentParserTokenResult::SubParser(s) => {
-                    self.start_subparser(s);
-                    fallback
-                },
-                ParentParserTokenResult::Error(e) => {
-                    self.push_error(e);
-                    TokenParseResult::Continue
-                },
-            }
+            Err(
+                "The \"exposing\" keyword must be followed by '{' (whitespace allowed optionally)"
+                    .to_owned(),
+            )
         }
-    }*/
+    } else {
+        Ok(None)
+    }?;
+    Ok(ast::import::Import::new_from_owned(
+        path, namespace, exposing,
+    ))
 }
 
-pub fn parse<'s>(
-    mut lexer: SpannedIter<'s, Token<'s>>,
-) -> ParserResult<ast::Module, module::ModuleParseErr> {
-    let mut parser = module::ModuleParser::new();
-    let mut token = lexer.next().unwrap_or((Token::EOF, Span::default()));
+type ModuleParseError = String;
+pub fn parse<'s>(input: &str) -> Result<ModuleBuilder, Vec<ModuleParseError>> {
+    let mut lexer = Lexer::new(input);
+    let mut builder = ModuleBuilder::new();
+    let mut errors = Vec::new();
     loop {
-        match parser.try_parse_token(token.clone()) {
-            TokenParseResult::Done => break,
-            TokenParseResult::Continue => {
-                token = lexer.next().unwrap_or((Token::EOF, Span::default()));
+        if let Some(tok) = lexer.peek_token() {
+            match tok {
+                Token::KWImport => {
+                    if builder.declarations.len() < 1 {
+                        match parse_import(&mut lexer) {
+                            Ok(i) => builder.imports.push(i),
+                            Err(e) => errors.push(e),
+                        }
+                    } else {
+                        errors.push("import statements are not allowed after declarations (must be at the top of the file)".to_owned())
+                    }
+                }
+                Token::KWLet => {}
+                Token::KWFun => {}
+                Token::KWPub => {}
+                _ => errors.push("Unexpected token!".to_owned()),
             }
-            TokenParseResult::Retry => {}
+        } else {
+            break;
         }
     }
-    parser.unwrap()
+    if errors.len() < 1 {
+        Ok(builder)
+    } else {
+        Err(errors)
+    }
 }

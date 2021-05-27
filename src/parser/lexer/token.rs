@@ -45,15 +45,16 @@ pub enum Token {
     #[regex(r"//[^\r\n]*", parse_comment)]
     Comment,
 
-    #[regex(r#""(?:\\"|[^"])*""#, trim_quotes)] // Double quoted
-    #[regex(r#"'(?:\\"|[^"])*'"#, trim_quotes)] // Single quoted
+    /*#[regex(r#""(?:\\"|[^"])*""#, trim_quotes)] // Double quoted
+    #[regex(r#"'(?:\\'|[^'])*'"#, trim_quotes)] // Single quoted*/
+    #[regex(r#"('(?:\\'|[^'])*')|"(?:\\"|[^"])*""#, trim_quotes)] //Combined
     String(String),
 
-    #[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", parse_slice)]    // Float
-    #[regex(r"0|[1-9][0-9]*", parse_slice)]                                         // Int
-    #[regex(r"0[xX][0-9a-fA-F]+", callback = parse_int_base(16))]                   // Hex
-    #[regex(r"0[oO][0-7]+", callback = parse_int_base(8))]                          // Oct
-    #[regex(r"0[bB][01]+", callback = parse_int_base(2))]                           // Bin
+    #[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", parse_slice)] // Float
+    #[regex(r"0|[1-9][0-9]*", parse_slice)] // Int
+    #[regex(r"0[xX][0-9a-fA-F]+", callback = parse_int_base(16))] // Hex
+    #[regex(r"0[oO][0-7]+", callback = parse_int_base(8))] // Oct
+    #[regex(r"0[bB][01]+", callback = parse_int_base(2))] // Bin
     Number(f64),
 
     #[token(".")]
@@ -122,9 +123,8 @@ pub enum Token {
     #[regex("true|false", parse_slice)]
     Bool(bool),
 
-
-    #[regex(r"[\r\n]+", priority=2)]
-    NewLine,
+    /*#[regex(r"[\r\n]+", priority=2)]
+    NewLine,*/
     #[regex(r"\s+")]
     Whitespace,
 
@@ -134,6 +134,14 @@ pub enum Token {
     // Manually added when end of input is reached (no more tokens)
     EOF,
 }
+/*impl Token {
+    pub fn is_whitespace(&self) -> bool {
+        match self {
+            Self::Whitespace | Self::NewLine => true,
+            _ => false,
+        }
+    }
+}*/
 
 fn owned<'s>(lex: &mut Lexer<'s, Token>) -> String {
     lex.slice().to_owned()
