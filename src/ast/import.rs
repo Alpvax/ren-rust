@@ -15,4 +15,15 @@ impl Import {
             exposing: exposing.map(|v| v.iter().map(|&s| s.to_owned()).collect()),
         }
     }
+    pub fn new_from_owned(
+        path: &str,
+        namespace: Option<Vec<String>>,
+        exposing: Option<Vec<String>>,
+    ) -> Import {
+        Import {
+            path: path.to_owned(),
+            namespace: namespace,
+            exposing: exposing,
+        }
+    }
 }

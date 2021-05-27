@@ -2,12 +2,7 @@
 
 mod ast;
 mod parser;
-mod token;
 mod value;
-
-use derive_tokentype::SimplifiedEnum;
-use logos::Logos;
-pub use token::Token;
 
 const SAMPLE: &str = r#"import "foo/bar" as Foo.Bar exposing { foo, bar, baz }
 
@@ -27,31 +22,13 @@ let baz = 34 |> a >> b
 
 let a = fun c => c * 1000"#;
 
-trait SimplifiedEnum {
-    type Simple;
-    fn simple_type(&self) -> Self::Simple;
-}
-
-#[derive(Debug, SimplifiedEnum)]
-enum T {
-    A { x: u8 },
-    B(char),
-    C,
-}
-
 fn main() {
     let f = value::Value::function_n(2);
     println!("{:?}", f.get_num_args());
 
-    println!(
-        "A:{:?} -> {:?},\nB:{:?} -> {:?},\nC:{:?} -> {:?},",
-        T::A { x: 3 },
-        <T as SimplifiedEnum>::Simple::from(T::A { x: 3 }),
-        T::B('c'),
-        <T as SimplifiedEnum>::Simple::from(T::B('c')),
-        T::C,
-        <T as SimplifiedEnum>::Simple::from(T::C),
-    );
-
-    println!("{:?}", parser::parse(Token::lexer(SAMPLE).spanned()));
+    println!("{:?}", parser::parse(SAMPLE));
+    println!("\nGood:");
+    parser::parse(r#"import "foo/bar" as Foo.Bar exposing { foo, bar, baz }"#);
+    println!("\nBad:");
+    parser::parse(r#"import"foo/bar" as someFoo . _Barexposing { foo, bar, baz }"#);
 }

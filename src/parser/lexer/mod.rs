@@ -1,0 +1,170 @@
+pub mod token;
+//mod token_group;
+
+use std::cell::RefCell;
+use std::collections::VecDeque;
+use std::convert::TryInto;
+
+use logos::{Logos, Span, SpannedIter};
+pub use token::Token;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Lexeme {
+    pub token: Token,
+    pub span: Span,
+}
+impl Lexeme {
+    pub fn convert_to<'a, T: From<&'a Token>>(&'a self) -> T {
+        T::from(&self.token)
+    }
+}
+impl From<(Token, Span)> for Lexeme {
+    fn from((token, span): (Token, Span)) -> Self {
+        Lexeme { token, span }
+    }
+}
+impl From<Lexeme> for (Token, Span) {
+    fn from(l: Lexeme) -> Self {
+        (l.token, l.span)
+    }
+}
+impl From<Lexeme> for Token {
+    fn from(l: Lexeme) -> Self {
+        l.token
+    }
+}
+impl From<Lexeme> for Span {
+    fn from(l: Lexeme) -> Self {
+        l.span
+    }
+}
+impl From<&Lexeme> for Token {
+    fn from(l: &Lexeme) -> Self {
+        l.token.clone()
+    }
+}
+
+pub struct LexemeGroup<const N: usize> {
+    size: usize,
+    values: Vec<Lexeme>,
+}
+impl<const N: usize> LexemeGroup<N> {
+    pub fn as_token_array(&self) -> [Option<&Token>; N] {
+        let mut res = [None; N];
+        for (i, l) in self.values.iter().enumerate() {
+            if i >= N {
+                break;
+            }
+            res[i] = Some(&l.token);
+        }
+        res
+    }
+    pub fn len_total(&self) -> usize {
+        self.size
+    }
+    pub fn len_valid(&self) -> usize {
+        self.values.len()
+    }
+    pub fn is_complete(&self) -> bool {
+        self.len_total() == self.len_valid()
+    }
+    pub fn get(&self, index: usize) -> Option<&Lexeme>{
+        self.values.get(index)
+    }
+    pub fn subgroup<const START: usize, const LEN: usize>(&self) -> LexemeGroup<LEN> {
+        LexemeGroup::<LEN> {
+            size: LEN,
+            values: (&self.values[START..START + LEN]).into(),
+        }
+    }
+}
+impl<const N: usize> From<[Lexeme; N]> for LexemeGroup<N> {
+    fn from(arr: [Lexeme; N]) -> Self {
+        Self {
+            size: N,
+            values: arr.into(),
+        }
+    }
+}
+impl<const N: usize> From<&[Lexeme]> for LexemeGroup<N> {
+    fn from(arr: &[Lexeme]) -> Self {
+        Self {
+            size: N,
+            values: arr.into(),
+        }
+    }
+}
+
+type LexerInternal<'s> = std::iter::Map<SpannedIter<'s, Token>, fn((Token, Span)) -> Lexeme>;
+
+pub struct Lexer<'s> {
+    lex: RefCell<LexerInternal<'s>>,
+    peekable: VecDeque<Lexeme>,
+}
+impl<'s> Lexer<'s> {
+    pub fn new(input: &'s str) -> Self {
+        Self {
+            lex: RefCell::new(Token::lexer(input).spanned().map(Lexeme::from)),
+            peekable: VecDeque::with_capacity(1),
+        }
+    }
+    fn _next_internal(&self) -> Option<Lexeme> {
+        self.lex.borrow_mut().next()
+    }
+    fn _peek_next(&mut self) -> Option<&Lexeme> {
+        if let Some(nxt) = self._next_internal() {
+            self.peekable.push_back(nxt);
+            self.peekable.back()
+        } else {
+            None
+        }
+    }
+    fn _peek_to_n(&mut self, n: usize) -> bool {
+        for _ in self.peekable.len()..n {
+            if let None = self._peek_next() {
+                return false;
+            }
+        }
+        true
+    }
+    pub fn peek(&mut self) -> Option<&Lexeme> {
+        if self.peekable.len() < 1 {
+            self._peek_next()
+        } else {
+            self.peekable.front()
+        }
+    }
+    pub fn peek_offset(&mut self, offset: usize) -> Option<&Lexeme> {
+        if self._peek_to_n(offset + 1) {
+            self.peekable.get(offset)
+        } else {
+            None
+        }
+    }
+    pub fn peek_n<const N: usize>(&mut self) -> [Option<&Lexeme>; N] {
+        self._peek_to_n(N);
+        let mut res = [None; N];
+        for (i, l) in self.peekable.iter().enumerate() {
+            if i >= N {
+                break;
+            }
+            res[i] = Some(l);
+        }
+        res
+    }
+    pub fn peek_n_exact<const N: usize>(&mut self) -> Option<&[Lexeme; N]> {
+        self._peek_to_n(N);
+        if self.peekable.len() < N {
+            None
+        } else {
+            Some(self.peekable.as_slices().0[..N].try_into().unwrap())
+        }
+    }
+}
+impl Iterator for Lexer<'_> {
+    type Item = Lexeme;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.peekable.pop_front().or_else(|| self._next_internal())
+    }
+}

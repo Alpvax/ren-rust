@@ -1,6 +1,8 @@
 use logos::{Span, SpannedIter};
+mod lexer;
 
-use crate::{ast, Token};
+use crate::ast;
+pub use lexer::Token;
 
 macro_rules! parent_parser {
     ($p:ty, $o:ty, $e:ty, {$u:item $p_e: item}) => {

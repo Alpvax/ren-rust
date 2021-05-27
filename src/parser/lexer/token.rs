@@ -8,9 +8,12 @@ pub struct LexerExtras {
     comments: HashMap<usize, String>,
 }
 
-#[derive(Logos, Debug, Clone, Copy, PartialEq)]
+#[derive(Logos, Debug, Clone, /*Copy,*/ PartialEq)]
 #[logos(extras = LexerExtras)]
-pub enum Token<'s> {
+pub enum Token {
+    #[token("ren")] // 'ren' keyword reserved for future use
+    KWRen,
+
     #[token("import")]
     KWImport,
     #[token("as")]
@@ -32,31 +35,26 @@ pub enum Token<'s> {
     #[token("else")]
     KWElse,
 
-    #[regex(r"[A-Z][A-Za-z0-9]*")]
-    Namespace(&'s str),
-    #[regex(r"([a-z][A-Za-z0-9]*)")]
-    VarName(&'s str),
-    #[regex(r"_([a-z][A-Za-z0-9]*)?")]
-    Wildcard(&'s str),
+    #[regex(r"[A-Z][A-Za-z0-9]*", owned)]
+    Namespace(String),
+    #[regex(r"([a-z][A-Za-z0-9]*)", owned)]
+    VarName(String),
+    #[regex(r"_([a-z][A-Za-z0-9]*)?", owned)]
+    Wildcard(String),
 
     #[regex(r"//[^\r\n]*", parse_comment)]
     Comment,
 
-    #[regex(r#""(?:\\"|[^"])*""#, trim_quotes)]
-    StrDbl(&'s str),
-    #[regex(r#"'(?:\\"|[^"])*'"#, trim_quotes)]
-    StrSingle(&'s str),
+    #[regex(r#""(?:\\"|[^"])*""#, trim_quotes)] // Double quoted
+    #[regex(r#"'(?:\\"|[^"])*'"#, trim_quotes)] // Single quoted
+    String(String),
 
-    #[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", parse_slice)]
-    Float(f64),
-    #[regex(r"0|[1-9][0-9]*", parse_slice)]
-    Int(isize),
-    #[regex(r"0[xX][0-9a-fA-F]+", callback = parse_usize_base(16))]
-    HexNumber(usize),
-    #[regex(r"0[oO][0-7]+", callback = parse_usize_base(8))]
-    OctNumber(usize),
-    #[regex(r"0[bB][01]+", callback = parse_usize_base(2))]
-    BinNumber(usize),
+    #[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", parse_slice)]    // Float
+    #[regex(r"0|[1-9][0-9]*", parse_slice)]                                         // Int
+    #[regex(r"0[xX][0-9a-fA-F]+", callback = parse_int_base(16))]                   // Hex
+    #[regex(r"0[oO][0-7]+", callback = parse_int_base(8))]                          // Oct
+    #[regex(r"0[bB][01]+", callback = parse_int_base(2))]                           // Bin
+    Number(f64),
 
     #[token(".")]
     Period,
@@ -121,38 +119,50 @@ pub enum Token<'s> {
     #[token("%")]
     OpMod, //infixRight 8
 
-    #[token("undefined")]
-    Undefined,
     #[regex("true|false", parse_slice)]
     Bool(bool),
 
+
+    #[regex(r"[\r\n]+", priority=2)]
+    NewLine,
+    #[regex(r"\s+")]
+    Whitespace,
+
     #[error]
-    #[regex(r"\s+", logos::skip)]
-    #[token("ren")] // 'ren' keyword reserved for future use
     Error,
 
     // Manually added when end of input is reached (no more tokens)
     EOF,
 }
 
-fn parse_slice<'s, T: FromStr>(lex: &mut Lexer<'s, Token<'s>>) -> Result<T, T::Err> {
+fn owned<'s>(lex: &mut Lexer<'s, Token>) -> String {
+    lex.slice().to_owned()
+}
+
+fn parse_slice<'s, T: FromStr>(lex: &mut Lexer<'s, Token>) -> Result<T, T::Err> {
     lex.slice().parse()
 }
 
-fn parse_comment<'s>(lex: &mut Lexer<'s, Token<'s>>) {
-    lex.extras.comments.insert(lex.span().start, lex.slice().to_owned());
+fn parse_comment<'s>(lex: &mut Lexer<'s, Token>) {
+    lex.extras
+        .comments
+        .insert(lex.span().start, lex.slice().to_owned());
 }
 
-fn parse_usize_base<'s>(radix: u32) -> impl FnMut(&mut Lexer<'s, Token<'s>>) -> usize {
-    move |lex: &mut Lexer<'s, Token<'s>>| usize::from_str_radix(&lex.slice()[2..], radix).unwrap()
+fn parse_int_base<'s>(radix: u32) -> impl FnMut(&mut Lexer<'s, Token>) -> f64 {
+    move |lex: &mut Lexer<'s, Token>| {
+        u32::from_str_radix(&lex.slice()[2..], radix)
+            .unwrap()
+            .into()
+    }
 }
 
-fn trim_quotes<'s>(lex: &mut Lexer<'s, Token<'s>>) -> &'s str {
+fn trim_quotes<'s>(lex: &mut Lexer<'s, Token>) -> String {
     let s = lex.slice();
     let len = s.len();
     if len > 2 {
-        &s[1..len - 1]
+        s[1..len - 1].to_owned()
     } else {
-        ""
+        String::new()
     }
 }
