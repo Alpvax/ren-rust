@@ -201,6 +201,12 @@ impl<'s> Lexer<'s> {
     pub fn peek_token(&mut self) -> Option<&Token> {
         self.peek().map(|l| &l.token)
     }
+    pub fn into_tokens_iter(self) -> impl Iterator<Item = Token> + 's {
+        self.map(|l| l.token)
+    }
+    pub fn remaining_tokens_vec(self) -> Vec<Token> {
+        self.into_tokens_iter().collect()
+    }
 }
 impl Iterator for Lexer<'_> {
     type Item = Lexeme;

@@ -67,9 +67,9 @@ fn main() {
         println!(
             "\n{}:\n  Tokens: {:?}\n  Result: {:?}\n  Remaining: {:?}",
             s,
-            parser::Lexer::new(s).map(|l| l.token).collect::<Vec<_>>(),
+            parser::Lexer::new(s).remaining_tokens_vec(),
             parser::parse_import(&mut lexer),
-            lexer.map(|l| l.token).collect::<Vec<_>>(),
+            lexer.remaining_tokens_vec(),
         );
     }
 }
