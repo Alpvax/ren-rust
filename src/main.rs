@@ -72,4 +72,10 @@ fn main() {
             lexer.remaining_tokens_vec(),
         );
     }
+
+    println!(
+        "\n\n\nNumber test:\n{:?}",
+        parser::Lexer::new("0 0.1 .1 341 14.682 1.3e2 3.4e-3 0xa0 0o14 0b100 0XfF 0O30 0B1010")
+            .remaining_tokens_vec()
+    )
 }
