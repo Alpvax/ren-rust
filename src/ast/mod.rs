@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub mod declaration;
 pub mod expression;
 pub mod import;

@@ -49,6 +49,7 @@ pub struct LexemeGroup<const N: usize> {
     size: usize,
     values: Vec<Lexeme>,
 }
+#[allow(dead_code)]
 impl<const N: usize> LexemeGroup<N> {
     pub fn as_token_array(&self) -> [Option<&Token>; N] {
         let mut res = [None; N];
@@ -137,6 +138,7 @@ pub struct Lexer<'s> {
     lex: RefCell<LexerInternal<'s>>,
     peekable: VecDeque<Lexeme>,
 }
+#[allow(dead_code)]
 impl<'s> Lexer<'s> {
     pub fn new(input: &'s str) -> Self {
         Self {

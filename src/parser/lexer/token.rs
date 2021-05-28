@@ -159,14 +159,6 @@ fn parse_comment<'s>(lex: &mut Lexer<'s, Token>) {
         .insert(lex.span().start, lex.slice().to_owned());
 }
 
-fn parse_int_base<'s>(radix: u32) -> impl FnMut(&mut Lexer<'s, Token>) -> f64 {
-    move |lex: &mut Lexer<'s, Token>| {
-        u32::from_str_radix(&lex.slice()[2..], radix)
-            .unwrap()
-            .into()
-    }
-}
-
 enum ParseNumError {
     BaseError(std::num::ParseIntError),
     Float(std::num::ParseFloatError),

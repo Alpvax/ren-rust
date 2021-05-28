@@ -12,6 +12,7 @@ macro_rules! make_test_fn {
 }
 
 mod helper {
+    #![allow(dead_code)]
     use super::Token;
     pub fn assert_err<T, E>(res: (Result<T, E>, Vec<Token>), error_type: E, remaining_count: usize)
     where
