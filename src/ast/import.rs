@@ -2,9 +2,9 @@ use crate::ast::{Namespace, VarName};
 
 #[derive(Debug)]
 pub struct Import {
-    path: String,
-    namespace: Option<Vec<Namespace>>,
-    exposing: Option<Vec<VarName>>,
+    pub path: String,
+    pub namespace: Option<Vec<Namespace>>,
+    pub exposing: Option<Vec<VarName>>,
 }
 
 impl Import {

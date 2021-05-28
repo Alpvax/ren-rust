@@ -48,7 +48,7 @@ pub enum Token {
     /*#[regex(r#""(?:\\"|[^"])*""#, trim_quotes)] // Double quoted
     #[regex(r#"'(?:\\'|[^'])*'"#, trim_quotes)] // Single quoted*/
     #[regex(r#"('(?:\\'|[^'])*')|"(?:\\"|[^"])*""#, trim_quotes)] //Combined
-    String(String),
+    StringLit(String),
 
     /*#[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", parse_slice)] // Float
     #[regex(r"0|[1-9][0-9]*", parse_slice)] // Int
