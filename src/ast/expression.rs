@@ -3,7 +3,20 @@ use std::collections::HashMap;
 use crate::ast::Identifier;
 use crate::value::ValueType;
 
-use super::declaration::BindingPattern;
+#[derive(Debug, Clone, PartialEq)]
+pub enum LiteralNonContainer {
+    String(String),
+    Number(f64),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Pattern {
+    ArrayDestructure(Vec<Pattern>),
+    Name(String),
+    ObjectDestructure(Vec<(String, Option<Pattern>)>),
+    Value(LiteralNonContainer),
+    Wildcard(Option<String>),
+}
 
 #[derive(Debug, Clone)]
 pub enum Expression {
@@ -13,7 +26,7 @@ pub enum Expression {
     Conditional(Box<Expression>, Box<Expression>, Box<Expression>),
     Identifier(Identifier),
     Infix(Operator, Box<Expression>, Box<Expression>),
-    Lambda(Vec<BindingPattern>, Box<Expression>),
+    Lambda(Vec<Pattern>, Box<Expression>),
     Literal(Literal),
 }
 

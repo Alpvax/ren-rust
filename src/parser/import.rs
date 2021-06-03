@@ -20,7 +20,7 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::NoTokens => write!(f, "no tokens to parse"),
+            Error::NoTokens => write!(f, "No tokens to parse"),
             Error::NoPath => write!(f, "Missing path"),
             Error::MissingImportWhitespace => write!(f, "The \"import\" keyword must be followed by whitespace, then a string path"),
             Error::InvalidStart => write!(f, "import statements must start with the \"import\" keyword"),

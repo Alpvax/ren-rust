@@ -39,8 +39,8 @@ pub enum Token {
     Namespace(String),
     #[regex(r"([a-z][A-Za-z0-9]*)", owned)]
     VarName(String),
-    #[regex(r"_([a-z][A-Za-z0-9]*)?", owned)]
-    Wildcard(String),
+    #[regex(r"_([a-z][A-Za-z0-9]*)?", named_wildcard)]
+    Wildcard(Option<String>),
 
     #[regex(r"//[^\r\n]*", parse_comment)]
     Comment,
@@ -63,6 +63,8 @@ pub enum Token {
     Period,
     #[token(",")]
     Comma,
+    #[token(":")]
+    Colon,
     #[token("{")]
     CurlyOpen,
     #[token("}")]
@@ -157,6 +159,15 @@ fn parse_comment<'s>(lex: &mut Lexer<'s, Token>) {
     lex.extras
         .comments
         .insert(lex.span().start, lex.slice().to_owned());
+}
+
+fn named_wildcard<'s>(lex: &mut Lexer<'s, Token>) -> Option<String> {
+    let s = lex.slice();
+    if s.len() > 1 {
+        Some(s[1..].to_owned())
+    } else {
+        None
+    }
 }
 
 enum ParseNumError {

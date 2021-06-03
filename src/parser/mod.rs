@@ -1,4 +1,5 @@
 mod declaration;
+mod expression;
 mod import;
 mod lexer;
 
@@ -7,10 +8,15 @@ mod test;
 use crate::ast;
 pub use lexer::{Lexer, Token};
 
-pub use self::declaration::{parse_declaration, parse_pub_declaration, Error as DeclarationError};
+pub use self::declaration::{
+    parse_declaration, parse_toplevel_declaration, Error as DeclarationError,
+};
+pub use self::expression::{
+    parse_expression, parse_pattern, Error as ExpressionError, PatternParseError,
+};
 pub use self::import::{parse_import, Error as ImportError};
 
-#[derive(Debug)]
+/*#[derive(Debug)]
 pub struct ModuleBuilder {
     imports: Vec<ast::import::Import>,
     declarations: Vec<ast::declaration::Declaration>,
@@ -22,7 +28,7 @@ impl ModuleBuilder {
             declarations: Vec::new(),
         }
     }
-}
+}*/
 
 fn consume_whitespace(lexer: &mut Lexer) -> bool {
     if let Some(Token::Whitespace) = lexer.peek_token() {
@@ -105,35 +111,29 @@ impl From<DeclarationError> for ModuleParseError {
     }
 }
 
-pub fn parse<'s>(input: &str) -> Result<ModuleBuilder, Vec<ModuleParseError>> {
+pub fn parse<'s>(input: &str) -> Result<ast::Module, Vec<ModuleParseError>> {
     let mut lexer = Lexer::new(input);
-    let mut builder = ModuleBuilder::new();
+    let mut builder = ast::Module::new();
     let mut errors = Vec::new();
     loop {
         if let Some(tok) = lexer.peek_token() {
             match tok {
                 Token::KWImport => {
-                    if builder.declarations.len() < 1 {
+                    if builder.has_declarations() {
+                        errors.push(ModuleParseError::ImportBelowDeclaration)
+                    } else {
                         match parse_import(&mut lexer) {
-                            Ok(i) => builder.imports.push(i),
+                            Ok(i) => builder.add_import(i),
                             Err(e) => errors.push(e.into()),
                         }
-                    } else {
-                        errors.push(ModuleParseError::ImportBelowDeclaration)
                     }
                 }
-                Token::KWLet => match parse_declaration(&mut lexer) {
-                    Ok(d) => builder.declarations.push(d),
-                    Err(e) => errors.push(e.into()),
-                },
-                Token::KWFun => match parse_declaration(&mut lexer) {
-                    Ok(d) => builder.declarations.push(d),
-                    Err(e) => errors.push(e.into()),
-                },
-                Token::KWPub => match parse_pub_declaration(&mut lexer) {
-                    Ok(d) => builder.declarations.push(d),
-                    Err(e) => errors.push(e.into()),
-                },
+                Token::KWLet | Token::KWFun | Token::KWPub => {
+                    match parse_toplevel_declaration(&mut lexer) {
+                        Ok(d) => builder.add_declaration(d),
+                        Err(e) => errors.push(e.into()),
+                    }
+                }
                 _ => errors.push(ModuleParseError::UnexpectedToken),
             }
         } else {
