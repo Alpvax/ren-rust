@@ -45,6 +45,7 @@ impl From<&Lexeme> for Token {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct LexemeGroup<const N: usize> {
     size: usize,
     values: Vec<Lexeme>,

@@ -121,37 +121,6 @@ pub fn parse_declaration(lexer: &mut Lexer) -> Result<Declaration, Error> {
             let block = parse_bindings_or_obj(lexer)?;
             builder.bindings = block.0;
             builder.body = Some(block.1);
-            /*loop {
-                if let Some(tok) = lexer.peek_token() {
-                    match tok {
-                        Token::KWRet => {
-                            builder.body = Some(expression::parse_expression_until(
-                                lexer,
-                                vec![Token::KWPub, Token::KWFun, Token::KWLet, Token::CurlyClose],
-                            )?);
-                            consume_whitespace(lexer);
-                            if let Some(Token::CurlyClose) = lexer.peek_token() {
-                                //Consume??
-                                lexer.next();
-                                break;
-                            } else {
-                                return Err(Error::RetMustBeLast);
-                            }
-                        }
-                        Token::KWLet | Token::KWFun => {
-                            builder.bindings.push(parse_declaration(lexer)?);
-                            consume_whitespace(lexer);
-                        }
-                        Token::CurlyClose => {
-                            lexer.next();
-                            return Err(Error::NoRet);
-                        }
-                        _ => return Err(Error::InvalidBlockStatement),
-                    }
-                } else {
-                    return Err(Error::UnclosedBlockDeclaration);
-                }
-            }*/
         } else {
             builder.body = Some(parse_expression(lexer)?);
         }

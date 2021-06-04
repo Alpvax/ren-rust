@@ -1,7 +1,7 @@
 use super::expression::{Expression, Pattern};
 use crate::ast::VarName;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Visibility {
     Public,
     Private,
@@ -12,13 +12,13 @@ impl Default for Visibility {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Definition {
     Function { name: VarName, args: Vec<Pattern> },
     Variable { name: Pattern },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Declaration {
     comment: Vec<String>,
     visibility: Visibility,
