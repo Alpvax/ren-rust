@@ -1,6 +1,10 @@
 use crate::ast::expression::{Expression, Pattern};
 
+use self::literal::{parse_literal, Error as LiteralError};
+
 use super::*;
+
+pub mod literal;
 
 /*struct ExpressionBuilder {}
 
@@ -11,13 +15,13 @@ pub fn begin_expression() -> ExpressionBuilder {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Error {
     NoTokens,
-    TODO,
+    InvalidLiteral,
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::TODO => write!(f, "Implement Expression parsing"),
             Error::NoTokens => write!(f, "No tokens to parse"),
+            Error::InvalidLiteral => write!(f, "Invalid literal"),
         }
     }
 }
@@ -158,10 +162,25 @@ pub fn parse_pattern(lexer: &mut Lexer) -> Result<Pattern, PatternParseError> {
     }
 }
 
-pub fn parse_expression(_lexer: &mut Lexer) -> Result<Expression, Error> {
-    todo!("Parse expression")
+pub fn parse_expression(lexer: &mut Lexer) -> Result<Expression, Error> {
+    parse_literal(lexer).map_or_else(
+        |e| match e {
+            LiteralError::NoTokens => Err(Error::NoTokens),
+            LiteralError::NonLiteral => match lexer.peek_token() {
+                Some(Token::ParenOpen) => todo!("Parse subexpression"),
+                _ => todo!("Parse other expression types"),
+            },
+        },
+        |l| Ok(Expression::Literal(l)),
+    )
 }
 
-pub fn parse_object_literal(_lexer: &mut Lexer) -> Result<Expression, Error> {
-    todo!("Parse object literal body")
+pub fn parse_object_literal(lexer: &mut Lexer) -> Result<Expression, Error> {
+    literal::parse_object_literal(lexer).map_or_else(
+        |e| match e {
+            LiteralError::NoTokens => Err(Error::NoTokens),
+            LiteralError::NonLiteral => Err(Error::InvalidLiteral),
+        },
+        |l| Ok(Expression::Literal(l)),
+    )
 }

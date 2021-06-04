@@ -18,7 +18,7 @@ pub enum Pattern {
     Wildcard(Option<String>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     SubExpr(Box<Expression>),
     Accessor(Box<Expression>, Box<Accessor>),
@@ -98,7 +98,7 @@ impl Expression {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Accessor {
     Computed(Expression),
     Fixed(String),
@@ -204,7 +204,7 @@ impl Operator {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Array(Vec<Expression>),
     Boolean(bool),

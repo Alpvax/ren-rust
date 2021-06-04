@@ -12,23 +12,10 @@ pub use self::declaration::{
     parse_declaration, parse_toplevel_declaration, Error as DeclarationError,
 };
 pub use self::expression::{
+    literal::{parse_literal, Error as LiteralError},
     parse_expression, parse_pattern, Error as ExpressionError, PatternParseError,
 };
 pub use self::import::{parse_import, Error as ImportError};
-
-/*#[derive(Debug)]
-pub struct ModuleBuilder {
-    imports: Vec<ast::import::Import>,
-    declarations: Vec<ast::declaration::Declaration>,
-}
-impl ModuleBuilder {
-    pub fn new() -> Self {
-        Self {
-            imports: Vec::new(),
-            declarations: Vec::new(),
-        }
-    }
-}*/
 
 fn consume_whitespace(lexer: &mut Lexer) -> bool {
     if let Some(Token::Whitespace) = lexer.peek_token() {
