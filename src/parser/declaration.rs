@@ -12,7 +12,9 @@ pub enum Error {
     MissingPubWhitespace,
     InvalidStart,
     NoFunLet,
+    MissingFunLetWhitespace,
     MissingRet,
+    MissingRetWhitespace,
     InvalidBlockStatement,
     UnclosedBlockDeclaration,
     InvalidBlockStart,
@@ -31,8 +33,10 @@ impl std::fmt::Display for Error {
             Error::MissingPubWhitespace => write!(f, "\"pub\" keyword must be followed by whitespace"),
             Error::InvalidStart => write!(f, "Declaration must start with \"let\" or \"fun\" (or \"pub\" if it is a toplevel declaration)"),
             Error::NoFunLet => write!(f, "Declaration must start with \"let\" or \"fun\""),
+            Error::MissingFunLetWhitespace => write!(f, "The \"let\" or \"fun\" keywords must be followed by whitespace"),
             Error::UnclosedBlockDeclaration => write!(f, "Block declaration must be terminated with '}}'"),
             Error::MissingRet => write!(f, "The final statement in a declaration block must start with the \"ret\" keyword"),
+            Error::MissingRetWhitespace => write!(f, "The \"ret\" keyword must be followed by whitespace"),
             Error::InvalidBlockStatement => write!(f, "Declaration blocks must be 0 or more declarations, followed by a single ret statement"),
             Error::InvalidBlockStart => write!(f, "Attempted to start a declaration block with a non '{{' token"),
             //Error::RetMustBeLast => write!(f, "The final statement in a declaration block must be a ret statement"),
@@ -108,25 +112,27 @@ pub fn parse_toplevel_declaration(lexer: &mut Lexer) -> Result<Declaration, Erro
 }
 /// Parse let/fun declarations. Consumes first 2 tokens regardeless!!
 pub fn parse_declaration(lexer: &mut Lexer) -> Result<Declaration, Error> {
-    if let [Some(tok), Some(Token::Whitespace)] = [lexer.next_token(), lexer.next_token()] {
-        //TODO: Not consume?
-        let mut builder = DeclarationBuilder::new();
-        builder.definition = Some(match tok {
-            Token::KWLet => parse_let_def(lexer),
-            Token::KWFun => parse_fun_def(lexer),
-            _ => Err(Error::NoFunLet),
-        }?);
-        consume_whitespace(lexer);
-        if let Some(Token::CurlyOpen) = lexer.peek_token() {
-            let block = parse_bindings_or_obj(lexer)?;
-            builder.bindings = block.0;
-            builder.body = Some(block.1);
-        } else {
-            builder.body = Some(parse_expression(lexer)?);
+    match (lexer.next_token(), lexer.next_token()) {
+        (Some(tok), Some(Token::Whitespace)) => {
+            //TODO: Not consume?
+            let mut builder = DeclarationBuilder::new();
+            builder.definition = Some(match tok {
+                Token::KWLet => parse_let_def(lexer),
+                Token::KWFun => parse_fun_def(lexer),
+                _ => Err(Error::NoFunLet),
+            }?);
+            consume_whitespace(lexer);
+            if let Some(Token::CurlyOpen) = lexer.peek_token() {
+                let block = parse_bindings_or_obj(lexer)?;
+                builder.bindings = block.0;
+                builder.body = Some(block.1);
+            } else {
+                builder.body = Some(parse_expression(lexer)?);
+            }
+            builder.try_into()
         }
-        builder.try_into()
-    } else {
-        Err(Error::NoFunLet)
+        (Some(Token::KWLet), _) | (Some(Token::KWFun), _) => Err(Error::MissingFunLetWhitespace),
+        _ => Err(Error::NoFunLet),
     }
 }
 
@@ -191,15 +197,26 @@ fn parse_bindings_or_obj(lexer: &mut Lexer) -> Result<(Vec<Declaration>, Express
                         match lexer.peek_token() {
                             Some(KWFun) | Some(KWLet) => b.push(parse_declaration(lexer)?),
                             Some(KWRet) => {
-                                let body = parse_expression(lexer)?;
-                                if let Some(CurlyClose) = lexer.peek_token() {
-                                    lexer.next(); //Consume CurlyClose
-                                    return Ok((b, body));
+                                lexer.next(); //Consume Ret
+                                if let Some(Whitespace) = lexer.peek_token() {
+                                    consume_whitespace(lexer);
+                                    let body = parse_expression(lexer)?;
+                                    consume_whitespace(lexer);
+                                    if let Some(CurlyClose) = lexer.peek_token() {
+                                        lexer.next(); //Consume CurlyClose
+                                        return Ok((b, body));
+                                    } else {
+                                        return Err(Error::UnclosedBlockDeclaration);
+                                    }
                                 } else {
-                                    return Err(Error::UnclosedBlockDeclaration);
+                                    return Err(Error::MissingRetWhitespace);
                                 }
                             }
                             Some(CurlyClose) => return Err(Error::MissingRet),
+                            Some(Whitespace) => {
+                                lexer.next();
+                                continue;
+                            }
                             _ => return Err(Error::InvalidBlockStatement),
                         }
                     }

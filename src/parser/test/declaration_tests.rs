@@ -103,7 +103,92 @@ fn parse_simple() {
 }
 
 #[test]
-fn parse_block() {}
+fn parse_block() {
+    let l1 = let_dec(
+        false,
+        Pattern::Name("a".to_owned()),
+        Vec::new(),
+        Literal::Boolean(true),
+    );
+    let l2 = let_dec(
+        false,
+        Pattern::Name("b".to_owned()),
+        Vec::new(),
+        Literal::Boolean(false),
+    );
+    let f1 = fun_dec(
+        false,
+        "f",
+        vec![Pattern::Name("x".to_owned())],
+        Vec::new(),
+        Literal::Number(12.0),
+    );
+    let f2 = fun_dec(
+        false,
+        "g",
+        vec![Pattern::Name("y".to_owned())],
+        Vec::new(),
+        Literal::String("baz".to_owned()),
+    );
+
+    assert_eq!(
+        ok_remaining(
+            test_dec(
+                "fun foo = p => {
+  let a = true
+  ret 0xff
+}"
+            ),
+            0
+        ),
+        fun_dec(
+            false,
+            "foo",
+            vec![Pattern::Name("p".to_owned())],
+            vec![l1.clone()],
+            Literal::Number(255.0)
+        ),
+    );
+    assert_eq!(
+        ok_remaining(
+            test_dec(
+                "fun foo = p => {
+  let a = true
+  fun f = x => 12
+  ret 0xff
+}"
+            ),
+            0
+        ),
+        fun_dec(
+            false,
+            "foo",
+            vec![Pattern::Name("p".to_owned())],
+            vec![l1.clone(), f1.clone()],
+            Literal::Number(255.0)
+        ),
+    );
+    assert_eq!(
+        ok_remaining(
+            test_dec(
+                "let bar = {
+  let a = true
+  let b = false
+  fun f = x => 12
+  fun g = y => \"baz\"
+  ret 'Hello World'
+}"
+            ),
+            0
+        ),
+        let_dec(
+            false,
+            Pattern::Name("bar".to_owned()),
+            vec![l1.clone(), l2.clone(), f1.clone(), f2.clone()],
+            Literal::String("Hello World".to_owned())
+        ),
+    );
+}
 
 #[test]
 fn parse_visibility() {
