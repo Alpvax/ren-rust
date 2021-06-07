@@ -100,18 +100,16 @@ mod parse_literal {
             }
         }
         test_arr_lit("[]", 0, Vec::new());
-        let v = vec![Expression::Identifier(Identifier::VarName(
-            "foo".to_owned(),
-        ))];
-        test_arr_lit("[foo]", 0, v.clone());
-        test_arr_lit("[ foo ]", 0, v.clone());
-        test_arr_lit("[foo,]", 0, v.clone());
+        let v = vec![Expression::Literal(Literal::String("foo".to_owned()))];
+        test_arr_lit("['foo']", 0, v.clone());
+        test_arr_lit("[ 'foo' ]", 0, v.clone());
+        test_arr_lit("['foo',]", 0, v.clone());
         let v2 = vec![
-            Expression::Identifier(Identifier::VarName("foo".to_owned())),
-            Expression::Identifier(Identifier::VarName("bar".to_owned())),
+            Expression::Literal(Literal::String("foo".to_owned())),
+            Expression::Literal(Literal::Number(2.0)),
         ];
-        test_arr_lit("[foo, bar]", 0, v2.clone());
-        test_arr_lit("[foo , bar ,]", 0, v2.clone());
+        test_arr_lit("['foo', 2]", 0, v2.clone());
+        test_arr_lit("['foo' , 2 ,]", 0, v2.clone());
     }
 
     #[test]
@@ -123,12 +121,28 @@ mod parse_literal {
                 panic!("Not an object literal!");
             }
         }
+        let a = ("a".to_owned(), Expression::Literal(Literal::Number(3.0)));
+        let b = (
+            "b".to_owned(),
+            Expression::Identifier(Identifier::VarName("b".to_owned())),
+        );
+
         test_obj_lit("{}", 0, HashMap::new());
-        let m = vec![("a".to_owned(), Expression::Literal(Literal::Number(3.0)))]
-            .into_iter()
-            .collect::<HashMap<_, _>>();
+
+        let m = vec![a.clone()].into_iter().collect::<HashMap<_, _>>();
         test_obj_lit("{a:3}", 0, m.clone());
         test_obj_lit("{ a : 3 }", 0, m.clone());
-        test_obj_lit("{ a: 3, }", 0, m.clone());
+        test_obj_lit("{ a : 3, }", 0, m.clone());
+        //assert_err(test_lit("{ a: 3, }"), LitErr::InvalidKey, 2);
+
+        let m2 = vec![b.clone()].into_iter().collect::<HashMap<_, _>>();
+        test_obj_lit("{b}", 0, m2.clone());
+        test_obj_lit("{ b }", 0, m2.clone());
+        test_obj_lit("{ b, }", 0, m2.clone());
+
+        let m3 = vec![a, b].into_iter().collect::<HashMap<_, _>>();
+        test_obj_lit("{a:3,b}", 0, m3.clone());
+        test_obj_lit("{ a : 3 , b }", 0, m3.clone());
+        test_obj_lit("{ a:3, b, }", 0, m3.clone());
     }
 }
