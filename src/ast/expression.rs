@@ -31,6 +31,12 @@ pub enum Expression {
 }
 
 impl Expression {
+    pub fn local_var(name: &str) -> Self {
+        Self::Identifier(Identifier::Local(name.to_owned()))
+    }
+    pub fn operator_ident(op: Operator) -> Self {
+        Self::Identifier(Identifier::Operator(op))
+    }
     pub fn value_type(&self) -> ValueType {
         match self {
             Expression::SubExpr(e) => e.value_type(),

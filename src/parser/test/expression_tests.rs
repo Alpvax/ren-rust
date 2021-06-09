@@ -16,8 +16,6 @@ fn parse_empty() {
 mod parse_literal {
     use std::collections::HashMap;
 
-    use crate::ast::Identifier;
-
     use super::*;
 
     #[test]
@@ -122,10 +120,7 @@ mod parse_literal {
             }
         }
         let a = ("a".to_owned(), Expression::Literal(Literal::Number(3.0)));
-        let b = (
-            "b".to_owned(),
-            Expression::Identifier(Identifier::VarName("b".to_owned())),
-        );
+        let b = ("b".to_owned(), Expression::local_var("b"));
 
         test_obj_lit("{}", 0, HashMap::new());
 

@@ -148,10 +148,6 @@ fn parse_object_destructure_subpattern() {
             ))])),
         ),
     ];
-    println!(
-        "Multiple: {:?}",
-        test_pattern("{foo:[_, bar],x:y,baz:[_foz]}").0
-    );
     assert_eq!(
         ok_remaining(test_pattern("{foo:[_, bar],x:y,baz:[_foz]}"), 0),
         Pattern::ObjectDestructure(v2.clone())

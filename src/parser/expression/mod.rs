@@ -1,9 +1,13 @@
-use crate::ast::expression::{Expression, Pattern};
+use std::{collections::HashMap, convert::TryFrom};
+
+use crate::ast::expression::{Expression, Operator, Pattern};
 
 use self::literal::{parse_literal, Error as LiteralError};
+use self::identifier::{parse_identifier, Error as IdentifierError};
 
 use super::*;
 
+pub mod identifier;
 pub mod literal;
 
 /*struct ExpressionBuilder {}
@@ -16,12 +20,14 @@ pub fn begin_expression() -> ExpressionBuilder {
 pub enum Error {
     NoTokens,
     InvalidLiteral,
+    InvalidIdentifier,
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::NoTokens => write!(f, "No tokens to parse"),
             Error::InvalidLiteral => write!(f, "Invalid literal"),
+            Error::InvalidIdentifier => write!(f, "Invalid identifier"),
         }
     }
 }
@@ -167,7 +173,19 @@ pub fn parse_expression(lexer: &mut Lexer) -> Result<Expression, Error> {
         |e| match e {
             LiteralError::NoTokens => Err(Error::NoTokens),
             LiteralError::NonLiteral => match lexer.peek_token() {
-                Some(Token::ParenOpen) => todo!("Parse subexpression"),
+                Some(Token::ParenOpen) => {
+                    if let Some(l) = lexer.peek_n_exact() {
+                        if let [Token::ParenOpen, t_op, Token::ParenClose] =
+                            l.as_token_array_unchecked()
+                        {
+                            if let Ok(op) = Operator::try_from(t_op) {
+                                lexer.nth(2); //Consume ( op )
+                                return Ok(Expression::operator_ident(op));
+                            }
+                        }
+                    }
+                    todo!("Parse subexpression")
+                }
                 _ => todo!("Parse other expression types"),
             },
             LiteralError::InvalidStartToken => todo!("Invalid start token: {:?}", lexer.peek()),

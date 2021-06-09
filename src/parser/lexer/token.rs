@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::str::FromStr;
 
 use logos::{Lexer, Logos};
@@ -137,6 +138,35 @@ pub enum Token {
 
     // Manually added when end of input is reached (no more tokens)
     EOF,
+}
+
+impl TryFrom<&Token> for crate::ast::expression::Operator {
+    type Error = ();
+
+    fn try_from(value: &Token) -> Result<Self, Self::Error> {
+        match value {
+            Token::OpPipe => Ok(Self::Pipe),
+            Token::OpCompose => Ok(Self::Compose),
+            Token::OpEq => Ok(Self::Eq),
+            Token::OpNotEq => Ok(Self::NotEq),
+            Token::OpLte => Ok(Self::Lte),
+            Token::OpGte => Ok(Self::Gte),
+            Token::OpAnd => Ok(Self::And),
+            Token::OpOr => Ok(Self::Or),
+            Token::OpCons => Ok(Self::Cons),
+            Token::OpJoin => Ok(Self::Join),
+            Token::OpDiscard => Ok(Self::Discard),
+            Token::OpLt => Ok(Self::Lt),
+            Token::OpGt => Ok(Self::Gt),
+            Token::OpAdd => Ok(Self::Add),
+            Token::OpSub => Ok(Self::Sub),
+            Token::OpMul => Ok(Self::Mul),
+            Token::OpDiv => Ok(Self::Div),
+            Token::OpPow => Ok(Self::Pow),
+            Token::OpMod => Ok(Self::Mod),
+            _ => Err(()),
+        }
+    }
 }
 /*impl Token {
     pub fn is_whitespace(&self) -> bool {

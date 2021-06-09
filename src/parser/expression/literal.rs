@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use crate::ast::expression::Literal;
-use crate::ast::Identifier;
 
 use super::*;
 
@@ -53,10 +52,7 @@ pub fn parse_object_literal(lexer: &mut Lexer) -> Result<Literal, Error> {
                             _ => return Err(Error::MissingComma),
                         } && !map.contains_key(&key)
                         {
-                            map.insert(
-                                key.clone(),
-                                Expression::Identifier(Identifier::VarName(key)),
-                            );
+                            map.insert(key.clone(), Expression::local_var(&key));
                         }
                     }
                     _ => return Err(Error::InvalidKey),
