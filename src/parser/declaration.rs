@@ -60,6 +60,11 @@ impl From<PatternParseError> for Error {
         Self::PatternError(e)
     }
 }
+impl From<ParamsParseError> for Error {
+    fn from(e: ParamsParseError) -> Self {
+        Self::EmptyFunParams
+    }
+}
 
 struct DeclarationBuilder {
     comment: Vec<String>,
@@ -146,25 +151,10 @@ fn parse_fun_def(lexer: &mut Lexer) -> Result<Definition, Error> {
             consume_whitespace(lexer);
             lexer.next(); //Consume '='
             consume_whitespace(lexer);
-            let mut args = Vec::new();
-            loop {
-                if let Some(tok) = lexer.peek_token() {
-                    if tok == &OpFun {
-                        lexer.next(); //Consume "=>"
-                        break;
-                    }
-                    args.push(parse_pattern(lexer)?);
-                    consume_whitespace(lexer);
-                }
-            }
-            if args.len() < 1 {
-                Err(Error::EmptyFunParams)
-            } else {
-                Ok(Definition::Function {
-                    name: name.to_owned(),
-                    args,
-                })
-            }
+            Ok(Definition::Function {
+                name: name.to_owned(),
+                args: parse_fun_args(lexer)?,
+            })
         }
         [Some(VarName(_)), ..] => Err(Error::MissingAssignOp),
         _ => Err(Error::MissingFunName),

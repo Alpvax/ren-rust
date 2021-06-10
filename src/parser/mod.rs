@@ -6,6 +6,7 @@ mod lexer;
 mod test;
 
 use crate::ast;
+use crate::ast::expression::Pattern;
 pub use lexer::{Lexer, Token};
 
 pub use self::declaration::{
@@ -67,6 +68,35 @@ pub fn parse_namespace(lexer: &mut Lexer) -> Result<Vec<ast::Namespace>, Namespa
             Ok(ns)
         }
         _ => Err(NamespaceError::None),
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(self) enum ParamsParseError {
+    Empty,
+    PatternError(PatternParseError),
+}
+impl From<PatternParseError> for ParamsParseError {
+    fn from(e: PatternParseError) -> Self {
+        Self::PatternError(e)
+    }
+}
+pub(self) fn parse_fun_args(lexer: &mut Lexer) -> Result<Vec<Pattern>, ParamsParseError> {
+    let mut args = Vec::new();
+    loop {
+        if let Some(tok) = lexer.peek_token() {
+            if tok == &Token::OpFun {
+                lexer.next(); //Consume "=>"
+                break;
+            }
+            args.push(parse_pattern(lexer)?);
+            consume_whitespace(lexer);
+        }
+    }
+    if args.len() < 1 {
+        Err(ParamsParseError::Empty)
+    } else {
+        Ok(args)
     }
 }
 

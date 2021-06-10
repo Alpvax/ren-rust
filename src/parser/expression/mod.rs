@@ -1,12 +1,13 @@
-use std::{collections::HashMap, convert::TryFrom};
+use std::convert::TryFrom;
 
 use crate::ast::expression::{Expression, Operator, Pattern};
 
-use self::literal::{parse_literal, Error as LiteralError};
 use self::identifier::{parse_identifier, Error as IdentifierError};
+use self::literal::{parse_literal, Error as LiteralError};
 
 use super::*;
 
+pub mod complex;
 pub mod identifier;
 pub mod literal;
 
@@ -16,11 +17,55 @@ pub fn begin_expression() -> ExpressionBuilder {
     todo!("Expression Builder")
 }*/
 
+fn start_expression(lexer: &mut Lexer) -> Result<Expression, Error> {
+    if let Some(tok) = lexer.peek_token() {
+        match tok {
+            Token::ParenOpen => identifier::parse_operator(lexer).map_or_else(
+                |err| {
+                    lexer.next(); //Consume '('
+                    let res = start_expression(lexer); //Parse subexpr
+                    consume_whitespace(lexer);
+                    if let Some(Token::ParenClose) = lexer.peek_token() {
+                        lexer.next(); //Consume ')'
+                        res
+                    } else {
+                        Err(Error::UnclosedSubExpr)
+                    }
+                },
+                |op| Ok(Expression::Identifier(op)),
+            ),
+
+            Token::SquareOpen => literal::parse_array_literal(lexer).map_or_else(
+                |_| Err(Error::InvalidLiteral),
+                |l| Ok(Expression::Literal(l)),
+            ),
+            Token::CurlyOpen => literal::parse_object_literal(lexer).map_or_else(
+                |_| Err(Error::InvalidLiteral),
+                |l| Ok(Expression::Literal(l)),
+            ),
+            Token::Bool(_) | Token::Number(_) | Token::StringLit(_) => parse_literal(lexer)
+                .map_or_else(
+                    |_| Err(Error::InvalidLiteral),
+                    |l| Ok(Expression::Literal(l)),
+                ),
+
+            Token::KWFun => complex::parse_lambda(lexer),
+
+            Token::KWIf => complex::parse_conditional(lexer),
+
+            _ => todo!("Other token types starting expressions"),
+        }
+    } else {
+        Err(Error::NoTokens)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Error {
     NoTokens,
     InvalidLiteral,
     InvalidIdentifier,
+    UnclosedSubExpr,
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -28,6 +73,7 @@ impl std::fmt::Display for Error {
             Error::NoTokens => write!(f, "No tokens to parse"),
             Error::InvalidLiteral => write!(f, "Invalid literal"),
             Error::InvalidIdentifier => write!(f, "Invalid identifier"),
+            Error::UnclosedSubExpr => write!(f, "Expression ended before ')' was reached"),
         }
     }
 }

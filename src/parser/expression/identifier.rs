@@ -12,7 +12,7 @@ pub enum Error {
     InvalidFieldName,
 }
 
-fn parse_operator(lexer: &mut Lexer) -> Result<Identifier, Error> {
+pub fn parse_operator(lexer: &mut Lexer) -> Result<Identifier, Error> {
     if let Some(l) = lexer.peek_n_exact::<3>() {
         if let [Token::ParenOpen, t_op, Token::ParenClose] = l.as_token_array_unchecked() {
             if let Ok(op) = Operator::try_from(t_op) {
