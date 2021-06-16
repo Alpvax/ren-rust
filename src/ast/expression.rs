@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use crate::ast::Identifier;
 use crate::value::ValueType;
 
+use super::VarName;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum LiteralNonContainer {
     String(String),
@@ -107,10 +109,10 @@ impl Expression {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Accessor {
     Computed(Expression),
-    Fixed(String),
+    Fixed(VarName),
 }
 impl Accessor {
-    pub fn unwrap(self) -> Option<String> {
+    pub fn unwrap(self) -> Option<VarName> {
         match self {
             Accessor::Computed(e) => {
                 if ValueType::String == e.value_type() {
