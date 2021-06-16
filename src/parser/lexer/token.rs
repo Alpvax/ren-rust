@@ -60,6 +60,9 @@ pub enum Token {
     //Combined
     Number(f64),
 
+    #[regex("true|false", parse_slice)]
+    Bool(bool),
+
     #[token(".")]
     Period,
     #[token(",")]
@@ -124,9 +127,6 @@ pub enum Token {
     OpPow, //infixRight 8
     #[token("%")]
     OpMod, //infixRight 8
-
-    #[regex("true|false", parse_slice)]
-    Bool(bool),
 
     /*#[regex(r"[\r\n]+", priority=2)]
     NewLine,*/
