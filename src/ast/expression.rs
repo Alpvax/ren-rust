@@ -93,6 +93,7 @@ impl Expression {
                 Literal::Boolean(_) => ValueType::Boolean,
                 Literal::Number(_) => ValueType::Number,
                 Literal::String(_) => ValueType::String,
+                Literal::Undefined => ValueType::Undefined,
                 Literal::Array(a) => {
                     ValueType::Array(a.iter().map(|e| e.value_type().clone()).collect())
                 }
@@ -219,4 +220,5 @@ pub enum Literal {
     Number(f64),
     Object(HashMap<String, Expression>),
     String(String),
+    Undefined,
 }

@@ -63,6 +63,9 @@ pub enum Token {
     #[regex("true|false", parse_slice)]
     Bool(bool),
 
+    #[regex(r"\(\)|undefined")]
+    Undefined,
+
     #[token(".")]
     Period,
     #[token(",")]

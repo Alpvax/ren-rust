@@ -133,6 +133,10 @@ pub fn parse_literal(lexer: &mut Lexer) -> Result<Literal, Error> {
                 lexer.next();
                 Ok(Literal::String(s.to_owned()))
             }
+            Token::Undefined => {
+                lexer.next();
+                Ok(Literal::Undefined)
+            }
             _ => Err(Error::NonLiteral),
         }
     } else {
