@@ -1,8 +1,10 @@
 use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::str::FromStr;
 
 use logos::{Lexer, Logos};
+
+pub mod expression;
+pub mod string;
 
 #[derive(Debug, Default, Clone)]
 pub struct LexerExtras {
@@ -50,15 +52,6 @@ pub enum Token {
     #[regex(r#"'(?:\\'|[^'])*'"#, trim_quotes)] // Single quoted*/
     #[regex(r#"('(?:\\'|[^'])*')|"(?:\\"|[^"])*""#, trim_quotes)] //Combined
     StringLit(String),
-
-    /*#[regex(r"(?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?", parse_slice)] // Float
-    #[regex(r"0|[1-9][0-9]*", parse_slice)] // Int
-    #[regex(r"0[xX][0-9a-fA-F]+", callback = parse_int_base(16))] // Hex
-    #[regex(r"0[oO][0-7]+", callback = parse_int_base(8))] // Oct
-    #[regex(r"0[bB][01]+", callback = parse_int_base(2))] // Bin*/
-    #[regex(r"((?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?)|(0|[1-9][0-9]*)|(0[xX][0-9a-fA-F]+)|(0[oO][0-7]+)|(0[bB][01]+)", parse_number)]
-    //Combined
-    Number(f64),
 
     #[regex("true|false", parse_slice)]
     Bool(bool),
@@ -140,37 +133,37 @@ pub enum Token {
     Error,
 
     // Manually added when end of input is reached (no more tokens)
-    EOF,
+    //EOF,
 }
 
-impl TryFrom<&Token> for crate::ast::expression::Operator {
-    type Error = ();
+// impl TryFrom<&Token> for crate::ast::expression::Operator {
+//     type Error = ();
 
-    fn try_from(value: &Token) -> Result<Self, Self::Error> {
-        match value {
-            Token::OpPipe => Ok(Self::Pipe),
-            Token::OpCompose => Ok(Self::Compose),
-            Token::OpEq => Ok(Self::Eq),
-            Token::OpNotEq => Ok(Self::NotEq),
-            Token::OpLte => Ok(Self::Lte),
-            Token::OpGte => Ok(Self::Gte),
-            Token::OpAnd => Ok(Self::And),
-            Token::OpOr => Ok(Self::Or),
-            Token::OpCons => Ok(Self::Cons),
-            Token::OpJoin => Ok(Self::Join),
-            Token::OpDiscard => Ok(Self::Discard),
-            Token::OpLt => Ok(Self::Lt),
-            Token::OpGt => Ok(Self::Gt),
-            Token::OpAdd => Ok(Self::Add),
-            Token::OpSub => Ok(Self::Sub),
-            Token::OpMul => Ok(Self::Mul),
-            Token::OpDiv => Ok(Self::Div),
-            Token::OpPow => Ok(Self::Pow),
-            Token::OpMod => Ok(Self::Mod),
-            _ => Err(()),
-        }
-    }
-}
+//     fn try_from(value: &Token) -> Result<Self, Self::Error> {
+//         match value {
+//             Token::OpPipe => Ok(Self::Pipe),
+//             Token::OpCompose => Ok(Self::Compose),
+//             Token::OpEq => Ok(Self::Eq),
+//             Token::OpNotEq => Ok(Self::NotEq),
+//             Token::OpLte => Ok(Self::Lte),
+//             Token::OpGte => Ok(Self::Gte),
+//             Token::OpAnd => Ok(Self::And),
+//             Token::OpOr => Ok(Self::Or),
+//             Token::OpCons => Ok(Self::Cons),
+//             Token::OpJoin => Ok(Self::Join),
+//             Token::OpDiscard => Ok(Self::Discard),
+//             Token::OpLt => Ok(Self::Lt),
+//             Token::OpGt => Ok(Self::Gt),
+//             Token::OpAdd => Ok(Self::Add),
+//             Token::OpSub => Ok(Self::Sub),
+//             Token::OpMul => Ok(Self::Mul),
+//             Token::OpDiv => Ok(Self::Div),
+//             Token::OpPow => Ok(Self::Pow),
+//             Token::OpMod => Ok(Self::Mod),
+//             _ => Err(()),
+//         }
+//     }
+// }
 /*impl Token {
     pub fn is_whitespace(&self) -> bool {
         match self {
@@ -200,29 +193,6 @@ fn named_wildcard<'s>(lex: &mut Lexer<'s, Token>) -> Option<String> {
         Some(s[1..].to_owned())
     } else {
         None
-    }
-}
-
-enum ParseNumError {
-    BaseError(std::num::ParseIntError),
-    Float(std::num::ParseFloatError),
-}
-fn parse_number<'s>(lex: &mut Lexer<'s, Token>) -> Result<f64, ParseNumError> {
-    fn parse_base(s: &str, base: u32) -> Result<f64, ParseNumError> {
-        u32::from_str_radix(&s[2..], base)
-            .map_err(ParseNumError::BaseError)
-            .map(u32::into)
-    }
-    let s = lex.slice();
-    if s.len() > 2 {
-        match &s[..2] {
-            "0x" | "0X" => parse_base(s, 16),
-            "0o" | "0O" => parse_base(s, 8),
-            "0b" | "0B" => parse_base(s, 2),
-            _ => s.parse().map_err(ParseNumError::Float),
-        }
-    } else {
-        s.parse().map_err(ParseNumError::Float)
     }
 }
 
