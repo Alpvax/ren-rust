@@ -7,7 +7,7 @@ mod test;
 
 use crate::ast;
 use crate::ast::expression::Pattern;
-pub use lexer::{Lexer, Token};
+//pub use lexer::{Lexer, Token};
 
 pub use self::declaration::{
     parse_declaration, parse_toplevel_declaration, Error as DeclarationError,

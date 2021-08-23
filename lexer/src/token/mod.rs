@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use logos::{Lexer, Logos};
 
-pub mod expression;
+// pub mod expression;
 pub mod string;
 
 #[derive(Debug, Default, Clone)]
@@ -42,22 +42,33 @@ pub enum Token {
     Namespace(String),
     #[regex(r"([a-z][A-Za-z0-9]*)", owned)]
     VarName(String),
-    #[regex(r"_([a-z][A-Za-z0-9]*)?", named_wildcard)]
-    Wildcard(Option<String>),
+    #[regex(r"_")]
+    Placeholder,
 
     #[regex(r"//[^\r\n]*", parse_comment)]
     Comment,
 
     /*#[regex(r#""(?:\\"|[^"])*""#, trim_quotes)] // Double quoted
     #[regex(r#"'(?:\\'|[^'])*'"#, trim_quotes)] // Single quoted*/
-    #[regex(r#"('(?:\\'|[^'])*')|"(?:\\"|[^"])*""#, trim_quotes)] //Combined
-    StringLit(String),
+    // #[regex(r#"('(?:\\'|[^'])*')|"(?:\\"|[^"])*""#, trim_quotes)] //Combined
+    //StringLit(String),
+
+    #[regex(r"((?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?)|(0|[1-9][0-9]*)|(0[xX][0-9a-fA-F]+)|(0[oO][0-7]+)|(0[bB][01]+)", parse_number)]
+    Number(f64),
 
     #[regex("true|false", parse_slice)]
     Bool(bool),
 
     #[regex(r"\(\)|undefined")]
     Undefined,
+
+    #[token("\"")]
+    DoubleQuote,
+    #[token("'")]
+    SingleQuote,
+    #[token("`")]
+    Backtick,
+
 
     #[token(".")]
     Period,
@@ -181,27 +192,44 @@ fn parse_slice<'s, T: FromStr>(lex: &mut Lexer<'s, Token>) -> Result<T, T::Err> 
     lex.slice().parse()
 }
 
+/// --- COMMENT HANDLING -------------------------------------------------------
 fn parse_comment<'s>(lex: &mut Lexer<'s, Token>) {
     lex.extras
         .comments
         .insert(lex.span().start, lex.slice().to_owned());
 }
 
-fn named_wildcard<'s>(lex: &mut Lexer<'s, Token>) -> Option<String> {
-    let s = lex.slice();
-    if s.len() > 1 {
-        Some(s[1..].to_owned())
-    } else {
-        None
-    }
-}
+// fn trim_quotes<'s>(lex: &mut Lexer<'s, Token>) -> String {
+//     let s = lex.slice();
+//     let len = s.len();
+//     if len > 2 {
+//         s[1..len - 1].to_owned()
+//     } else {
+//         String::new()
+//     }
+// }
 
-fn trim_quotes<'s>(lex: &mut Lexer<'s, Token>) -> String {
+
+/// --- COMBINED NUMBER HANDLING -------------------------------------------
+enum ParseNumError {
+    BaseError(std::num::ParseIntError),
+    Float(std::num::ParseFloatError),
+}
+fn parse_number<'s>(lex: &mut Lexer<'s, Token>) -> Result<f64, ParseNumError> {
+    fn parse_base(s: &str, base: u32) -> Result<f64, ParseNumError> {
+        u32::from_str_radix(&s[2..], base)
+            .map_err(ParseNumError::BaseError)
+            .map(u32::into)
+    }
     let s = lex.slice();
-    let len = s.len();
-    if len > 2 {
-        s[1..len - 1].to_owned()
+    if s.len() > 2 {
+        match &s[..2] {
+            "0x" | "0X" => parse_base(s, 16),
+            "0o" | "0O" => parse_base(s, 8),
+            "0b" | "0B" => parse_base(s, 2),
+            _ => s.parse().map_err(ParseNumError::Float),
+        }
     } else {
-        String::new()
+        s.parse().map_err(ParseNumError::Float)
     }
 }
