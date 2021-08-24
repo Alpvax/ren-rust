@@ -1,5 +1,6 @@
-mod ast;
+//mod ast;
 //mod parser;
+#[allow(dead_code)]
 mod value;
 
 // const SAMPLE: &str = r#"import "foo/bar" as Foo.Bar exposing { foo, bar, baz }

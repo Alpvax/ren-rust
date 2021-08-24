@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use std::ops::Deref;
 
-use crate::ast::VarName;
+//use ast::VarName;
+type VarName = String;
 
 type ParamCount = usize;
 
