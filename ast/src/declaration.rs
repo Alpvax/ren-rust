@@ -1,5 +1,5 @@
 use crate::{
-    expression::{Expression, Identifier, Pattern},
+    expression::{Expression, Pattern},
     VarName,
 };
 
@@ -46,10 +46,13 @@ impl Declaration {
     //         Declaration::Enum { .. } => None,
     //     }
     // }
-    pub fn references(&self, ident: Identifier) -> bool {
+    pub fn references(&self, namespace: Option<&Vec<String>>, name: Option<&str>) -> bool {
+        if namespace.is_none() && name.is_none() {
+            return false;
+        }
         match self {
             Declaration::Function { body, .. } | Declaration::Variable { body, .. } => {
-                body.references(ident)
+                body.references(namespace, name)
             }
             Declaration::Enum { .. } => false,
         }

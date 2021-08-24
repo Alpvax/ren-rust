@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::TryInto};
+use std::{collections::HashMap, mem};
 
 use crate::{declaration::Declaration, VarName};
 
@@ -77,9 +77,92 @@ pub enum Operator {
     Join,
 }
 
+impl Default for Expression {
+    fn default() -> Self {
+        Self::Literal(Literal::Undefined)
+    }
+}
 impl Expression {
-    pub fn references(&self, _ident: Identifier) -> bool {
-        todo!("implement expression reference checks")
+    pub fn references(&self, namespace: Option<&Vec<String>>, name: Option<&str>) -> bool {
+        if namespace.is_none() && name.is_none() {
+            return false;
+        }
+        let match_ref = |expr: &Expression| expr.references(namespace, name);
+        match self {
+            Expression::Access(expr, accessors) => {
+                expr.references(namespace, name)
+                    || accessors.iter().any(|acc| {
+                        if let Accessor::Computed(expr) = acc {
+                            expr.references(namespace, name)
+                        } else {
+                            false
+                        }
+                    })
+            }
+            Expression::Application(expr, args) => {
+                expr.references(namespace, name) || args.iter().any(match_ref)
+            }
+            Expression::Block(bindings, expr) => {
+                expr.references(namespace, name)
+                    || bindings.iter().any(|dec| dec.references(namespace, name))
+            }
+            Expression::Conditional(condition, t, f) => {
+                condition.references(namespace, name)
+                    || t.references(namespace, name)
+                    || f.references(namespace, name)
+            }
+            Expression::Identifier(Identifier::Local(n))
+            | Expression::Identifier(Identifier::Constructor(n)) => {
+                if namespace.is_none() {
+                    // Checked at top of function
+                    n == name.unwrap()
+                } else {
+                    false
+                }
+            }
+            Expression::Identifier(Identifier::Scoped(ns, n)) => {
+                if let Some(namespace) = namespace {
+                    ns == namespace && name.map_or(true, |name| if let Identifier::Local(n) | Identifier::Constructor(n) = &**n {
+                        n == name
+                    } else {false})
+                } else {
+                    false
+                }
+            },
+            Expression::Identifier(_) => false,
+            Expression::Infix(_, lhs, rhs) => {
+                lhs.references(namespace, name) || rhs.references(namespace, name)
+            }
+            Expression::Lambda(_, expr) => expr.references(namespace, name),
+            Expression::Literal(Literal::Array(elements)) => elements.iter().any(match_ref),
+            Expression::Literal(Literal::Object(entries)) => entries.values().any(match_ref),
+            Expression::Literal(Literal::Template(segments)) => segments.iter().any(|seg| {
+                if let TemplateSegment::Expr(expr) = seg {
+                    expr.references(namespace, name)
+                } else {
+                    false
+                }
+            }),
+            Expression::Literal(_) => false,
+            Expression::Match(expr, cases) => {
+                expr.references(namespace, name)
+                    || cases.iter().any(|(_, guard, expr)| {
+                        expr.references(namespace, name)
+                            || guard
+                                .as_ref()
+                                .map_or(false, |g| g.references(namespace, name))
+                    })
+            }
+            Expression::SubExpression(expr) => expr.references(namespace, name),
+        }
+    }
+    pub fn add_declaration(&mut self, binding: Declaration) {
+        if let Self::Block(bindings, _) = self {
+            bindings.push(binding);
+        } else {
+            let body = Box::new(mem::take(self));
+            *self = Self::Block(vec![binding], body);
+        }
     }
 }
 
