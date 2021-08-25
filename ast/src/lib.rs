@@ -1,4 +1,4 @@
-use declaration::Declaration;
+pub use declaration::Declaration;
 
 pub mod declaration;
 pub mod expression;
@@ -43,7 +43,7 @@ type VarName = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Import {
-    path: String,
-    name: Vec<Namespace>,
-    bindings: Vec<VarName>,
+    pub path: String,
+    pub name: Vec<Namespace>,
+    pub bindings: Vec<VarName>,
 }

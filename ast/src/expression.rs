@@ -164,6 +164,20 @@ impl Expression {
             *self = Self::Block(vec![binding], body);
         }
     }
+
+    // ------------ Literal Constructor Helpers ----------------
+    pub fn string<T: Into<String>>(s: T) -> Self {
+        Self::Literal(Literal::String(s.into()))
+    }
+    pub fn number<T: Into<f64>>(num: T) -> Self {
+        Self::Literal(Literal::Number(num.into()))
+    }
+    pub fn boolean<T: Into<bool>>(b: T) -> Self {
+        Self::Literal(Literal::Boolean(b.into()))
+    }
+    pub fn undefined() -> Self {
+        Self::Literal(Literal::Undefined)
+    }
 }
 
 impl Literal {
