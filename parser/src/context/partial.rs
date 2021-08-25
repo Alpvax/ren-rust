@@ -7,12 +7,10 @@ pub(crate) struct ContextNext<'source> {
 }
 impl<'s> ContextNext<'s> {
     pub fn parse_string(&mut self, q_type: QuoteType) -> Result<String, Vec<(lexer::Span, &str)>> {
-        unsafe {
-            let lexer = mem::replace(*&mut self.lexer, mem::MaybeUninit::uninit().assume_init());
-            let (lex, r) = parse_string(lexer, q_type);
-            *self.lexer = lex;
-            r
-        }
+        let lexer = mem::replace(*&mut self.lexer, lexer::lexer(""));
+        let (lex, r) = parse_string(lexer, q_type);
+        *self.lexer = lex;
+        r
     }
     pub fn next_token(&mut self) -> Option<Token> {
         self.lexer.next()
