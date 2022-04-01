@@ -1,14 +1,15 @@
 use std::{collections::HashMap, mem};
 
-use crate::{declaration::Declaration, VarName};
+use crate::{Ident, Type, declaration::{BlockDeclaration, Declaration}, pattern::Pattern};
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    Access(Box<Expression>, Vec<Accessor>),
+    Access(Box<Expression>, Vec<Ident>),
     Application(Box<Expression>, Vec<Expression>),
-    Block(Vec<Declaration>, Box<Expression>),
+    Cast(Box<Expression>, Type),
+    Block(Vec<BlockDeclaration>, Box<Expression>),
     Conditional(Box<Expression>, Box<Expression>, Box<Expression>),
-    Identifier(Identifier),
+    Identifier(Identifier), //TODO: Check
     Infix(Operator, Box<Expression>, Box<Expression>),
     Lambda(Vec<Pattern>, Box<Expression>),
     Literal(Literal),
@@ -16,22 +17,13 @@ pub enum Expression {
         Box<Expression>,
         Vec<(Pattern, Option<Expression>, Expression)>,
     ),
-    SubExpression(Box<Expression>),
-}
-
-#[derive(Debug, Clone)]
-pub enum Accessor {
-    Computed(Expression),
-    Fixed(String),
 }
 
 #[derive(Debug, Clone)]
 pub enum Identifier {
     Local(String),
-    Constructor(String),
     Scoped(Vec<String>, Box<Identifier>),
-    Operator(Operator),
-    Field(String),
+    Placeholder(Option<String>),
 }
 
 #[derive(Debug, Clone)]
@@ -39,16 +31,17 @@ pub enum Literal {
     Array(Vec<Expression>),
     Boolean(bool),
     Number(f64),
-    Object(HashMap<String, Expression>),
+    Record(HashMap<String, Expression>),
     String(String),
-    Template(Vec<TemplateSegment>),
+    Template(Vec<TemplateSegment<Expression>>),
+    Variant(String, Vec<Expression>),
     Undefined,
 }
 
 #[derive(Debug, Clone)]
-pub enum TemplateSegment {
+pub enum TemplateSegment<T> {
     Text(String),
-    Expr(Expression),
+    Expr(T),
 }
 
 #[derive(Debug, Clone)]
@@ -89,19 +82,20 @@ impl Expression {
         }
         let match_ref = |expr: &Expression| expr.references(namespace, name);
         match self {
-            Expression::Access(expr, accessors) => {
+            Expression::Access(expr, _accessors) => {
                 expr.references(namespace, name)
-                    || accessors.iter().any(|acc| {
-                        if let Accessor::Computed(expr) = acc {
-                            expr.references(namespace, name)
-                        } else {
-                            false
-                        }
-                    })
+                    // || accessors.iter().any(|acc| {
+                    //     if let Accessor::Computed(expr) = acc {
+                    //         expr.references(namespace, name)
+                    //     } else {
+                    //         false
+                    //     }
+                    // })
             }
             Expression::Application(expr, args) => {
                 expr.references(namespace, name) || args.iter().any(match_ref)
             }
+            Expression::Cast(expr, _) => expr.references(namespace, name),
             Expression::Block(bindings, expr) => {
                 expr.references(namespace, name)
                     || bindings.iter().any(|dec| dec.references(namespace, name))
@@ -111,8 +105,7 @@ impl Expression {
                     || t.references(namespace, name)
                     || f.references(namespace, name)
             }
-            Expression::Identifier(Identifier::Local(n))
-            | Expression::Identifier(Identifier::Constructor(n)) => {
+            Expression::Identifier(Identifier::Local(n)) => {
                 if namespace.is_none() {
                     // Checked at top of function
                     n == name.unwrap()
@@ -122,7 +115,7 @@ impl Expression {
             }
             Expression::Identifier(Identifier::Scoped(ns, n)) => {
                 if let Some(namespace) = namespace {
-                    ns == namespace && name.map_or(true, |name| if let Identifier::Local(n) | Identifier::Constructor(n) = &**n {
+                    ns == namespace && name.map_or(true, |name| if let Identifier::Local(n) = &**n {
                         n == name
                     } else {false})
                 } else {
@@ -135,7 +128,7 @@ impl Expression {
             }
             Expression::Lambda(_, expr) => expr.references(namespace, name),
             Expression::Literal(Literal::Array(elements)) => elements.iter().any(match_ref),
-            Expression::Literal(Literal::Object(entries)) => entries.values().any(match_ref),
+            Expression::Literal(Literal::Record(entries)) => entries.values().any(match_ref),
             Expression::Literal(Literal::Template(segments)) => segments.iter().any(|seg| {
                 if let TemplateSegment::Expr(expr) = seg {
                     expr.references(namespace, name)
@@ -153,10 +146,9 @@ impl Expression {
                                 .map_or(false, |g| g.references(namespace, name))
                     })
             }
-            Expression::SubExpression(expr) => expr.references(namespace, name),
         }
     }
-    pub fn add_declaration(&mut self, binding: Declaration) {
+    pub fn add_declaration(&mut self, binding: BlockDeclaration) {
         if let Self::Block(bindings, _) = self {
             bindings.push(binding);
         } else {
@@ -188,7 +180,7 @@ impl Literal {
             Literal::Number(f) => Some(*f),
             Literal::String(s) => s.parse().ok(),
             Literal::Undefined => Some(0.0),
-            Literal::Array(_) | Literal::Object(_) | Literal::Template(_) => None,
+            Literal::Array(_) | Literal::Record(_) | Literal::Template(_) | Literal::Variant(_, _) => None,
         }
     }
     pub fn coerce_to_int(&self) -> Option<i64> {
@@ -204,7 +196,7 @@ impl Literal {
             }
             Literal::String(s) => s.parse().ok(),
             Literal::Undefined => Some(0),
-            Literal::Array(_) | Literal::Object(_) | Literal::Template(_) => None,
+            Literal::Array(_) | Literal::Record(_) | Literal::Template(_) | Literal::Variant(_, _) => None,
         }
     }
     pub fn coerce_to_str(&self) -> Option<String> {
@@ -224,38 +216,7 @@ impl Literal {
                 })
                 .ok()
                 .map(|s| s.clone()),
-            Literal::Array(_) | Literal::Object(_) | Literal::Undefined => None,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum Pattern {
-    ArrayDestructure(Vec<Pattern>),
-    Name(String),
-    ObjectDestructure(Vec<(String, Option<Pattern>)>),
-    Value(Literal),
-    VariantDestructure(String, Vec<Pattern>),
-    Wildcard(Option<String>),
-}
-impl Pattern {
-    pub fn names(&self) -> Vec<VarName> {
-        match self {
-            Pattern::ArrayDestructure(patterns) => {
-                patterns.iter().map(Pattern::names).flatten().collect()
-            }
-            Pattern::Name(n) => vec![n.clone()],
-            Pattern::ObjectDestructure(m) => m.iter().fold(Vec::new(), |mut v, (k, p)| {
-                v.extend(p.as_ref().map_or_else(|| vec![k.clone()], Pattern::names));
-                v
-            }),
-            Pattern::VariantDestructure(tag, patterns) => {
-                patterns.iter().fold(vec![tag.clone()], |mut v, pat| {
-                    v.extend(pat.names());
-                    v
-                })
-            }
-            Pattern::Value(_) | Pattern::Wildcard(_) => Vec::new(),
+            Literal::Array(_) | Literal::Record(_) | Literal::Undefined | Literal::Variant(_, _)=> None,
         }
     }
 }
