@@ -53,7 +53,7 @@ pub enum Visibility {
     Private,
 }
 
-mod import {
+pub mod import {
     use crate::Ident;
 
 
@@ -72,28 +72,28 @@ mod import {
         bindings: Vec<Ident>,
     }
     impl Import {
-        fn new(qualifier: Qualifier, path: &str, alias: Option<Vec<String>>, bindings: Option<Vec<Ident>>) -> Self {
+        pub fn new<S: Into<String>>(qualifier: Qualifier, path: S, alias: Vec<String>, bindings: Vec<Ident>) -> Self {
             Self {
                 qualifier,
-                path: path.to_owned(),
-                alias: alias.unwrap_or_default(),
-                bindings: bindings.unwrap_or_default(),
+                path: path.into(),
+                alias,
+                bindings,
             }
         }
-        fn get_qualifier(&self) -> Qualifier {
+        pub fn get_qualifier(&self) -> Qualifier {
             self.qualifier
         }
-        fn get_path(&self) -> &str {
+        pub fn get_path(&self) -> &str {
             &self.path
         }
-        fn get_alias(&self) -> Option<&Vec<String>> {
+        pub fn get_alias(&self) -> Option<&Vec<String>> {
             Some(&self.alias)
         }
-        fn get_bindings(&self) -> Option<&Vec<Ident>> {
+        pub fn get_bindings(&self) -> Option<&Vec<Ident>> {
             Some(&self.bindings)
         }
         // /// Get all the exposed namespaces and fields (last part of alias and all exposed fields)
-        // fn get_all_exposed(&self) -> Vec<&String> {
+        // pub fn get_all_exposed(&self) -> Vec<&String> {
         //     self.alias.last().into_iter().chain(self.bindings.iter()).collect()
         // }
     }

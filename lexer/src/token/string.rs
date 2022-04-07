@@ -1,6 +1,39 @@
 use logos::{Lexer, Logos};
 use super::LexerExtras;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StringSegment {
+    Full(String, StringType),
+    Start(String, StringType),
+    Mid(String),
+    End(String, StringType),
+}
+impl StringSegment {
+    fn get_text(&self) -> &str {
+        match self {
+            StringSegment::Full(s, _) |
+            StringSegment::Start(s, _) |
+            StringSegment::Mid(s) |
+            StringSegment::End(s, _) => s
+        }
+    }
+    fn get_delim_type(&self) -> StringType {
+        match self {
+            StringSegment::Full(_, t) |
+            StringSegment::Start(_, t) |
+            StringSegment::End(_, t) => *t,
+            StringSegment::Mid(_) => StringType::Backtick,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StringType {
+    Single,
+    Double,
+    Backtick,
+}
+
 #[derive(Logos, Debug, Clone, PartialEq)]
 #[logos(extras = LexerExtras)]
 pub enum TemplateLiteralToken {

@@ -3,7 +3,6 @@ use std::str::FromStr;
 
 use logos::{Lexer, Logos};
 
-// pub mod expression;
 pub mod string;
 
 #[derive(Debug, Default, Clone)]
@@ -19,24 +18,36 @@ pub enum Token {
 
     #[token("import")]
     KWImport,
+    #[token("pkg")]
+    KWPkg,
+    #[token("ext")]
+    KWExt,
     #[token("as")]
     KWAs,
     #[token("exposing")]
     KWExposing,
-    #[token("let")]
-    KWLet,
-    #[token("fun")]
-    KWFun,
+
+    #[token("type")]
+    KWType,
     #[token("pub")]
     KWPub,
+    #[token("let")]
+    KWLet,
+    #[token("run")]
+    KWRun,
     #[token("ret")]
     KWRet,
+
     #[token("if")]
     KWIf,
     #[token("then")]
     KWThen,
     #[token("else")]
     KWElse,
+    #[token("where")]
+    KWWhere,
+    #[token("is")]
+    KWIs,
 
     #[regex(r"[A-Z][A-Za-z0-9]*", owned)]
     Namespace(String),
@@ -68,7 +79,6 @@ pub enum Token {
     SingleQuote,
     #[token("`")]
     Backtick,
-
 
     #[token(".")]
     Period,
@@ -143,8 +153,11 @@ pub enum Token {
     #[error]
     Error,
 
-    // Manually added when end of input is reached (no more tokens)
-    //EOF,
+    /// Manually added when end of input is reached (no more tokens)
+    EOF,
+
+    /// Manually added text part
+    StringSegment(string::StringSegment),
 }
 
 // impl TryFrom<&Token> for crate::ast::expression::Operator {
@@ -192,25 +205,14 @@ fn parse_slice<'s, T: FromStr>(lex: &mut Lexer<'s, Token>) -> Result<T, T::Err> 
     lex.slice().parse()
 }
 
-/// --- COMMENT HANDLING -------------------------------------------------------
+// --- COMMENT HANDLING --------------------------------------------------------
 fn parse_comment<'s>(lex: &mut Lexer<'s, Token>) {
     lex.extras
         .comments
         .insert(lex.span().start, lex.slice().to_owned());
 }
 
-// fn trim_quotes<'s>(lex: &mut Lexer<'s, Token>) -> String {
-//     let s = lex.slice();
-//     let len = s.len();
-//     if len > 2 {
-//         s[1..len - 1].to_owned()
-//     } else {
-//         String::new()
-//     }
-// }
-
-
-/// --- COMBINED NUMBER HANDLING -------------------------------------------
+// --- COMBINED NUMBER HANDLING ------------------------------------------------
 enum ParseNumError {
     BaseError(std::num::ParseIntError),
     Float(std::num::ParseFloatError),
