@@ -1,6 +1,5 @@
 use crate::{expression::Expression, Ident, Type, Visibility};
 
-
 #[derive(Debug, Clone)]
 pub enum BindingContent<T> {
     External,
@@ -38,7 +37,8 @@ pub trait Declaration {
         if namespace.is_none() && name.is_none() {
             return false;
         }
-        self.get_body().map_or(false, |body| body.references(namespace, name))
+        self.get_body()
+            .map_or(false, |body| body.references(namespace, name))
     }
     fn get_type(&self) -> Option<&Type>;
     fn get_body(&self) -> Option<&Expression>;
@@ -48,14 +48,21 @@ impl Declaration for ModuleDeclaration {
     fn get_type(&self) -> Option<&Type> {
         match self {
             Self::Binding { ren_type, .. } => ren_type.as_ref(),
-            Self::Type { content: BindingContent::Internal(ren_type), .. } => Some(ren_type),
+            Self::Type {
+                content: BindingContent::Internal(ren_type),
+                ..
+            } => Some(ren_type),
             _ => None,
         }
     }
 
     fn get_body(&self) -> Option<&Expression> {
         match self {
-            Self::Binding { content: BindingContent::Internal(body), .. } | Self::Statement(body) => Some(&body),
+            Self::Binding {
+                content: BindingContent::Internal(body),
+                ..
+            }
+            | Self::Statement(body) => Some(&body),
             _ => None,
         }
     }

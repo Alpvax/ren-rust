@@ -1,6 +1,10 @@
 use std::{collections::HashMap, mem};
 
-use crate::{Ident, Type, declaration::{BlockDeclaration, Declaration}, pattern::Pattern};
+use crate::{
+    declaration::{BlockDeclaration, Declaration},
+    pattern::Pattern,
+    Ident, Type,
+};
 
 #[derive(Debug, Clone)]
 pub enum Expression {
@@ -84,13 +88,13 @@ impl Expression {
         match self {
             Expression::Access(expr, _accessors) => {
                 expr.references(namespace, name)
-                    // || accessors.iter().any(|acc| {
-                    //     if let Accessor::Computed(expr) = acc {
-                    //         expr.references(namespace, name)
-                    //     } else {
-                    //         false
-                    //     }
-                    // })
+                // || accessors.iter().any(|acc| {
+                //     if let Accessor::Computed(expr) = acc {
+                //         expr.references(namespace, name)
+                //     } else {
+                //         false
+                //     }
+                // })
             }
             Expression::Application(expr, args) => {
                 expr.references(namespace, name) || args.iter().any(match_ref)
@@ -115,13 +119,18 @@ impl Expression {
             }
             Expression::Identifier(Identifier::Scoped(ns, n)) => {
                 if let Some(namespace) = namespace {
-                    ns == namespace && name.map_or(true, |name| if let Identifier::Local(n) = &**n {
-                        n == name
-                    } else {false})
+                    ns == namespace
+                        && name.map_or(true, |name| {
+                            if let Identifier::Local(n) = &**n {
+                                n == name
+                            } else {
+                                false
+                            }
+                        })
                 } else {
                     false
                 }
-            },
+            }
             Expression::Identifier(_) => false,
             Expression::Infix(_, lhs, rhs) => {
                 lhs.references(namespace, name) || rhs.references(namespace, name)
@@ -180,7 +189,10 @@ impl Literal {
             Literal::Number(f) => Some(*f),
             Literal::String(s) => s.parse().ok(),
             Literal::Undefined => Some(0.0),
-            Literal::Array(_) | Literal::Record(_) | Literal::Template(_) | Literal::Variant(_, _) => None,
+            Literal::Array(_)
+            | Literal::Record(_)
+            | Literal::Template(_)
+            | Literal::Variant(_, _) => None,
         }
     }
     pub fn coerce_to_int(&self) -> Option<i64> {
@@ -196,7 +208,10 @@ impl Literal {
             }
             Literal::String(s) => s.parse().ok(),
             Literal::Undefined => Some(0),
-            Literal::Array(_) | Literal::Record(_) | Literal::Template(_) | Literal::Variant(_, _) => None,
+            Literal::Array(_)
+            | Literal::Record(_)
+            | Literal::Template(_)
+            | Literal::Variant(_, _) => None,
         }
     }
     pub fn coerce_to_str(&self) -> Option<String> {
@@ -216,7 +231,10 @@ impl Literal {
                 })
                 .ok()
                 .map(|s| s.clone()),
-            Literal::Array(_) | Literal::Record(_) | Literal::Undefined | Literal::Variant(_, _)=> None,
+            Literal::Array(_)
+            | Literal::Record(_)
+            | Literal::Undefined
+            | Literal::Variant(_, _) => None,
         }
     }
 }

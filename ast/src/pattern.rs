@@ -1,4 +1,7 @@
-use crate::{expression::{Literal, TemplateSegment}, Ident};
+use crate::{
+    expression::{Literal, TemplateSegment},
+    Ident,
+};
 
 #[derive(Debug, Clone)]
 pub enum Pattern {
@@ -24,7 +27,16 @@ impl Pattern {
                 v
             }),
             Pattern::Spread(n) => vec![n.clone()],
-            Pattern::TemplateDestructure(segments) => segments.iter().filter_map(|s| if let TemplateSegment::Expr(n) = s { Some(n.clone()) } else { None }).collect(),
+            Pattern::TemplateDestructure(segments) => segments
+                .iter()
+                .filter_map(|s| {
+                    if let TemplateSegment::Expr(n) = s {
+                        Some(n.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
             Pattern::Typeof(_, _) => todo!(),
             Pattern::VariantDestructure(tag, patterns) => {
                 patterns.iter().fold(vec![tag.clone()], |mut v, pat| {

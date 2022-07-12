@@ -1,6 +1,11 @@
 use declaration::ModuleDeclaration;
 pub use import::Import;
 
+pub mod core;
+pub mod expr;
+#[cfg(test)]
+mod conversion_tests;
+
 pub mod declaration;
 pub mod expression;
 pub mod pattern;
@@ -56,7 +61,6 @@ pub enum Visibility {
 pub mod import {
     use crate::Ident;
 
-
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub enum Qualifier {
         Pkg,
@@ -72,7 +76,12 @@ pub mod import {
         bindings: Vec<Ident>,
     }
     impl Import {
-        pub fn new<S: Into<String>>(qualifier: Qualifier, path: S, alias: Vec<String>, bindings: Vec<Ident>) -> Self {
+        pub fn new<S: Into<String>>(
+            qualifier: Qualifier,
+            path: S,
+            alias: Vec<String>,
+            bindings: Vec<Ident>,
+        ) -> Self {
             Self {
                 qualifier,
                 path: path.into(),
