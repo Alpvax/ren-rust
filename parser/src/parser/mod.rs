@@ -2,6 +2,8 @@ use rowan::{GreenNode, GreenNodeBuilder, Language};
 
 use crate::lexer::{Context, Lexer, RenLang, StringToken, SyntaxNode, SyntaxPart, Token};
 
+mod expression;
+
 pub struct Parser<'source> {
     lexer: Lexer<'source>,
     builder: GreenNodeBuilder<'static>,
@@ -29,10 +31,7 @@ impl<'source> Parser<'source> {
     pub fn parse(mut self) -> Parse {
         self.start_node(Context::Module);
         //TODO: implement parser
-        match self.peek() {
-            SyntaxPart::RawToken(Token::Number) | SyntaxPart::RawToken(Token::VarName) => self.bump(),
-            _ => {}
-        }
+        expression::expr(&mut self);
 
         self.finish_node();
         Parse {
@@ -56,7 +55,7 @@ impl<'source> Parser<'source> {
     }
     fn peek_token(&mut self) -> Option<Token> {
         match self.peek() {
-            SyntaxPart::RawToken(tok) => Some(tok),
+            SyntaxPart::Token(tok) => Some(tok),
             _ => None,
         }
     }
@@ -86,32 +85,18 @@ impl Parse {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::lexer::SyntaxNode;
-    use expect_test::{expect, Expect};
+fn check(input: &str, expected_tree: expect_test::Expect) {
+    let parse = Parser::new(input).parse();
+    expected_tree.assert_eq(&parse.debug_tree());
+}
 
-    fn check(input: &str, expected_tree: Expect) {
-        let parse = Parser::new(input).parse();
-        expected_tree.assert_eq(&parse.debug_tree());
-    }
+#[cfg(test)]
+mod tests {
+    use super::check;
+    use expect_test::expect;
 
     #[test]
     fn parse_nothing() {
         check("", expect![[r#"Context(Module)@0..0"#]])
-    }
-
-    #[test]
-    fn parse_number() {
-        check("143", expect![[r#"
-        Context(Module)@0..3
-          RawToken(Number)@0..3 "143""#]])
-    }
-
-    #[test]
-    fn parse_varname() {
-        check("varName1", expect![[r#"
-        Context(Module)@0..8
-          RawToken(VarName)@0..8 "varName1""#]])
     }
 }

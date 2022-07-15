@@ -9,10 +9,10 @@ pub(crate) use token::{StringToken, Token};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) enum SyntaxPart {
     Error, // = 0
-    EOF,
+    EOF, // = 1
 
     StringToken(StringToken), // = 2..7
-    RawToken(Token),          // 8..255
+    Token(Token), // 8..255
 
     Context(context::Context), // 256..
 }
@@ -22,7 +22,7 @@ impl From<token::Token> for SyntaxPart {
         if let Token::Error = t {
             Self::Error
         } else {
-            Self::RawToken(t)
+            Self::Token(t)
         }
     }
 }
@@ -51,10 +51,10 @@ impl Into<u16> for SyntaxPart {
         print!("Converting {:?} to u16", self); //XXX
         let res =//XXX
         match self {
-            Self::Error | Self::RawToken(Token::Error) | Self::StringToken(StringToken::Error) => 0,
+            Self::Error | Self::Token(Token::Error) | Self::StringToken(StringToken::Error) => 0,
             Self::EOF => 1,
             Self::StringToken(t) => u16::from(t.to_u8().unwrap()) + 1u16, // StringToken::Error = 0 so no conflict
-            Self::RawToken(t) => u16::from(t.to_u8().unwrap()) + 7u16, // Token = 8..255 allowed (actually only currently 57 non-error tokens)
+            Self::Token(t) => u16::from(t.to_u8().unwrap()) + 7u16, // Token = 8..255 allowed (actually only currently 57 non-error tokens)
             Self::Context(c) => u16::from(c.to_u8().unwrap()) + 256u16, // Context = 256..
         }
         ;
@@ -82,7 +82,7 @@ impl TryFrom<u16> for SyntaxPart {
                 StringToken::from_u16(value - 1).ok_or(SPConvertError::StringToken(value))?,
             )
         } else if value <= 0xFF {
-            Self::RawToken(Token::from_u16(value - 7).ok_or(SPConvertError::RawToken(value))?)
+            Self::Token(Token::from_u16(value - 7).ok_or(SPConvertError::RawToken(value))?)
         } else {
             Self::Context(Context::from_u16(value - 0x100).ok_or(SPConvertError::Context(value))?)
         })
@@ -99,7 +99,7 @@ mod test {
             match SyntaxPart::try_from(val) {
                 Ok(
                     sp @ (SyntaxPart::StringToken(StringToken::Error)
-                    | SyntaxPart::RawToken(Token::Error)),
+                    | SyntaxPart::Token(Token::Error)),
                 ) => assert_eq!(0u16, sp.into(), "Converting Error: {:?}", sp),
                 Ok(sp) => assert_eq!(val, sp.into(), "Converting: {:?}", sp),
                 Err(_) => (),
@@ -143,7 +143,7 @@ impl<'source> Iterator for LexerHolder<'source> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            LexerHolder::Main(lex) => lex.next().map(|t| (SyntaxPart::RawToken(t), lex.slice())),
+            LexerHolder::Main(lex) => lex.next().map(|t| (SyntaxPart::Token(t), lex.slice())),
             LexerHolder::String(lex) => lex
                 .next()
                 .map(|t| (SyntaxPart::StringToken(t), lex.slice())),

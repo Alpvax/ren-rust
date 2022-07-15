@@ -2,11 +2,14 @@
 name = "parser-rust"
 version = "0.1.0"
 authors = ["Alpvax <alpvax@netscape.net>"]
-edition = "2018"
+edition = "2021"
+
+[workspace]
+members = ["ast", "parser"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 ast = { path = "./ast" }
 parser = { path = "./parser" }
-lexer = { path = "./lexer" }
+#lexer = { path = "./lexer" }

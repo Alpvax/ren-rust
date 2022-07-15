@@ -58,7 +58,7 @@ impl<'source> Iterator for Lexer<'source> {
         } else {
             let res = self.internal.next();
             if let Some((sp, _)) = res {
-                if sp == SyntaxPart::RawToken(Token::DoubleQuote)
+                if sp == SyntaxPart::Token(Token::DoubleQuote)
                     || sp == SyntaxPart::StringToken(StringToken::Delimiter)
                 {
                     println!("Morphing");//XXX
@@ -82,8 +82,7 @@ mod lexer_tests {
     #[test]
     fn string_tokens() {
         let input = "\"Hello world\"";
-        let mut lexer = Lexer::new(input);
-        for (lexed, expected) in lexer.zip(
+        for (lexed, expected) in Lexer::new(input).zip(
             [
                 (Token::DoubleQuote.into(), "\""),
                 (StringToken::Text.into(), "Hello world"),
