@@ -12,8 +12,7 @@ impl Language for RenLang {
     type Kind = syntax::SyntaxPart;
 
     fn kind_from_raw(raw: SyntaxKind) -> Self::Kind {
-        // Self::Kind::from(raw.0)
-        Self::Kind::try_from(raw.0).unwrap()
+        Self::Kind::try_from(raw.0).expect("Failed converting rowan::SyntaxKind to SyntaxPart!")
     }
 
     fn kind_to_raw(kind: Self::Kind) -> SyntaxKind {
@@ -45,7 +44,7 @@ impl<'source> Lexer<'source> {
     }
     pub fn peek(&mut self) -> Option<(SyntaxPart, &'source str)> {
         if self.peeked.is_none() {
-            self.next();
+            self.peeked = self.next();
         }
         self.peeked
     }
@@ -54,17 +53,20 @@ impl<'source> Iterator for Lexer<'source> {
     type Item = (SyntaxPart, &'source str);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let res = self.peeked.take();
-        let next = self.internal.next();
-        if let Some((sp, _)) = next {
-            if sp == SyntaxPart::RawToken(Token::DoubleQuote)
-                || sp == SyntaxPart::StringToken(StringToken::Delimiter)
-            {
-                self.internal.morph();
+        if self.peeked.is_some() {
+            self.peeked.take()
+        } else {
+            let res = self.internal.next();
+            if let Some((sp, _)) = res {
+                if sp == SyntaxPart::RawToken(Token::DoubleQuote)
+                    || sp == SyntaxPart::StringToken(StringToken::Delimiter)
+                {
+                    println!("Morphing");//XXX
+                    self.internal.morph();
+                }
             }
+            res
         }
-        self.peeked = res;
-        res.or(next)
     }
 }
 

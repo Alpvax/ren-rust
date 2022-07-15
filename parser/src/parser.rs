@@ -29,8 +29,8 @@ impl<'source> Parser<'source> {
     pub fn parse(mut self) -> Parse {
         self.start_node(Context::Module);
         //TODO: implement parser
-        match self.peek_token() {
-            Some(Token::Number) | Some(Token::VarName) => self.bump(),
+        match self.peek() {
+            SyntaxPart::RawToken(Token::Number) | SyntaxPart::RawToken(Token::VarName) => self.bump(),
             _ => {}
         }
 
@@ -45,7 +45,7 @@ impl<'source> Parser<'source> {
     fn finish_node(&mut self) {
         self.builder.finish_node();
     }
-    fn in_string(&self) -> bool {
+    fn is_string_token(&self) -> bool {
         self.lexer.is_string_token()
     }
     fn peek(&mut self) -> SyntaxPart {
@@ -60,7 +60,7 @@ impl<'source> Parser<'source> {
             _ => None,
         }
     }
-    fn peek_str(&mut self) -> Option<StringToken> {
+    fn peek_str_token(&mut self) -> Option<StringToken> {
         match self.peek() {
             SyntaxPart::StringToken(tok) => Some(tok),
             _ => None,
@@ -99,5 +99,19 @@ mod tests {
     #[test]
     fn parse_nothing() {
         check("", expect![[r#"Context(Module)@0..0"#]])
+    }
+
+    #[test]
+    fn parse_number() {
+        check("143", expect![[r#"
+        Context(Module)@0..3
+          RawToken(Number)@0..3 "143""#]])
+    }
+
+    #[test]
+    fn parse_varname() {
+        check("varName1", expect![[r#"
+        Context(Module)@0..8
+          RawToken(VarName)@0..8 "varName1""#]])
     }
 }
