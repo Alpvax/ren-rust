@@ -9,6 +9,7 @@ pub(crate) enum Context {
     ExposingBlock, // Inside exposing block
 
     Declarations,
+    Declaration,
 
     Expr,
 

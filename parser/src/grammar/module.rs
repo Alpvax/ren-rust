@@ -11,9 +11,9 @@ pub(super) fn module(p: &mut Parser) {
         }
         p.finish_node();
     }
-    if let TokenType::Token(Token::KWPub | Token::KWLet) = p.peek() {
+    if let TokenType::Token(Token::KWPub | Token::KWLet | Token::KWExt) = p.peek() {
         p.start_node(Context::Declarations);
-        while let TokenType::Token(Token::KWPub | Token::KWLet) = p.peek() {
+        while let TokenType::Token(Token::KWPub | Token::KWLet | Token::KWExt) = p.peek() {
             parse_declaration(p);
         }
         p.finish_node();
@@ -80,6 +80,18 @@ fn parse_import(p: &mut Parser) {
 }
 
 fn parse_declaration(p: &mut Parser) {
+    p.start_node(Context::Declaration);
     p.bump_matching(Token::KWPub);
-    super::declaration::declaration(p);
+    if p.bump_matching(Token::KWLet) {
+        if p.bump_matching(Token::VarName) && p.bump_matching(Token::OpAssign) {
+            p.start_node(Context::Expr);
+            super::expression::expr(p);
+            p.finish_node();
+        } else {
+            todo!("ERROR");
+        }
+    } else if !p.bump_matching(Token::KWExt) || !p.bump_matching(Token::VarName) {
+        todo!("ERROR");
+    }
+    p.finish_node();
 }

@@ -1,6 +1,5 @@
 use crate::{Parsed, Parser};
 
-mod declaration;
 mod expression;
 mod module;
 

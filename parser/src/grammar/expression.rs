@@ -105,6 +105,24 @@ fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) {
     }
 }
 
+fn parse_declaration(p: &mut Parser) {
+    p.start_node(Context::Declaration);
+    p.bump_matching(Token::KWPub);
+    if !p.bump_matching(Token::KWLet) {
+        if !p.bump_matching(Token::KWExt) {
+            todo!("ERROR");
+        }
+    }
+    if p.bump_matching(Token::VarName) && p.bump_matching(Token::OpAssign) {
+        p.start_node(Context::Expr);
+        super::expression::expr(p);
+        p.finish_node();
+    } else {
+        todo!("ERROR");
+    }
+    p.finish_node();
+}
+
 fn infix_binding_power(operator: Operator) -> (u8, u8) {
     match operator {
         //Left associativity
