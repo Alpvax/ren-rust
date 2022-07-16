@@ -1,4 +1,4 @@
-use super::super::check;
+use super::check;
 use expect_test::expect;
 
 #[test]

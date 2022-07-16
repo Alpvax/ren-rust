@@ -1,10 +1,11 @@
 use num_traits::{FromPrimitive, ToPrimitive};
 
-pub(crate) mod context;
-pub(crate) mod token;
+mod context;
+pub(crate) mod lexer;
 
 pub(crate) use context::Context;
-pub(crate) use token::{StringToken, Token};
+pub(crate) use lexer::{StringToken, Token, TokenType};
+use rowan::{Language, SyntaxKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) enum SyntaxPart {
@@ -17,7 +18,7 @@ pub(crate) enum SyntaxPart {
     Context(context::Context), // 256..
 }
 
-impl From<token::Token> for SyntaxPart {
+impl From<Token> for SyntaxPart {
     fn from(t: Token) -> Self {
         if let Token::Error = t {
             Self::Error
@@ -89,6 +90,22 @@ impl TryFrom<u16> for SyntaxPart {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(crate) struct RenLang;
+impl Language for RenLang {
+    type Kind = SyntaxPart;
+
+    fn kind_from_raw(raw: SyntaxKind) -> Self::Kind {
+        Self::Kind::try_from(raw.0).expect("Failed converting rowan::SyntaxKind to SyntaxPart!")
+    }
+
+    fn kind_to_raw(kind: Self::Kind) -> SyntaxKind {
+        SyntaxKind(kind.into())
+    }
+}
+
+pub(crate) type SyntaxNode = rowan::SyntaxNode<RenLang>;
+
 #[cfg(test)]
 mod test {
     use super::{StringToken, SyntaxPart, Token};
@@ -108,22 +125,6 @@ mod test {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum TokenType {
-    Token(Token),
-    String(StringToken),
-    None,
-}
-impl From<Token> for TokenType {
-    fn from(tok: Token) -> Self {
-        Self::Token(tok)
-    }
-}
-impl From<StringToken> for TokenType {
-    fn from(tok: StringToken) -> Self {
-        Self::String(tok)
-    }
-}
 impl From<TokenType> for SyntaxPart {
     fn from(t: TokenType) -> Self {
         match t {
@@ -141,58 +142,6 @@ impl TryFrom<SyntaxPart> for TokenType {
             SyntaxPart::Token(tok) => Ok(Self::Token(tok)),
             SyntaxPart::StringToken(tok) => Ok(Self::String(tok)),
             val => Err(val),
-        }
-    }
-}
-
-pub(super) enum LexerHolder<'source> {
-    Main(logos::Lexer<'source, Token>),
-    String(logos::Lexer<'source, StringToken>),
-    /// Should only be used when morphing in order to take the lexer instance
-    None,
-}
-impl<'source> LexerHolder<'source> {
-    // pub fn span(&self) -> logos::Span {
-    //     match self {
-    //         LexerHolder::Main(lex) => lex.span(),
-    //         LexerHolder::String(lex) => lex.span(),
-    //         LexerHolder::None => unimplemented!("Should not call methods on LexerType::None"),
-    //     }
-    // }
-    // pub fn slice(&self) -> &'source str {
-    //     match self {
-    //         LexerHolder::Main(lex) => lex.slice(),
-    //         LexerHolder::String(lex) => lex.slice(),
-    //         LexerHolder::None => unimplemented!("Should not call methods on LexerType::None"),
-    //     }
-    // }
-    pub(super) fn morph(&mut self) {
-        let prev = std::mem::replace(self, Self::None);
-        *self = match prev {
-            Self::Main(lex) => Self::String(lex.morph()),
-            Self::String(lex) => Self::Main(lex.morph()),
-            LexerHolder::None => unimplemented!("Should not call methods on LexerType::None"),
-        };
-    }
-    pub(super) fn morph_to_string(&mut self) {
-        if let Self::Main(_) = self {
-            self.morph();
-        }
-    }
-    pub(super) fn morph_to_main(&mut self) {
-        if let Self::String(_) = self {
-            self.morph();
-        }
-    }
-}
-impl<'source> Iterator for LexerHolder<'source> {
-    type Item = (TokenType, &'source str);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            LexerHolder::Main(lex) => lex.next().map(|t| (TokenType::Token(t), lex.slice())),
-            LexerHolder::String(lex) => lex.next().map(|t| (TokenType::String(t), lex.slice())),
-            LexerHolder::None => unimplemented!("Should not call methods on LexerType::None"),
         }
     }
 }

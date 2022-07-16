@@ -1,8 +1,9 @@
 use ast::expr::Operator;
 
-use crate::lexer::{Context, StringToken, Token, TokenType};
-
-use super::Parser;
+use crate::{
+    syntax::{Context, StringToken, Token, TokenType},
+    Parser,
+};
 
 pub(super) fn expr(p: &mut Parser) {
     parse_subexpression(p, 0);
@@ -122,6 +123,3 @@ fn prefix_binding_power(operator: Operator) -> Option<u8> {
         None
     }
 }
-
-#[cfg(test)]
-mod tests;
