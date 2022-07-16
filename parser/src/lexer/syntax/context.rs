@@ -15,5 +15,5 @@ pub(crate) enum Context {
     Block,
 
     BinOp,
-    // PrefixOp,
+    PrefixOp,
 }
