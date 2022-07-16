@@ -158,7 +158,7 @@ pub enum StringToken {
     #[token("\"")]
     Delimiter,
 
-    #[regex(r#"[^\$"]+"#)]
+    #[regex(r#"[^\\$"]+"#)]
     Text,
 
     #[token("${")]

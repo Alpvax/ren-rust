@@ -49,8 +49,6 @@ impl Default for SyntaxPart {
 
 impl Into<u16> for SyntaxPart {
     fn into(self) -> u16 {
-        print!("Converting {:?} to u16", self); //XXX
-        let res =//XXX
         match self {
             Self::Error | Self::Token(Token::Error) | Self::StringToken(StringToken::Error) => 0,
             Self::EOF => 1,
@@ -58,9 +56,6 @@ impl Into<u16> for SyntaxPart {
             Self::Token(t) => u16::from(t.to_u8().unwrap()) + 7u16, // Token = 8..255 allowed (actually only currently 57 non-error tokens)
             Self::Context(c) => u16::from(c.to_u8().unwrap()) + 256u16, // Context = 256..
         }
-        ;
-        println!(": {}", res);
-        res //XXX
     }
 }
 

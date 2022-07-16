@@ -30,6 +30,7 @@ fn parse_term(p: &mut Parser, checkpoint: rowan::Checkpoint) {
                     p.bump();
                 } //else error
             }
+            Token::DoubleQuote => parse_string(p),
             _ => {}
         },
         TokenType::String(_) => todo!(),
@@ -38,13 +39,27 @@ fn parse_term(p: &mut Parser, checkpoint: rowan::Checkpoint) {
 }
 
 fn parse_string(p: &mut Parser) {
-    while let TokenType::String(tok) = p.peek() {
-        match tok {
-            StringToken::Error => todo!(),
-            StringToken::Escape => todo!(),
-            StringToken::Delimiter => todo!(),
-            StringToken::Text => todo!(),
-            StringToken::ExprStart => todo!(),
+    assert_eq!(p.peek(), TokenType::Token(Token::DoubleQuote));
+    p.start_node(Context::String);
+    p.bump();
+    loop {
+        while let TokenType::String(StringToken::Text | StringToken::Escape) = p.peek() {
+            p.bump()
+        }
+        if p.bump_matching(StringToken::ExprStart) {
+            p.start_node(Context::Expr);
+            expr(p);
+            p.finish_node();
+            if !p.bump_matching(Token::CurlyClose) {
+                todo!("ERROR");
+            }
+        }
+        if p.bump_matching(StringToken::Delimiter) {
+            p.finish_node();
+            break;
+        }
+        if let TokenType::Token(_) | TokenType::None = p.peek() {
+            todo!("ERROR");
         }
     }
 }

@@ -38,6 +38,14 @@ impl<'source> Parser<'source> {
         self.builder
             .token(RenLang::kind_to_raw(kind.into()), text.into());
     }
+    pub fn bump_matching<T: Into<TokenType>>(&mut self, token: T) -> bool {
+        if self.peek() == token.into() {
+            self.bump();
+            true
+        } else {
+            false
+        }
+    }
     pub fn parse(self) -> Parsed {
         Parsed {
             green_node: self.builder.finish(),
@@ -47,6 +55,7 @@ impl<'source> Parser<'source> {
         self.peek_non_trivia(false)
     }
     pub fn peek_non_trivia(&mut self, emit_whitespace: bool) -> TokenType {
+        //TODO: bump whitespace into tree?
         loop {
             let peek = self.peek_internal();
             match peek {

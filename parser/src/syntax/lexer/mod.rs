@@ -19,6 +19,11 @@ impl From<StringToken> for TokenType {
         Self::String(tok)
     }
 }
+impl TokenType {
+    pub fn is<T: Into<Self>>(&self, token: T) -> bool {
+        self == &token.into()
+    }
+}
 
 pub(super) enum LexerHolder<'source> {
     Main(logos::Lexer<'source, Token>),

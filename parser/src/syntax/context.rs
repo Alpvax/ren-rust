@@ -4,11 +4,13 @@ use num_derive::{FromPrimitive, ToPrimitive};
 pub(crate) enum Context {
     Module, // Root context
 
-    Import,    // After import keyword
-    ImportNS,  //After as
-    ImportExp, // Inside exposing block
+    Imports,
+    Import,        // After import keyword
+    ExposingBlock, // Inside exposing block
 
-    Public, //After pub keyword
+    Declarations,
+
+    Expr,
 
     Pattern,
 
@@ -16,4 +18,8 @@ pub(crate) enum Context {
 
     BinOp,
     PrefixOp,
+
+    String,
+
+    NameSpace,
 }
