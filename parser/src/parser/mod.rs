@@ -1,9 +1,9 @@
 use rowan::{GreenNode, GreenNodeBuilder, Language};
 
-use crate::syntax::{lexer::Lexer, RenLang, SyntaxNode, SyntaxPart, Token, TokenType};
+use crate::syntax::{lexer::Lexer, RenLang, SyntaxNode, Token, TokenType};
 
-// mod marker;
-// use marker::Marker;
+mod marker;
+pub(crate) use marker::Marker;
 
 pub(crate) struct Parser<'source> {
     lexer: Lexer<'source>,
@@ -17,22 +17,22 @@ impl<'source> Parser<'source> {
             builder: GreenNodeBuilder::new(),
         }
     }
-    // fn start(&mut self) -> Marker {
-    //     Marker::new(self.builder.checkpoint())
+    pub fn start(&mut self) -> Marker {
+        Marker::new(self.builder.checkpoint())
+    }
+    // pub fn start_node<K: Into<SyntaxPart>>(&mut self, kind: K) {
+    //     self.builder.start_node(RenLang::kind_to_raw(kind.into()));
     // }
-    pub fn start_node<K: Into<SyntaxPart>>(&mut self, kind: K) {
-        self.builder.start_node(RenLang::kind_to_raw(kind.into()));
-    }
-    pub fn start_node_at<K: Into<SyntaxPart>>(&mut self, checkpoint: rowan::Checkpoint, kind: K) {
-        self.builder
-            .start_node_at(checkpoint, RenLang::kind_to_raw(kind.into()));
-    }
-    pub fn finish_node(&mut self) {
-        self.builder.finish_node();
-    }
-    pub fn checkpoint(&self) -> rowan::Checkpoint {
-        self.builder.checkpoint()
-    }
+    // pub fn start_node_at<K: Into<SyntaxPart>>(&mut self, checkpoint: rowan::Checkpoint, kind: K) {
+    //     self.builder
+    //         .start_node_at(checkpoint, RenLang::kind_to_raw(kind.into()));
+    // }
+    // pub fn finish_node(&mut self) {
+    //     self.builder.finish_node();
+    // }
+    // pub fn checkpoint(&self) -> rowan::Checkpoint {
+    //     self.builder.checkpoint()
+    // }
     pub fn bump(&mut self) {
         let (kind, text) = self.lexer.next().expect("Tried to bump at end of input");
         self.builder
@@ -46,6 +46,15 @@ impl<'source> Parser<'source> {
             false
         }
     }
+    // pub fn start_if<T: Into<TokenType>>(&mut self, token: T) -> Option<Marker> {
+    //     if self.peek() == token.into() {
+    //         let mark = self.start();
+    //         self.bump();
+    //         Some(mark)
+    //     } else {
+    //         None
+    //     }
+    // }
     pub fn parse(self) -> Parsed {
         Parsed {
             green_node: self.builder.finish(),

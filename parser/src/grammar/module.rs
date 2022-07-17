@@ -5,29 +5,33 @@ use crate::{
 
 pub(super) fn module(p: &mut Parser) {
     if p.peek().is(Token::KWImport) {
-        p.start_node(Context::Imports);
+        let imports = p.start();
         while let TokenType::Token(Token::KWImport) = p.peek() {
             parse_import(p);
         }
-        p.finish_node();
+        imports.complete(p, Context::Imports);
     }
     if let TokenType::Token(Token::KWPub | Token::KWLet | Token::KWExt) = p.peek() {
-        p.start_node(Context::Declarations);
+        let declarations = p.start();
         while let TokenType::Token(Token::KWPub | Token::KWLet | Token::KWExt) = p.peek() {
             parse_declaration(p);
         }
-        p.finish_node();
+        declarations.complete(p, Context::Declarations);
     }
 }
 
 fn parse_import(p: &mut Parser) {
     assert_eq!(p.peek(), TokenType::Token(Token::KWImport));
 
-    p.start_node(Context::Import);
+    let import = p.start();
     p.bump();
 
+    if !p.bump_matching(Token::KWPkg) {
+        p.bump_matching(Token::KWExt);
+    }
+
     if p.peek().is(Token::DoubleQuote) {
-        p.start_node(Context::String);
+        let str_m = p.start();
         p.bump();
         loop {
             match p.peek() {
@@ -39,15 +43,15 @@ fn parse_import(p: &mut Parser) {
                 _ => todo!("ERROR"),
             }
         }
-        p.finish_node();
+        str_m.complete(p, Context::String);
 
         if p.bump_matching(Token::KWAs) {
             if p.peek().is(Token::Namespace) {
-                p.start_node(Context::NameSpace);
+                let namespace = p.start();
                 loop {
                     if p.bump_matching(Token::Namespace) {
                         if !p.bump_matching(Token::Period) {
-                            p.finish_node();
+                            namespace.complete(p, Context::NameSpace);
                             break;
                         }
                     } else {
@@ -60,11 +64,11 @@ fn parse_import(p: &mut Parser) {
         }
 
         if p.bump_matching(Token::KWExposing) && p.bump_matching(Token::CurlyOpen) {
-            p.start_node(Context::ExposingBlock);
+            let exp_block = p.start();
             loop {
                 if p.bump_matching(Token::VarName) {
                     if p.bump_matching(Token::CurlyClose) {
-                        p.finish_node();
+                        exp_block.complete(p, Context::ExposingBlock);
                         break;
                     }
                     if !p.bump_matching(Token::Comma) {
@@ -75,23 +79,23 @@ fn parse_import(p: &mut Parser) {
                 }
             }
         }
-        p.finish_node();
+        import.complete(p, Context::Import);
     }
 }
 
 fn parse_declaration(p: &mut Parser) {
-    p.start_node(Context::Declaration);
+    let dec_m = p.start();
     p.bump_matching(Token::KWPub);
     if p.bump_matching(Token::KWLet) {
         if p.bump_matching(Token::VarName) && p.bump_matching(Token::OpAssign) {
-            p.start_node(Context::Expr);
+            let expr_m = p.start();
             super::expression::expr(p);
-            p.finish_node();
+            expr_m.complete(p, Context::Expr);
         } else {
             todo!("ERROR");
         }
     } else if !p.bump_matching(Token::KWExt) || !p.bump_matching(Token::VarName) {
         todo!("ERROR");
     }
-    p.finish_node();
+    dec_m.complete(p, Context::Declaration);
 }

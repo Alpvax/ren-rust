@@ -29,10 +29,8 @@ pub enum Token {
     KWPub,
     #[token("let")]
     KWLet,
-    #[token("run")]
-    KWRun,
-    #[token("ret")]
-    KWRet,
+    #[token("fun")]
+    KWFun,
 
     #[token("if")]
     KWIf,
@@ -80,6 +78,12 @@ pub enum Token {
     Comma,
     #[token(":")]
     Colon,
+    #[token(";")]
+    SemiColon,
+    #[token("#")]
+    Hash,
+    #[token("@")]
+    At,
     #[token("{")]
     CurlyOpen,
     #[token("}")]
@@ -96,7 +100,7 @@ pub enum Token {
     #[token("=")]
     OpAssign,
     #[token("=>")]
-    OpFun,
+    OpArrow,
 
     #[token("|>")]
     OpPipe, //infixLeft 1
@@ -120,8 +124,6 @@ pub enum Token {
     OpJoin, //infixRight 5
 
     // SINGLE CHARACTER OPERATORS
-    #[token(";")]
-    OpDiscard, //infixRight 1
     #[token("<")]
     OpLt, //infixLeft  4
     #[token(">")]

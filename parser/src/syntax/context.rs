@@ -6,6 +6,7 @@ pub(crate) enum Context {
 
     Imports,
     Import,        // After import keyword
+    NameSpace,
     ExposingBlock, // Inside exposing block
 
     Declarations,
@@ -13,14 +14,31 @@ pub(crate) enum Context {
 
     Expr,
 
-    Pattern,
-
-    Block,
-
-    BinOp,
-    PrefixOp,
-
     String,
+    Scoped,
+    Constructor,
+    Array,
+    Record,
+    Field,
 
-    NameSpace,
+    Conditional,
+    Condition,
+    Then,
+    Else,
+
+    Where,
+    Branch,
+    Guard,
+
+    Lambda,
+    Params,
+
+    Application,
+
+    PrefixOp,
+    BinOp,
+
+    Args,
+
+    Pattern,
 }
