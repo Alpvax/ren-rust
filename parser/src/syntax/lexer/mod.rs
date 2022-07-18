@@ -25,6 +25,8 @@ impl TokenType {
     }
 }
 
+pub(crate) type Lexeme<'source> = (TokenType, &'source str);
+
 pub(super) enum LexerHolder<'source> {
     Main(logos::Lexer<'source, Token>),
     String(logos::Lexer<'source, StringToken>),
@@ -52,7 +54,7 @@ impl<'source> LexerHolder<'source> {
     }
 }
 impl<'source> Iterator for LexerHolder<'source> {
-    type Item = (TokenType, &'source str);
+    type Item = Lexeme<'source>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
@@ -99,7 +101,7 @@ impl<'source> Lexer<'source> {
     }
 }
 impl<'source> Iterator for Lexer<'source> {
-    type Item = (TokenType, &'source str);
+    type Item = Lexeme<'source>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.peeked.is_some() {

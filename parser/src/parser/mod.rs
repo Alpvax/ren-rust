@@ -1,6 +1,9 @@
 use rowan::{GreenNode, GreenNodeBuilder, Language};
 
-use crate::syntax::{lexer::Lexer, RenLang, SyntaxNode, Token, TokenType};
+use crate::syntax::{
+    lexer::{Lexeme, Lexer},
+    RenLang, SyntaxNode, Token, TokenType,
+};
 
 mod marker;
 pub(crate) use marker::Marker;
@@ -8,6 +11,7 @@ pub(crate) use marker::Marker;
 pub(crate) struct Parser<'source> {
     lexer: Lexer<'source>,
     builder: GreenNodeBuilder<'static>,
+    whitespace_token: Option<Lexeme<'source>>,
 }
 
 impl<'source> Parser<'source> {
@@ -15,28 +19,17 @@ impl<'source> Parser<'source> {
         Self {
             lexer: Lexer::new(input),
             builder: GreenNodeBuilder::new(),
+            whitespace_token: None,
         }
     }
-    pub fn start(&mut self) -> Marker {
-        Marker::new(self.builder.checkpoint())
+    pub fn start(&mut self, label: &'static str) -> Marker {
+        Marker::new(self.builder.checkpoint(), label)
     }
-    // pub fn start_node<K: Into<SyntaxPart>>(&mut self, kind: K) {
-    //     self.builder.start_node(RenLang::kind_to_raw(kind.into()));
-    // }
-    // pub fn start_node_at<K: Into<SyntaxPart>>(&mut self, checkpoint: rowan::Checkpoint, kind: K) {
-    //     self.builder
-    //         .start_node_at(checkpoint, RenLang::kind_to_raw(kind.into()));
-    // }
-    // pub fn finish_node(&mut self) {
-    //     self.builder.finish_node();
-    // }
-    // pub fn checkpoint(&self) -> rowan::Checkpoint {
-    //     self.builder.checkpoint()
-    // }
     pub fn bump(&mut self) {
         let (kind, text) = self.lexer.next().expect("Tried to bump at end of input");
         self.builder
             .token(RenLang::kind_to_raw(kind.into()), text.into());
+        self.whitespace_token = None;
     }
     pub fn bump_matching<T: Into<TokenType>>(&mut self, token: T) -> bool {
         if self.peek() == token.into() {
@@ -46,15 +39,6 @@ impl<'source> Parser<'source> {
             false
         }
     }
-    // pub fn start_if<T: Into<TokenType>>(&mut self, token: T) -> Option<Marker> {
-    //     if self.peek() == token.into() {
-    //         let mark = self.start();
-    //         self.bump();
-    //         Some(mark)
-    //     } else {
-    //         None
-    //     }
-    // }
     pub fn parse(self) -> Parsed {
         Parsed {
             green_node: self.builder.finish(),
@@ -63,16 +47,27 @@ impl<'source> Parser<'source> {
     pub fn peek(&mut self) -> TokenType {
         self.peek_non_trivia(false)
     }
-    pub fn peek_non_trivia(&mut self, emit_whitespace: bool) -> TokenType {
-        //TODO: bump whitespace into tree?
+    pub fn bump_whitespace(&mut self) -> bool {
+        if let Some((kind, text)) = self.whitespace_token {
+            self.builder.token(RenLang::kind_to_raw(kind.into()), text);
+            true
+        } else if let TokenType::Token(Token::Whitespace) = self.peek_internal() {
+            self.bump();
+            true
+        } else {
+            false
+        }
+    }
+    fn peek_non_trivia(&mut self, emit_whitespace: bool) -> TokenType {
         loop {
             let peek = self.peek_internal();
             match peek {
                 TokenType::Token(Token::Whitespace) => {
+                    self.whitespace_token = self.lexer.peek();
                     if emit_whitespace {
                         return peek;
                     } else {
-                        self.lexer.next()
+                        self.lexer.next() //TODO: bump whitespace into tree?
                     };
                 }
                 TokenType::Token(Token::Comment) => {

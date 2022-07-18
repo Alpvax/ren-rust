@@ -6,12 +6,24 @@ fn check(input: &str, expected_tree: expect_test::Expect) {
     expected_tree.assert_eq(&parse.debug_tree());
 }
 
+#[test]
+fn parse_placeholder() {
+    check(
+        "_",
+        expect![[r#"
+        Context(Expr)@0..1
+          Token(Placeholder)@0..1 "_""#]],
+    )
+}
+
 mod literal {
     use super::*;
 
     #[test]
     fn parse_number() {
-        check("143",expect![[r#"
+        check(
+            "143",
+            expect![[r#"
             Context(Expr)@0..3
               Token(Number)@0..3 "143""#]],
         )
@@ -19,17 +31,22 @@ mod literal {
 
     #[test]
     fn parse_simple_string() {
-        check(r#""Hello World""#, expect![[r#"
+        check(
+            r#""Hello World""#,
+            expect![[r#"
             Context(Expr)@0..13
               Context(String)@0..13
                 Token(DoubleQuote)@0..1 "\""
                 StringToken(Text)@1..12 "Hello World"
-                StringToken(Delimiter)@12..13 "\"""#]])
+                StringToken(Delimiter)@12..13 "\"""#]],
+        )
     }
 
     #[test]
     fn parse_string_with_escapes() {
-        check(r#""Hello\n\tWorld""#, expect![[r#"
+        check(
+            r#""Hello\n\tWorld""#,
+            expect![[r#"
             Context(Expr)@0..16
               Context(String)@0..16
                 Token(DoubleQuote)@0..1 "\""
@@ -37,12 +54,15 @@ mod literal {
                 StringToken(Escape)@6..8 "\\n"
                 StringToken(Escape)@8..10 "\\t"
                 StringToken(Text)@10..15 "World"
-                StringToken(Delimiter)@15..16 "\"""#]])
+                StringToken(Delimiter)@15..16 "\"""#]],
+        )
     }
 
     #[test]
     fn parse_nested_string() {
-        check(r#""Hello\n${"\tworld \${text}"}""#, expect![[r#"
+        check(
+            r#""Hello\n${"\tworld \${text}"}""#,
+            expect![[r#"
             Context(Expr)@0..30
               Context(String)@0..30
                 Token(DoubleQuote)@0..1 "\""
@@ -58,23 +78,29 @@ mod literal {
                     StringToken(Text)@21..27 "{text}"
                     StringToken(Delimiter)@27..28 "\""
                 Token(CurlyClose)@28..29 "}"
-                StringToken(Delimiter)@29..30 "\"""#]])
+                StringToken(Delimiter)@29..30 "\"""#]],
+        )
     }
 
     #[test]
     fn parse_array() {
-        check("[foo, bar]", expect![[r#"
+        check(
+            "[foo, bar]",
+            expect![[r#"
             Context(Expr)@0..9
               Context(Array)@0..9
                 Token(SquareOpen)@0..1 "["
                 Token(VarName)@1..4 "foo"
                 Token(Comma)@4..5 ","
                 Token(VarName)@5..8 "bar"
-                Token(SquareClose)@8..9 "]""#]])
+                Token(SquareClose)@8..9 "]""#]],
+        )
     }
     #[test]
     fn parse_record() {
-        check("{foo, bar: baz}", expect![[r#"
+        check(
+            "{foo, bar: baz}",
+            expect![[r#"
             Context(Expr)@0..13
               Context(Record)@0..13
                 Token(CurlyOpen)@0..1 "{"
@@ -85,16 +111,19 @@ mod literal {
                   Token(VarName)@5..8 "bar"
                   Token(Colon)@8..9 ":"
                   Token(VarName)@9..12 "baz"
-                Token(CurlyClose)@12..13 "}""#]])
+                Token(CurlyClose)@12..13 "}""#]],
+        )
     }
 }
 
 mod operator {
     use super::*;
-    
+
     #[test]
     fn parse_simple_binop() {
-        check("2+3", expect![[r#"
+        check(
+            "2+3",
+            expect![[r#"
             Context(Expr)@0..3
               Context(BinOp)@0..3
                 Token(Number)@0..1 "2"
@@ -106,8 +135,8 @@ mod operator {
     #[test]
     fn parse_mixed_binop() {
         check(
-        "2+3*4-5",
-        expect![[r#"
+            "2+3*4-5",
+            expect![[r#"
             Context(Expr)@0..7
               Context(BinOp)@0..7
                 Context(BinOp)@0..5
@@ -125,8 +154,8 @@ mod operator {
     #[test]
     fn parse_negate_num() {
         check(
-        "-1",
-        expect![[r#"
+            "-1",
+            expect![[r#"
             Context(Expr)@0..2
               Context(PrefixOp)@0..2
                 Token(OpSub)@0..1 "-"
@@ -137,8 +166,8 @@ mod operator {
     #[test]
     fn parse_negate_var() {
         check(
-        "-foo",
-        expect![[r#"
+            "-foo",
+            expect![[r#"
             Context(Expr)@0..4
               Context(PrefixOp)@0..4
                 Token(OpSub)@0..1 "-"
@@ -149,8 +178,8 @@ mod operator {
     #[test]
     fn parse_paren_precedence() {
         check(
-        "1 + 2 * 3 / (5 - 2)",
-        expect![[r#"
+            "1 + 2 * 3 / (5 - 2)",
+            expect![[r#"
             Context(Expr)@0..11
               Context(BinOp)@0..11
                 Token(Number)@0..1 "1"
@@ -205,21 +234,24 @@ mod operator {
     }
 }
 
+mod variable {
+    use super::*;
 
-#[test]
-fn parse_varname() {
-    check(
-        "varName1",
-        expect![[r#"
+    #[test]
+    fn parse_local() {
+        check(
+            "varName1",
+            expect![[r#"
             Context(Expr)@0..8
               Token(VarName)@0..8 "varName1""#]],
-    )
-}
-#[test]
-fn parse_scoped() {
-    check(
-        "Name.Space.foo",
-        expect![[r#"
+        )
+    }
+
+    #[test]
+    fn parse_scoped() {
+        check(
+            "Name.Space.foo",
+            expect![[r#"
             Context(Expr)@0..14
               Context(Scoped)@0..14
                 Token(Namespace)@0..4 "Name"
@@ -227,5 +259,64 @@ fn parse_scoped() {
                 Token(Namespace)@5..10 "Space"
                 Token(Period)@10..11 "."
                 Token(VarName)@11..14 "foo""#]],
+        )
+    }
+}
+
+#[test]
+fn parse_let() {
+    check(
+        "let foo = 1; foo + 3",
+        expect![[r#"
+        Context(Expr)@0..14
+          Context(Declaration)@0..14
+            Token(KWLet)@0..3 "let"
+            Token(VarName)@3..6 "foo"
+            Token(OpAssign)@6..7 "="
+            Context(Expr)@7..8
+              Token(Number)@7..8 "1"
+            Token(SemiColon)@8..9 ";"
+            Context(BinOp)@9..14
+              Token(VarName)@9..12 "foo"
+              Token(OpAdd)@12..13 "+"
+              Token(Number)@13..14 "3""#]],
+    )
+}
+
+#[test]
+fn parse_access() {
+    check(
+        "foo.bar.baz",
+        expect![[r#"
+        Context(Expr)@0..11
+          Context(Access)@0..11
+            Context(Access)@0..7
+              Token(VarName)@0..3 "foo"
+              Token(Period)@3..4 "."
+              Token(VarName)@4..7 "bar"
+            Token(Period)@7..8 "."
+            Token(VarName)@8..11 "baz""#]],
+    )
+}
+
+#[test]
+fn parse_application() {
+    check(
+        "foo bar (3 -1)",
+        expect![[r#"
+        Context(Expr)@0..13
+          Context(Application)@0..13
+            Context(Application)@0..7
+              Token(VarName)@0..3 "foo"
+              Token(Whitespace)@3..4 " "
+              Token(VarName)@4..7 "bar"
+            Token(Whitespace)@7..8 " "
+            Context(Expr)@8..13
+              Token(ParenOpen)@8..9 "("
+              Context(BinOp)@9..12
+                Token(Number)@9..10 "3"
+                Token(OpSub)@10..11 "-"
+                Token(Number)@11..12 "1"
+              Token(ParenClose)@12..13 ")""#]],
     )
 }

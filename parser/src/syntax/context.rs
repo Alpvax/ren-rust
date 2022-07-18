@@ -5,7 +5,7 @@ pub(crate) enum Context {
     Module, // Root context
 
     Imports,
-    Import,        // After import keyword
+    Import, // After import keyword
     NameSpace,
     ExposingBlock, // Inside exposing block
 
@@ -34,6 +34,7 @@ pub(crate) enum Context {
     Params,
 
     Application,
+    Access,
 
     PrefixOp,
     BinOp,

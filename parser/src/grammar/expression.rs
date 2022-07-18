@@ -15,7 +15,11 @@ fn parse_single_term(p: &mut Parser) -> bool {
     match p.peek() {
         TokenType::Token(tok) => {
             match tok {
-                Token::VarName | Token::Placeholder | Token::Number | Token::Bool | Token::Undefined => p.bump(),
+                Token::VarName
+                | Token::Placeholder
+                | Token::Number
+                | Token::Bool
+                | Token::Undefined => p.bump(),
                 Token::OpSub => parse_prefix_op(p, Operator::Sub),
                 Token::DoubleQuote => parse_string(p),
                 Token::Namespace => parse_scoped(p),
@@ -41,10 +45,10 @@ fn parse_single_term(p: &mut Parser) -> bool {
                 // Token::KWWhere => todo!(),
                 _ => {
                     return false;
-                },
+                }
             }
             true
-        },
+        }
         TokenType::None => false,
         TokenType::String(_) => todo!("ERROR"),
     }
@@ -58,10 +62,10 @@ fn parse_term(p: &mut Parser) {
             Token::OpSub => parse_prefix_op(p, Operator::Sub),
             Token::Namespace => parse_scoped(p),
             Token::Hash => {
-                let m = p.start();
+                let m = p.start("constructor");
                 p.bump();
                 if p.bump_matching(Token::VarName) {
-                    let args = p.start();
+                    let args = p.start("args");
                     loop {
                         if !parse_single_term(p) {
                             break;
@@ -77,23 +81,23 @@ fn parse_term(p: &mut Parser) {
             Token::SquareOpen => parse_array(p),
             Token::CurlyOpen => parse_record(p),
             Token::KWIf => {
-                let conditional_m = p.start();
+                let conditional_m = p.start("conditional");
                 p.bump();
-                let condition_m = p.start();
+                let condition_m = p.start("condition");
                 expr(p);
                 condition_m.complete(p, Context::Condition);
                 assert!(p.peek().is(Token::KWThen));
                 p.bump();
-                let then_m = p.start();
+                let then_m = p.start("then");
                 expr(p);
                 then_m.complete(p, Context::Then);
                 assert!(p.peek().is(Token::KWElse));
                 p.bump();
-                let else_m = p.start();
+                let else_m = p.start("else");
                 expr(p);
                 else_m.complete(p, Context::Else);
                 conditional_m.complete(p, Context::Conditional);
-            },
+            }
             Token::KWLet => parse_let(p),
             Token::KWWhere => parse_where(p),
             Token::KWFun => parse_lambda(p),
@@ -106,14 +110,14 @@ fn parse_term(p: &mut Parser) {
 
 fn parse_string(p: &mut Parser) {
     assert_eq!(p.peek(), TokenType::Token(Token::DoubleQuote));
-    let str_m = p.start();
+    let str_m = p.start("string");
     p.bump();
     loop {
         while let TokenType::String(StringToken::Text | StringToken::Escape) = p.peek() {
             p.bump()
         }
         if p.bump_matching(StringToken::ExprStart) {
-            let expr_m = p.start();
+            let expr_m = p.start("string_expression");
             expr(p);
             expr_m.complete(p, Context::Expr);
             if !p.bump_matching(Token::CurlyClose) {
@@ -131,7 +135,7 @@ fn parse_string(p: &mut Parser) {
 }
 
 fn parse_scoped(p: &mut Parser) {
-    let m = p.start();
+    let m = p.start("scoped");
     loop {
         if p.bump_matching(Token::Namespace) && p.bump_matching(Token::Period) {
             match p.peek() {
@@ -139,7 +143,7 @@ fn parse_scoped(p: &mut Parser) {
                     p.bump();
                     m.complete(p, Context::Scoped);
                     break;
-                },
+                }
                 TokenType::Token(Token::Namespace) => continue,
                 _ => todo!("ERROR"),
             }
@@ -150,7 +154,7 @@ fn parse_scoped(p: &mut Parser) {
 }
 
 fn parse_parenthesised(p: &mut Parser) {
-    let m = p.start();
+    let m = p.start("paren");
     p.bump();
     expr(p);
     if p.peek() == TokenType::Token(Token::ParenClose) {
@@ -161,10 +165,10 @@ fn parse_parenthesised(p: &mut Parser) {
 
 fn parse_record(p: &mut Parser) {
     assert!(p.peek().is(Token::CurlyOpen));
-    let rec_m = p.start();
+    let rec_m = p.start("record");
     p.bump();
     loop {
-        let field = p.start();
+        let field = p.start("field");
         p.bump_matching(Token::VarName);
         if p.bump_matching(Token::Colon) {
             expr(p)
@@ -185,7 +189,7 @@ fn parse_record(p: &mut Parser) {
 }
 
 fn parse_array(p: &mut Parser) {
-    let m = p.start();
+    let m = p.start("array");
     p.bump();
     loop {
         expr(p);
@@ -200,11 +204,11 @@ fn parse_array(p: &mut Parser) {
 }
 
 fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) -> bool {
-    let mut start = p.start();
+    let mut start = p.start("subexpr");
     if parse_single_term(p) {
-        loop {
+        if loop {
             let op = match p.peek() {
-                TokenType::None => break,
+                TokenType::None => break true,
                 TokenType::Token(Token::OpAdd) => Operator::Add,
                 TokenType::Token(Token::OpAnd) => Operator::And,
                 TokenType::Token(Token::OpJoin) => Operator::Concat,
@@ -221,39 +225,62 @@ fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) -> bool {
                 TokenType::Token(Token::OpOr) => Operator::Or,
                 TokenType::Token(Token::OpPipe) => Operator::Pipe,
                 TokenType::Token(Token::OpSub) => Operator::Sub,
-                _ => break, // we’ll handle errors later.
+                _ => break true, // we’ll handle errors later.
             };
             let (left_binding_power, right_binding_power) = infix_binding_power(op);
             if left_binding_power < minimum_binding_power {
-                break;
+                break false;
             }
             // Eat the operator’s token.
             p.bump();
             parse_subexpression(p, right_binding_power);
             start.commit(p, Context::BinOp);
+        } {
+            loop {
+                if p.bump_whitespace() {
+                    if parse_single_term(p) {
+                        start.commit(p, Context::Application);
+                    } else {
+                        todo!("ERROR: Application args must be single terms");
+                    }
+                } else if p.bump_matching(Token::Period) {
+                    if p.bump_matching(Token::VarName) {
+                        start.commit(p, Context::Access);
+                    } else {
+                        todo!("ERROR: Access key is not VarName");
+                    }
+                } else {
+                    break;
+                }
+            }
         }
         start.discard();
         true
     } else {
+        start.discard();
         false
     }
 }
 
 fn parse_prefix_op(p: &mut Parser, operator: Operator) {
     let right_binding_power = prefix_binding_power(operator).unwrap();
-    let m = p.start();
+    let m = p.start("prefix");
     p.bump();
     parse_subexpression(p, right_binding_power);
     m.complete(p, Context::PrefixOp);
 }
 
 fn parse_let(p: &mut Parser) {
-    let declaration = p.start();
-    if p.bump_matching(Token::KWLet) && p.bump_matching(Token::VarName) && p.bump_matching(Token::OpAssign) {
-        let expr_m = p.start();
+    let declaration = p.start("let_expr");
+    if p.bump_matching(Token::KWLet)
+        && p.bump_matching(Token::VarName)
+        && p.bump_matching(Token::OpAssign)
+    {
+        let expr_m = p.start("let_body");
         expr(p);
-        if p.bump_matching(Token::SemiColon) {
+        if p.peek().is(Token::SemiColon) {
             expr_m.complete(p, Context::Expr);
+            p.bump();
             expr(p);
             declaration.complete(p, Context::Declaration);
         } else {
@@ -266,9 +293,9 @@ fn parse_let(p: &mut Parser) {
 
 fn parse_lambda(p: &mut Parser) {
     assert!(p.peek().is(Token::KWFun));
-    let lambda = p.start();
+    let lambda = p.start("lambda");
     p.bump();
-    let params = p.start();
+    let params = p.start("lambda_params");
     loop {
         super::parse_pattern(p);
         if p.bump_matching(Token::OpArrow) {
@@ -282,17 +309,17 @@ fn parse_lambda(p: &mut Parser) {
 
 fn parse_where(p: &mut Parser) {
     assert!(p.peek().is(Token::KWWhere));
-    let where_m = p.start();
+    let where_m = p.start("where");
     p.bump();
-    let mut expr_m = p.start();
+    let mut expr_m = p.start("where_expr");
     expr(p);
     expr_m.complete(p, Context::Expr);
     loop {
-        let branch_m = p.start();
+        let branch_m = p.start("where_branch");
         if p.bump_matching(Token::KWIs) {
             super::parse_pattern(p);
             if p.peek().is(Token::KWIf) {
-                let guard_m = p.start();
+                let guard_m = p.start("where_guard");
                 p.bump();
                 expr(p);
                 guard_m.complete(p, Context::Guard);
@@ -300,7 +327,7 @@ fn parse_where(p: &mut Parser) {
             if !p.bump_matching(Token::OpArrow) {
                 todo!("ERROR");
             }
-            expr_m = p.start();
+            expr_m = p.start("branch_expr");
             expr(p);
             expr_m.complete(p, Context::Expr);
             branch_m.complete(p, Context::Branch);

@@ -7,7 +7,7 @@ use pattern::parse_pattern;
 
 pub fn parse_module(input: &str) -> Parsed {
     let mut p = Parser::new(input);
-    let root = p.start();
+    let root = p.start("module");
     module::module(&mut p);
     root.complete(&mut p, crate::syntax::Context::Module);
     p.parse()
@@ -15,7 +15,7 @@ pub fn parse_module(input: &str) -> Parsed {
 
 pub fn parse_expression(input: &str) -> Parsed {
     let mut p = Parser::new(input);
-    let root = p.start();
+    let root = p.start("expr_root");
     expression::expr(&mut p);
     root.complete(&mut p, crate::syntax::Context::Expr);
     p.parse()

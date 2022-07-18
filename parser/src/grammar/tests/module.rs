@@ -11,7 +11,9 @@ mod imports {
 
     #[test]
     fn parse_path_only() {
-        check(r#"import "path""#, expect![[r#"
+        check(
+            r#"import "path""#,
+            expect![[r#"
             Context(Module)@0..12
               Context(Imports)@0..12
                 Context(Import)@0..12
@@ -19,12 +21,15 @@ mod imports {
                   Context(String)@6..12
                     Token(DoubleQuote)@6..7 "\""
                     StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\"""#]])
+                    StringToken(Delimiter)@11..12 "\"""#]],
+        )
     }
 
     #[test]
     fn parse_as() {
-        check(r#"import "path" as Name"#, expect![[r#"
+        check(
+            r#"import "path" as Name"#,
+            expect![[r#"
             Context(Module)@0..18
               Context(Imports)@0..18
                 Context(Import)@0..18
@@ -35,12 +40,15 @@ mod imports {
                     StringToken(Delimiter)@11..12 "\""
                   Token(KWAs)@12..14 "as"
                   Context(NameSpace)@14..18
-                    Token(Namespace)@14..18 "Name""#]])
+                    Token(Namespace)@14..18 "Name""#]],
+        )
     }
 
     #[test]
     fn parse_as_multi() {
-        check(r#"import "path" as Name.Space"#, expect![[r#"
+        check(
+            r#"import "path" as Name.Space"#,
+            expect![[r#"
             Context(Module)@0..24
               Context(Imports)@0..24
                 Context(Import)@0..24
@@ -53,12 +61,15 @@ mod imports {
                   Context(NameSpace)@14..24
                     Token(Namespace)@14..18 "Name"
                     Token(Period)@18..19 "."
-                    Token(Namespace)@19..24 "Space""#]])
+                    Token(Namespace)@19..24 "Space""#]],
+        )
     }
 
     #[test]
     fn parse_exposing() {
-        check(r#"import "path" exposing {foo}"#, expect![[r#"
+        check(
+            r#"import "path" exposing {foo}"#,
+            expect![[r#"
             Context(Module)@0..25
               Context(Imports)@0..25
                 Context(Import)@0..25
@@ -71,12 +82,15 @@ mod imports {
                   Token(CurlyOpen)@20..21 "{"
                   Context(ExposingBlock)@21..25
                     Token(VarName)@21..24 "foo"
-                    Token(CurlyClose)@24..25 "}""#]])
+                    Token(CurlyClose)@24..25 "}""#]],
+        )
     }
 
     #[test]
     fn parse_exposing_multi() {
-        check(r#"import "path" exposing {foo, bar}"#, expect![[r#"
+        check(
+            r#"import "path" exposing {foo, bar}"#,
+            expect![[r#"
             Context(Module)@0..29
               Context(Imports)@0..29
                 Context(Import)@0..29
@@ -91,12 +105,15 @@ mod imports {
                     Token(VarName)@21..24 "foo"
                     Token(Comma)@24..25 ","
                     Token(VarName)@25..28 "bar"
-                    Token(CurlyClose)@28..29 "}""#]])
+                    Token(CurlyClose)@28..29 "}""#]],
+        )
     }
 
     #[test]
     fn parse_full() {
-        check(r#"import "path" as Name.Space exposing {foo, bar}"#, expect![[r#"
+        check(
+            r#"import "path" as Name.Space exposing {foo, bar}"#,
+            expect![[r#"
             Context(Module)@0..41
               Context(Imports)@0..41
                 Context(Import)@0..41
@@ -116,13 +133,16 @@ mod imports {
                     Token(VarName)@33..36 "foo"
                     Token(Comma)@36..37 ","
                     Token(VarName)@37..40 "bar"
-                    Token(CurlyClose)@40..41 "}""#]])
+                    Token(CurlyClose)@40..41 "}""#]],
+        )
     }
 
     #[test]
     fn multiple() {
-        check(r#"import "path" as Name.Space
-        import "./path2" exposing {foo, bar}"#, expect![[r#"
+        check(
+            r#"import "path" as Name.Space
+        import "./path2" exposing {foo, bar}"#,
+            expect![[r#"
             Context(Module)@0..56
               Context(Imports)@0..56
                 Context(Import)@0..24
@@ -148,7 +168,8 @@ mod imports {
                     Token(VarName)@48..51 "foo"
                     Token(Comma)@51..52 ","
                     Token(VarName)@52..55 "bar"
-                    Token(CurlyClose)@55..56 "}""#]])
+                    Token(CurlyClose)@55..56 "}""#]],
+        )
     }
 }
 
@@ -157,28 +178,36 @@ mod declaration {
 
     #[test]
     fn ext() {
-        check("ext var", expect![[r#"
+        check(
+            "ext var",
+            expect![[r#"
             Context(Module)@0..6
               Context(Declarations)@0..6
                 Context(Declaration)@0..6
                   Token(KWExt)@0..3 "ext"
-                  Token(VarName)@3..6 "var""#]]);
+                  Token(VarName)@3..6 "var""#]],
+        );
     }
 
     #[test]
     fn public_ext() {
-        check("pub ext var", expect![[r#"
+        check(
+            "pub ext var",
+            expect![[r#"
             Context(Module)@0..9
               Context(Declarations)@0..9
                 Context(Declaration)@0..9
                   Token(KWPub)@0..3 "pub"
                   Token(KWExt)@3..6 "ext"
-                  Token(VarName)@6..9 "var""#]]);
+                  Token(VarName)@6..9 "var""#]],
+        );
     }
 
     #[test]
     fn local() {
-        check("let var = 3", expect![[r#"
+        check(
+            "let var = 3",
+            expect![[r#"
             Context(Module)@0..8
               Context(Declarations)@0..8
                 Context(Declaration)@0..8
@@ -186,12 +215,15 @@ mod declaration {
                   Token(VarName)@3..6 "var"
                   Token(OpAssign)@6..7 "="
                   Context(Expr)@7..8
-                    Token(Number)@7..8 "3""#]]);
+                    Token(Number)@7..8 "3""#]],
+        );
     }
 
     #[test]
     fn public() {
-        check(r"pub let var = foo", expect![[r#"
+        check(
+            r"pub let var = foo",
+            expect![[r#"
             Context(Module)@0..13
               Context(Declarations)@0..13
                 Context(Declaration)@0..13
@@ -200,6 +232,7 @@ mod declaration {
                   Token(VarName)@6..9 "var"
                   Token(OpAssign)@9..10 "="
                   Context(Expr)@10..13
-                    Token(VarName)@10..13 "foo""#]]);
+                    Token(VarName)@10..13 "foo""#]],
+        );
     }
 }
