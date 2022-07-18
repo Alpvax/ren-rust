@@ -29,7 +29,6 @@ impl<'source> Parser<'source> {
         let (kind, text) = self.lexer.next().expect("Tried to bump at end of input");
         self.builder
             .token(RenLang::kind_to_raw(kind.into()), text.into());
-        self.whitespace_token = None;
     }
     pub fn bump_matching<T: Into<TokenType>>(&mut self, token: T) -> bool {
         if self.peek() == token.into() {
@@ -44,12 +43,9 @@ impl<'source> Parser<'source> {
             green_node: self.builder.finish(),
         }
     }
-    pub fn peek(&mut self) -> TokenType {
-        self.peek_non_trivia(false)
-    }
     pub fn bump_whitespace(&mut self) -> bool {
-        if let Some((kind, text)) = self.whitespace_token {
-            self.builder.token(RenLang::kind_to_raw(kind.into()), text);
+        if self.whitespace_token.is_some() {
+            self.whitespace_token = None;
             true
         } else if let TokenType::Token(Token::Whitespace) = self.peek_internal() {
             self.bump();
@@ -58,17 +54,13 @@ impl<'source> Parser<'source> {
             false
         }
     }
-    fn peek_non_trivia(&mut self, emit_whitespace: bool) -> TokenType {
+    pub fn peek(&mut self) -> TokenType {
         loop {
             let peek = self.peek_internal();
             match peek {
                 TokenType::Token(Token::Whitespace) => {
-                    self.whitespace_token = self.lexer.peek();
-                    if emit_whitespace {
-                        return peek;
-                    } else {
-                        self.lexer.next() //TODO: bump whitespace into tree?
-                    };
+                    self.whitespace_token = self.lexer.peek().into();
+                    self.bump();
                 }
                 TokenType::Token(Token::Comment) => {
                     self.bump();

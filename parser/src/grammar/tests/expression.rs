@@ -87,13 +87,14 @@ mod literal {
         check(
             "[foo, bar]",
             expect![[r#"
-            Context(Expr)@0..9
-              Context(Array)@0..9
-                Token(SquareOpen)@0..1 "["
-                Token(VarName)@1..4 "foo"
-                Token(Comma)@4..5 ","
-                Token(VarName)@5..8 "bar"
-                Token(SquareClose)@8..9 "]""#]],
+                Context(Expr)@0..10
+                  Context(Array)@0..10
+                    Token(SquareOpen)@0..1 "["
+                    Token(VarName)@1..4 "foo"
+                    Token(Comma)@4..5 ","
+                    Token(Whitespace)@5..6 " "
+                    Token(VarName)@6..9 "bar"
+                    Token(SquareClose)@9..10 "]""#]],
         )
     }
     #[test]
@@ -101,17 +102,19 @@ mod literal {
         check(
             "{foo, bar: baz}",
             expect![[r#"
-            Context(Expr)@0..13
-              Context(Record)@0..13
-                Token(CurlyOpen)@0..1 "{"
-                Context(Field)@1..5
-                  Token(VarName)@1..4 "foo"
-                  Token(Comma)@4..5 ","
-                Context(Field)@5..12
-                  Token(VarName)@5..8 "bar"
-                  Token(Colon)@8..9 ":"
-                  Token(VarName)@9..12 "baz"
-                Token(CurlyClose)@12..13 "}""#]],
+                Context(Expr)@0..15
+                  Context(Record)@0..15
+                    Token(CurlyOpen)@0..1 "{"
+                    Context(Field)@1..5
+                      Token(VarName)@1..4 "foo"
+                      Token(Comma)@4..5 ","
+                    Context(Field)@5..14
+                      Token(Whitespace)@5..6 " "
+                      Token(VarName)@6..9 "bar"
+                      Token(Colon)@9..10 ":"
+                      Token(Whitespace)@10..11 " "
+                      Token(VarName)@11..14 "baz"
+                    Token(CurlyClose)@14..15 "}""#]],
         )
     }
 }
@@ -180,23 +183,31 @@ mod operator {
         check(
             "1 + 2 * 3 / (5 - 2)",
             expect![[r#"
-            Context(Expr)@0..11
-              Context(BinOp)@0..11
-                Token(Number)@0..1 "1"
-                Token(OpAdd)@1..2 "+"
-                Context(BinOp)@2..11
-                  Context(BinOp)@2..5
-                    Token(Number)@2..3 "2"
-                    Token(OpMul)@3..4 "*"
-                    Token(Number)@4..5 "3"
-                  Token(OpDiv)@5..6 "/"
-                  Context(Expr)@6..11
-                    Token(ParenOpen)@6..7 "("
-                    Context(BinOp)@7..10
-                      Token(Number)@7..8 "5"
-                      Token(OpSub)@8..9 "-"
-                      Token(Number)@9..10 "2"
-                    Token(ParenClose)@10..11 ")""#]],
+                Context(Expr)@0..19
+                  Context(BinOp)@0..19
+                    Token(Number)@0..1 "1"
+                    Token(Whitespace)@1..2 " "
+                    Token(OpAdd)@2..3 "+"
+                    Context(BinOp)@3..19
+                      Context(BinOp)@3..10
+                        Token(Whitespace)@3..4 " "
+                        Token(Number)@4..5 "2"
+                        Token(Whitespace)@5..6 " "
+                        Token(OpMul)@6..7 "*"
+                        Token(Whitespace)@7..8 " "
+                        Token(Number)@8..9 "3"
+                        Token(Whitespace)@9..10 " "
+                      Token(OpDiv)@10..11 "/"
+                      Token(Whitespace)@11..12 " "
+                      Context(Expr)@12..19
+                        Token(ParenOpen)@12..13 "("
+                        Context(BinOp)@13..18
+                          Token(Number)@13..14 "5"
+                          Token(Whitespace)@14..15 " "
+                          Token(OpSub)@15..16 "-"
+                          Token(Whitespace)@16..17 " "
+                          Token(Number)@17..18 "2"
+                        Token(ParenClose)@18..19 ")""#]],
         )
     }
 
@@ -208,28 +219,39 @@ mod operator {
             /
             (5 - -2) // 5 - (-2) = 6",
             expect![[r#"
-                Context(Expr)@0..64
-                  Context(BinOp)@0..64
+                Context(Expr)@0..111
+                  Context(BinOp)@0..111
                     Token(Number)@0..1 "1"
-                    Token(OpAdd)@1..2 "+"
-                    Context(BinOp)@2..64
-                      Context(BinOp)@2..42
-                        Token(Number)@2..3 "2"
-                        Token(Comment)@3..34 "// Not applied as a s ..."
-                        Token(OpMul)@34..35 "*"
-                        Token(Number)@35..36 "3"
-                        Token(Comment)@36..42 "// = 6"
-                      Token(OpDiv)@42..43 "/"
-                      Context(Expr)@43..49
-                        Token(ParenOpen)@43..44 "("
-                        Context(BinOp)@44..48
-                          Token(Number)@44..45 "5"
-                          Token(OpSub)@45..46 "-"
-                          Context(PrefixOp)@46..48
-                            Token(OpSub)@46..47 "-"
-                            Token(Number)@47..48 "2"
-                        Token(ParenClose)@48..49 ")"
-                      Token(Comment)@49..64 "// 5 - (-2) = 6""#]],
+                    Token(Whitespace)@1..2 " "
+                    Token(OpAdd)@2..3 "+"
+                    Context(BinOp)@3..111
+                      Context(BinOp)@3..73
+                        Token(Whitespace)@3..4 " "
+                        Token(Number)@4..5 "2"
+                        Token(Whitespace)@5..6 " "
+                        Token(Comment)@6..37 "// Not applied as a s ..."
+                        Token(Whitespace)@37..50 "\n            "
+                        Token(OpMul)@50..51 "*"
+                        Token(Whitespace)@51..52 " "
+                        Token(Number)@52..53 "3"
+                        Token(Whitespace)@53..54 " "
+                        Token(Comment)@54..60 "// = 6"
+                        Token(Whitespace)@60..73 "\n            "
+                      Token(OpDiv)@73..74 "/"
+                      Token(Whitespace)@74..87 "\n            "
+                      Context(Expr)@87..95
+                        Token(ParenOpen)@87..88 "("
+                        Context(BinOp)@88..94
+                          Token(Number)@88..89 "5"
+                          Token(Whitespace)@89..90 " "
+                          Token(OpSub)@90..91 "-"
+                          Token(Whitespace)@91..92 " "
+                          Context(PrefixOp)@92..94
+                            Token(OpSub)@92..93 "-"
+                            Token(Number)@93..94 "2"
+                        Token(ParenClose)@94..95 ")"
+                      Token(Whitespace)@95..96 " "
+                      Token(Comment)@96..111 "// 5 - (-2) = 6""#]],
         )
     }
 }
@@ -268,18 +290,24 @@ fn parse_let() {
     check(
         "let foo = 1; foo + 3",
         expect![[r#"
-        Context(Expr)@0..14
-          Context(Declaration)@0..14
-            Token(KWLet)@0..3 "let"
-            Token(VarName)@3..6 "foo"
-            Token(OpAssign)@6..7 "="
-            Context(Expr)@7..8
-              Token(Number)@7..8 "1"
-            Token(SemiColon)@8..9 ";"
-            Context(BinOp)@9..14
-              Token(VarName)@9..12 "foo"
-              Token(OpAdd)@12..13 "+"
-              Token(Number)@13..14 "3""#]],
+            Context(Expr)@0..20
+              Context(Declaration)@0..20
+                Token(KWLet)@0..3 "let"
+                Token(Whitespace)@3..4 " "
+                Token(VarName)@4..7 "foo"
+                Token(Whitespace)@7..8 " "
+                Token(OpAssign)@8..9 "="
+                Context(Expr)@9..11
+                  Token(Whitespace)@9..10 " "
+                  Token(Number)@10..11 "1"
+                Token(SemiColon)@11..12 ";"
+                Context(BinOp)@12..20
+                  Token(Whitespace)@12..13 " "
+                  Token(VarName)@13..16 "foo"
+                  Token(Whitespace)@16..17 " "
+                  Token(OpAdd)@17..18 "+"
+                  Token(Whitespace)@18..19 " "
+                  Token(Number)@19..20 "3""#]],
     )
 }
 
@@ -304,20 +332,21 @@ fn parse_application() {
     check(
         "foo bar (3 -1)",
         expect![[r#"
-        Context(Expr)@0..13
-          Context(Application)@0..13
-            Context(Application)@0..7
-              Token(VarName)@0..3 "foo"
-              Token(Whitespace)@3..4 " "
-              Token(VarName)@4..7 "bar"
-            Token(Whitespace)@7..8 " "
-            Context(Expr)@8..13
-              Token(ParenOpen)@8..9 "("
-              Context(BinOp)@9..12
-                Token(Number)@9..10 "3"
-                Token(OpSub)@10..11 "-"
-                Token(Number)@11..12 "1"
-              Token(ParenClose)@12..13 ")""#]],
+            Context(Expr)@0..14
+              Context(Application)@0..14
+                Context(Application)@0..7
+                  Token(VarName)@0..3 "foo"
+                  Token(Whitespace)@3..4 " "
+                  Token(VarName)@4..7 "bar"
+                Token(Whitespace)@7..8 " "
+                Context(Expr)@8..14
+                  Token(ParenOpen)@8..9 "("
+                  Context(BinOp)@9..13
+                    Token(Number)@9..10 "3"
+                    Token(Whitespace)@10..11 " "
+                    Token(OpSub)@11..12 "-"
+                    Token(Number)@12..13 "1"
+                  Token(ParenClose)@13..14 ")""#]],
     )
 }
 
@@ -326,9 +355,72 @@ fn parse_constructor() {
     check(
         "#foo bar (3 -1)",
         expect![[r##"
+            Context(Expr)@0..15
+              Context(Constructor)@0..15
+                Token(Hash)@0..1 "#"
+                Token(VarName)@1..4 "foo"
+                Token(Whitespace)@4..5 " "
+                Context(Args)@5..15
+                  Token(VarName)@5..8 "bar"
+                  Token(Whitespace)@8..9 " "
+                  Context(Expr)@9..15
+                    Token(ParenOpen)@9..10 "("
+                    Context(BinOp)@10..14
+                      Token(Number)@10..11 "3"
+                      Token(Whitespace)@11..12 " "
+                      Token(OpSub)@12..13 "-"
+                      Token(Number)@13..14 "1"
+                    Token(ParenClose)@14..15 ")""##]],
+    )
+}
+
+#[test]
+fn parse_conditional() {
+    check(
+        "if a && b then c + 4 else 2 * c",
+        expect![[r#"
+            Context(Expr)@0..31
+              Context(Conditional)@0..31
+                Token(KWIf)@0..2 "if"
+                Context(Condition)@2..10
+                  Context(BinOp)@2..10
+                    Token(Whitespace)@2..3 " "
+                    Token(VarName)@3..4 "a"
+                    Token(Whitespace)@4..5 " "
+                    Token(OpAnd)@5..7 "&&"
+                    Token(Whitespace)@7..8 " "
+                    Token(VarName)@8..9 "b"
+                    Token(Whitespace)@9..10 " "
+                Token(KWThen)@10..14 "then"
+                Context(Then)@14..21
+                  Context(BinOp)@14..21
+                    Token(Whitespace)@14..15 " "
+                    Token(VarName)@15..16 "c"
+                    Token(Whitespace)@16..17 " "
+                    Token(OpAdd)@17..18 "+"
+                    Token(Whitespace)@18..19 " "
+                    Token(Number)@19..20 "4"
+                    Token(Whitespace)@20..21 " "
+                Token(KWElse)@21..25 "else"
+                Context(Else)@25..31
+                  Context(BinOp)@25..31
+                    Token(Whitespace)@25..26 " "
+                    Token(Number)@26..27 "2"
+                    Token(Whitespace)@27..28 " "
+                    Token(OpMul)@28..29 "*"
+                    Token(Whitespace)@29..30 " "
+                    Token(VarName)@30..31 "c""#]],
+    )
+}
+
+#[test]
+fn parse_where() {
+    check(
+        r#"where foo is 1 => "hello" is 2 => "world" _ => "!""#,
+        expect![[r#"
         Context(Expr)@0..14
           Context(Constructor)@0..14
-            Token(Hash)@0..1 "#"
+            Token(Hash)@0..1 ""
             Token(VarName)@1..4 "foo"
             Context(Args)@4..14
               Token(Whitespace)@4..5 " "
@@ -340,6 +432,29 @@ fn parse_constructor() {
                   Token(Number)@10..11 "3"
                   Token(OpSub)@11..12 "-"
                   Token(Number)@12..13 "1"
-                Token(ParenClose)@13..14 ")""##]],
+                Token(ParenClose)@13..14 ")""#]],
+    )
+}
+
+#[test]
+fn parse_lambda() {
+    check(
+        "fun a b => a * (3 - b)",
+        expect![[r#"
+        Context(Expr)@0..14
+          Context(Lambda)@0..14
+            Token(Hash)@0..1 ""
+            Token(VarName)@1..4 "foo"
+            Context(Args)@4..14
+              Token(Whitespace)@4..5 " "
+              Token(VarName)@5..8 "bar"
+              Token(Whitespace)@8..9 " "
+              Context(Expr)@9..14
+                Token(ParenOpen)@9..10 "("
+                Context(BinOp)@10..13
+                  Token(Number)@10..11 "3"
+                  Token(OpSub)@11..12 "-"
+                  Token(Number)@12..13 "1"
+                Token(ParenClose)@13..14 ")""#]],
     )
 }

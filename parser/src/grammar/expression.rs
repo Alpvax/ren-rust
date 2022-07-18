@@ -58,19 +58,18 @@ fn parse_term(p: &mut Parser) {
                 let m = p.start("constructor");
                 p.bump();
                 if p.bump_matching(Token::VarName) {
-                    let args = p.start("args");
-                    loop {
-                        if p.bump_whitespace() {
-                            // let arg = p.start("arg_expr");
+                    if p.bump_whitespace() {
+                        let args = p.start("args");
+                        loop {
                             if !parse_single_term(p) {
-                                todo!("ERROR: Application args must be single terms");
+                                todo!("ERROR: Constructor args must be single terms");
                             }
-                            // arg.complete(p, Context::Expr);
-                        } else {
-                            break;
+                            if !p.bump_whitespace() {
+                                break;
+                            }
                         }
+                        args.complete(p, Context::Args);
                     }
-                    args.complete(p, Context::Args);
                     m.complete(p, Context::Constructor);
                 } else {
                     todo!("ERROR")
@@ -240,7 +239,7 @@ fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) -> bool {
                     if parse_single_term(p) {
                         start.commit(p, Context::Application);
                     } else {
-                        todo!("ERROR: Application args must be single terms");
+                        // todo!("ERROR: Application args must be single terms. peek = {:?}", p.peek());
                     }
                 } else if p.bump_matching(Token::Period) {
                     if p.bump_matching(Token::VarName) {

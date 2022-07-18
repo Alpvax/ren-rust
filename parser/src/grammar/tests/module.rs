@@ -14,14 +14,15 @@ mod imports {
         check(
             r#"import "path""#,
             expect![[r#"
-            Context(Module)@0..12
-              Context(Imports)@0..12
-                Context(Import)@0..12
-                  Token(KWImport)@0..6 "import"
-                  Context(String)@6..12
-                    Token(DoubleQuote)@6..7 "\""
-                    StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\"""#]],
+                Context(Module)@0..13
+                  Context(Imports)@0..13
+                    Context(Import)@0..13
+                      Token(KWImport)@0..6 "import"
+                      Token(Whitespace)@6..7 " "
+                      Context(String)@7..13
+                        Token(DoubleQuote)@7..8 "\""
+                        StringToken(Text)@8..12 "path"
+                        StringToken(Delimiter)@12..13 "\"""#]],
         )
     }
 
@@ -30,17 +31,20 @@ mod imports {
         check(
             r#"import "path" as Name"#,
             expect![[r#"
-            Context(Module)@0..18
-              Context(Imports)@0..18
-                Context(Import)@0..18
-                  Token(KWImport)@0..6 "import"
-                  Context(String)@6..12
-                    Token(DoubleQuote)@6..7 "\""
-                    StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\""
-                  Token(KWAs)@12..14 "as"
-                  Context(NameSpace)@14..18
-                    Token(Namespace)@14..18 "Name""#]],
+                Context(Module)@0..21
+                  Context(Imports)@0..21
+                    Context(Import)@0..21
+                      Token(KWImport)@0..6 "import"
+                      Token(Whitespace)@6..7 " "
+                      Context(String)@7..13
+                        Token(DoubleQuote)@7..8 "\""
+                        StringToken(Text)@8..12 "path"
+                        StringToken(Delimiter)@12..13 "\""
+                      Token(Whitespace)@13..14 " "
+                      Token(KWAs)@14..16 "as"
+                      Token(Whitespace)@16..17 " "
+                      Context(NameSpace)@17..21
+                        Token(Namespace)@17..21 "Name""#]],
         )
     }
 
@@ -49,19 +53,22 @@ mod imports {
         check(
             r#"import "path" as Name.Space"#,
             expect![[r#"
-            Context(Module)@0..24
-              Context(Imports)@0..24
-                Context(Import)@0..24
-                  Token(KWImport)@0..6 "import"
-                  Context(String)@6..12
-                    Token(DoubleQuote)@6..7 "\""
-                    StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\""
-                  Token(KWAs)@12..14 "as"
-                  Context(NameSpace)@14..24
-                    Token(Namespace)@14..18 "Name"
-                    Token(Period)@18..19 "."
-                    Token(Namespace)@19..24 "Space""#]],
+                Context(Module)@0..27
+                  Context(Imports)@0..27
+                    Context(Import)@0..27
+                      Token(KWImport)@0..6 "import"
+                      Token(Whitespace)@6..7 " "
+                      Context(String)@7..13
+                        Token(DoubleQuote)@7..8 "\""
+                        StringToken(Text)@8..12 "path"
+                        StringToken(Delimiter)@12..13 "\""
+                      Token(Whitespace)@13..14 " "
+                      Token(KWAs)@14..16 "as"
+                      Token(Whitespace)@16..17 " "
+                      Context(NameSpace)@17..27
+                        Token(Namespace)@17..21 "Name"
+                        Token(Period)@21..22 "."
+                        Token(Namespace)@22..27 "Space""#]],
         )
     }
 
@@ -70,19 +77,22 @@ mod imports {
         check(
             r#"import "path" exposing {foo}"#,
             expect![[r#"
-            Context(Module)@0..25
-              Context(Imports)@0..25
-                Context(Import)@0..25
-                  Token(KWImport)@0..6 "import"
-                  Context(String)@6..12
-                    Token(DoubleQuote)@6..7 "\""
-                    StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\""
-                  Token(KWExposing)@12..20 "exposing"
-                  Token(CurlyOpen)@20..21 "{"
-                  Context(ExposingBlock)@21..25
-                    Token(VarName)@21..24 "foo"
-                    Token(CurlyClose)@24..25 "}""#]],
+                Context(Module)@0..28
+                  Context(Imports)@0..28
+                    Context(Import)@0..28
+                      Token(KWImport)@0..6 "import"
+                      Token(Whitespace)@6..7 " "
+                      Context(String)@7..13
+                        Token(DoubleQuote)@7..8 "\""
+                        StringToken(Text)@8..12 "path"
+                        StringToken(Delimiter)@12..13 "\""
+                      Token(Whitespace)@13..14 " "
+                      Token(KWExposing)@14..22 "exposing"
+                      Token(Whitespace)@22..23 " "
+                      Token(CurlyOpen)@23..24 "{"
+                      Context(ExposingBlock)@24..28
+                        Token(VarName)@24..27 "foo"
+                        Token(CurlyClose)@27..28 "}""#]],
         )
     }
 
@@ -91,21 +101,25 @@ mod imports {
         check(
             r#"import "path" exposing {foo, bar}"#,
             expect![[r#"
-            Context(Module)@0..29
-              Context(Imports)@0..29
-                Context(Import)@0..29
-                  Token(KWImport)@0..6 "import"
-                  Context(String)@6..12
-                    Token(DoubleQuote)@6..7 "\""
-                    StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\""
-                  Token(KWExposing)@12..20 "exposing"
-                  Token(CurlyOpen)@20..21 "{"
-                  Context(ExposingBlock)@21..29
-                    Token(VarName)@21..24 "foo"
-                    Token(Comma)@24..25 ","
-                    Token(VarName)@25..28 "bar"
-                    Token(CurlyClose)@28..29 "}""#]],
+                Context(Module)@0..33
+                  Context(Imports)@0..33
+                    Context(Import)@0..33
+                      Token(KWImport)@0..6 "import"
+                      Token(Whitespace)@6..7 " "
+                      Context(String)@7..13
+                        Token(DoubleQuote)@7..8 "\""
+                        StringToken(Text)@8..12 "path"
+                        StringToken(Delimiter)@12..13 "\""
+                      Token(Whitespace)@13..14 " "
+                      Token(KWExposing)@14..22 "exposing"
+                      Token(Whitespace)@22..23 " "
+                      Token(CurlyOpen)@23..24 "{"
+                      Context(ExposingBlock)@24..33
+                        Token(VarName)@24..27 "foo"
+                        Token(Comma)@27..28 ","
+                        Token(Whitespace)@28..29 " "
+                        Token(VarName)@29..32 "bar"
+                        Token(CurlyClose)@32..33 "}""#]],
         )
     }
 
@@ -114,26 +128,32 @@ mod imports {
         check(
             r#"import "path" as Name.Space exposing {foo, bar}"#,
             expect![[r#"
-            Context(Module)@0..41
-              Context(Imports)@0..41
-                Context(Import)@0..41
-                  Token(KWImport)@0..6 "import"
-                  Context(String)@6..12
-                    Token(DoubleQuote)@6..7 "\""
-                    StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\""
-                  Token(KWAs)@12..14 "as"
-                  Context(NameSpace)@14..24
-                    Token(Namespace)@14..18 "Name"
-                    Token(Period)@18..19 "."
-                    Token(Namespace)@19..24 "Space"
-                  Token(KWExposing)@24..32 "exposing"
-                  Token(CurlyOpen)@32..33 "{"
-                  Context(ExposingBlock)@33..41
-                    Token(VarName)@33..36 "foo"
-                    Token(Comma)@36..37 ","
-                    Token(VarName)@37..40 "bar"
-                    Token(CurlyClose)@40..41 "}""#]],
+                Context(Module)@0..47
+                  Context(Imports)@0..47
+                    Context(Import)@0..47
+                      Token(KWImport)@0..6 "import"
+                      Token(Whitespace)@6..7 " "
+                      Context(String)@7..13
+                        Token(DoubleQuote)@7..8 "\""
+                        StringToken(Text)@8..12 "path"
+                        StringToken(Delimiter)@12..13 "\""
+                      Token(Whitespace)@13..14 " "
+                      Token(KWAs)@14..16 "as"
+                      Token(Whitespace)@16..17 " "
+                      Context(NameSpace)@17..28
+                        Token(Namespace)@17..21 "Name"
+                        Token(Period)@21..22 "."
+                        Token(Namespace)@22..27 "Space"
+                        Token(Whitespace)@27..28 " "
+                      Token(KWExposing)@28..36 "exposing"
+                      Token(Whitespace)@36..37 " "
+                      Token(CurlyOpen)@37..38 "{"
+                      Context(ExposingBlock)@38..47
+                        Token(VarName)@38..41 "foo"
+                        Token(Comma)@41..42 ","
+                        Token(Whitespace)@42..43 " "
+                        Token(VarName)@43..46 "bar"
+                        Token(CurlyClose)@46..47 "}""#]],
         )
     }
 
@@ -143,32 +163,40 @@ mod imports {
             r#"import "path" as Name.Space
         import "./path2" exposing {foo, bar}"#,
             expect![[r#"
-            Context(Module)@0..56
-              Context(Imports)@0..56
-                Context(Import)@0..24
-                  Token(KWImport)@0..6 "import"
-                  Context(String)@6..12
-                    Token(DoubleQuote)@6..7 "\""
-                    StringToken(Text)@7..11 "path"
-                    StringToken(Delimiter)@11..12 "\""
-                  Token(KWAs)@12..14 "as"
-                  Context(NameSpace)@14..24
-                    Token(Namespace)@14..18 "Name"
-                    Token(Period)@18..19 "."
-                    Token(Namespace)@19..24 "Space"
-                Context(Import)@24..56
-                  Token(KWImport)@24..30 "import"
-                  Context(String)@30..39
-                    Token(DoubleQuote)@30..31 "\""
-                    StringToken(Text)@31..38 "./path2"
-                    StringToken(Delimiter)@38..39 "\""
-                  Token(KWExposing)@39..47 "exposing"
-                  Token(CurlyOpen)@47..48 "{"
-                  Context(ExposingBlock)@48..56
-                    Token(VarName)@48..51 "foo"
-                    Token(Comma)@51..52 ","
-                    Token(VarName)@52..55 "bar"
-                    Token(CurlyClose)@55..56 "}""#]],
+                Context(Module)@0..72
+                  Context(Imports)@0..72
+                    Context(Import)@0..36
+                      Token(KWImport)@0..6 "import"
+                      Token(Whitespace)@6..7 " "
+                      Context(String)@7..13
+                        Token(DoubleQuote)@7..8 "\""
+                        StringToken(Text)@8..12 "path"
+                        StringToken(Delimiter)@12..13 "\""
+                      Token(Whitespace)@13..14 " "
+                      Token(KWAs)@14..16 "as"
+                      Token(Whitespace)@16..17 " "
+                      Context(NameSpace)@17..36
+                        Token(Namespace)@17..21 "Name"
+                        Token(Period)@21..22 "."
+                        Token(Namespace)@22..27 "Space"
+                        Token(Whitespace)@27..36 "\n        "
+                    Context(Import)@36..72
+                      Token(KWImport)@36..42 "import"
+                      Token(Whitespace)@42..43 " "
+                      Context(String)@43..52
+                        Token(DoubleQuote)@43..44 "\""
+                        StringToken(Text)@44..51 "./path2"
+                        StringToken(Delimiter)@51..52 "\""
+                      Token(Whitespace)@52..53 " "
+                      Token(KWExposing)@53..61 "exposing"
+                      Token(Whitespace)@61..62 " "
+                      Token(CurlyOpen)@62..63 "{"
+                      Context(ExposingBlock)@63..72
+                        Token(VarName)@63..66 "foo"
+                        Token(Comma)@66..67 ","
+                        Token(Whitespace)@67..68 " "
+                        Token(VarName)@68..71 "bar"
+                        Token(CurlyClose)@71..72 "}""#]],
         )
     }
 }
@@ -181,11 +209,12 @@ mod declaration {
         check(
             "ext var",
             expect![[r#"
-            Context(Module)@0..6
-              Context(Declarations)@0..6
-                Context(Declaration)@0..6
-                  Token(KWExt)@0..3 "ext"
-                  Token(VarName)@3..6 "var""#]],
+                Context(Module)@0..7
+                  Context(Declarations)@0..7
+                    Context(Declaration)@0..7
+                      Token(KWExt)@0..3 "ext"
+                      Token(Whitespace)@3..4 " "
+                      Token(VarName)@4..7 "var""#]],
         );
     }
 
@@ -194,12 +223,14 @@ mod declaration {
         check(
             "pub ext var",
             expect![[r#"
-            Context(Module)@0..9
-              Context(Declarations)@0..9
-                Context(Declaration)@0..9
-                  Token(KWPub)@0..3 "pub"
-                  Token(KWExt)@3..6 "ext"
-                  Token(VarName)@6..9 "var""#]],
+                Context(Module)@0..11
+                  Context(Declarations)@0..11
+                    Context(Declaration)@0..11
+                      Token(KWPub)@0..3 "pub"
+                      Token(Whitespace)@3..4 " "
+                      Token(KWExt)@4..7 "ext"
+                      Token(Whitespace)@7..8 " "
+                      Token(VarName)@8..11 "var""#]],
         );
     }
 
@@ -208,14 +239,17 @@ mod declaration {
         check(
             "let var = 3",
             expect![[r#"
-            Context(Module)@0..8
-              Context(Declarations)@0..8
-                Context(Declaration)@0..8
-                  Token(KWLet)@0..3 "let"
-                  Token(VarName)@3..6 "var"
-                  Token(OpAssign)@6..7 "="
-                  Context(Expr)@7..8
-                    Token(Number)@7..8 "3""#]],
+                Context(Module)@0..11
+                  Context(Declarations)@0..11
+                    Context(Declaration)@0..11
+                      Token(KWLet)@0..3 "let"
+                      Token(Whitespace)@3..4 " "
+                      Token(VarName)@4..7 "var"
+                      Token(Whitespace)@7..8 " "
+                      Token(OpAssign)@8..9 "="
+                      Context(Expr)@9..11
+                        Token(Whitespace)@9..10 " "
+                        Token(Number)@10..11 "3""#]],
         );
     }
 
@@ -224,15 +258,19 @@ mod declaration {
         check(
             r"pub let var = foo",
             expect![[r#"
-            Context(Module)@0..13
-              Context(Declarations)@0..13
-                Context(Declaration)@0..13
-                  Token(KWPub)@0..3 "pub"
-                  Token(KWLet)@3..6 "let"
-                  Token(VarName)@6..9 "var"
-                  Token(OpAssign)@9..10 "="
-                  Context(Expr)@10..13
-                    Token(VarName)@10..13 "foo""#]],
+                Context(Module)@0..17
+                  Context(Declarations)@0..17
+                    Context(Declaration)@0..17
+                      Token(KWPub)@0..3 "pub"
+                      Token(Whitespace)@3..4 " "
+                      Token(KWLet)@4..7 "let"
+                      Token(Whitespace)@7..8 " "
+                      Token(VarName)@8..11 "var"
+                      Token(Whitespace)@11..12 " "
+                      Token(OpAssign)@12..13 "="
+                      Context(Expr)@13..17
+                        Token(Whitespace)@13..14 " "
+                        Token(VarName)@14..17 "foo""#]],
         );
     }
 }
