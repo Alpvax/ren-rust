@@ -26,23 +26,16 @@ fn parse_single_term(p: &mut Parser) -> bool {
                 Token::ParenOpen => parse_parenthesised(p),
                 Token::CurlyOpen => parse_record(p),
                 Token::SquareOpen => parse_array(p),
+                //TODO: single-term constructors (uncommenting conflicts with Application)
                 // Token::Hash => {
-                //     p.start_node(Context::Constructor);
+                //     let mark = p.start("single_constructor");
                 //     p.bump();
-                //     p.finish_node();
+                //     if p.bump_matching(Token::VarName) {
+                //         mark.complete(p, Context::Constructor);
+                //     } else {
+                //         todo!("ERROR: ")
+                //     }
                 // },
-                // Token::KWLet => {
-                //     parse_let_to_semi(p);
-                //     parse_single_term(p);
-                //     p.finish_node();
-                // },
-                // Token::KWFun => {
-                //     parse_lambda_to_arrow(p);
-                //     parse_single_term(p);
-                //     p.finish_node();
-                // },
-                // Token::KWIf => todo!(),
-                // Token::KWWhere => todo!(),
                 _ => {
                     return false;
                 }
@@ -50,7 +43,7 @@ fn parse_single_term(p: &mut Parser) -> bool {
             true
         }
         TokenType::None => false,
-        TokenType::String(_) => todo!("ERROR"),
+        TokenType::String(_) => unreachable!("ERROR: recieved string token outside of string."),
     }
 }
 
@@ -67,7 +60,13 @@ fn parse_term(p: &mut Parser) {
                 if p.bump_matching(Token::VarName) {
                     let args = p.start("args");
                     loop {
-                        if !parse_single_term(p) {
+                        if p.bump_whitespace() {
+                            // let arg = p.start("arg_expr");
+                            if !parse_single_term(p) {
+                                todo!("ERROR: Application args must be single terms");
+                            }
+                            // arg.complete(p, Context::Expr);
+                        } else {
                             break;
                         }
                     }

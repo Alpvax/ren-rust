@@ -320,3 +320,26 @@ fn parse_application() {
               Token(ParenClose)@12..13 ")""#]],
     )
 }
+
+#[test]
+fn parse_constructor() {
+    check(
+        "#foo bar (3 -1)",
+        expect![[r##"
+        Context(Expr)@0..14
+          Context(Constructor)@0..14
+            Token(Hash)@0..1 "#"
+            Token(VarName)@1..4 "foo"
+            Context(Args)@4..14
+              Token(Whitespace)@4..5 " "
+              Token(VarName)@5..8 "bar"
+              Token(Whitespace)@8..9 " "
+              Context(Expr)@9..14
+                Token(ParenOpen)@9..10 "("
+                Context(BinOp)@10..13
+                  Token(Number)@10..11 "3"
+                  Token(OpSub)@11..12 "-"
+                  Token(Number)@12..13 "1"
+                Token(ParenClose)@13..14 ")""##]],
+    )
+}
