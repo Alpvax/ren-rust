@@ -3,6 +3,17 @@
 #[allow(dead_code)]
 mod value;
 
+#[cfg(test)]
+mod test;
+
+#[cfg(feature = "reqwest")]
+fn parse_remote_file(url: &str) -> parser::Parsed {
+    use reqwest;
+    reqwest::blocking::get(url)
+        .and_then(|r| r.text())
+        .map(|input| parser::parse_module(input.as_str()))
+}
+
 // const SAMPLE: &str = r#"import "foo/bar" as Foo.Bar exposing { foo, bar, baz }
 
 // pub fun foo = x y z => undefined

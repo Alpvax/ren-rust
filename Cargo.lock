@@ -553,7 +553,6 @@ dependencies = [
  "logos",
  "num-derive",
  "num-traits",
- "reqwest",
  "rowan",
 ]
 
@@ -562,7 +561,9 @@ name = "parser-rust"
 version = "0.1.0"
 dependencies = [
  "ast",
+ "expect-test",
  "parser",
+ "reqwest",
 ]
 
 [[package]]

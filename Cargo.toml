@@ -8,8 +8,15 @@ edition = "2021"
 members = ["ast", "parser"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+remote = ["reqwest"]
 
 [dependencies]
 ast = { path = "./ast" }
 parser = { path = "./parser" }
 #lexer = { path = "./lexer" }
+reqwest = { version = "0.11.11", features = ["blocking"], optional = true }
+
+[dev-dependencies]
+expect-test = "1.3"

@@ -488,10 +488,10 @@ fn parse_nested_conditional() {
 #[test]
 fn parse_where() {
     check(
-        r#"where foo is 1 => "hello" is 2 if bar > foo => "world" is _ => "!""#,
-        expect![[r#"
-            Context(Expr)@0..66
-              Context(Where)@0..66
+        r#"where foo is 1 => "hello" is 2 if bar > foo => "world" is #just baz => "baz" is _ => "!""#,
+        expect![[r##"
+            Context(Expr)@0..88
+              Context(Where)@0..88
                 Token(KWWhere)@0..5 "where"
                 Context(Expr)@5..10
                   Token(Whitespace)@5..6 " "
@@ -535,19 +535,38 @@ fn parse_where() {
                       StringToken(Text)@48..53 "world"
                       StringToken(Delimiter)@53..54 "\""
                     Token(Whitespace)@54..55 " "
-                Context(Branch)@55..66
+                Context(Branch)@55..77
                   Token(KWIs)@55..57 "is"
-                  Context(Pattern)@57..59
+                  Context(Pattern)@57..68
                     Token(Whitespace)@57..58 " "
-                    Token(Placeholder)@58..59 "_"
-                  Token(Whitespace)@59..60 " "
-                  Token(OpArrow)@60..62 "=>"
-                  Context(Expr)@62..66
-                    Token(Whitespace)@62..63 " "
-                    Context(String)@63..66
-                      Token(DoubleQuote)@63..64 "\""
-                      StringToken(Text)@64..65 "!"
-                      StringToken(Delimiter)@65..66 "\"""#]],
+                    Context(Constructor)@58..68
+                      Token(Hash)@58..59 "#"
+                      Token(VarName)@59..63 "just"
+                      Context(Args)@63..68
+                        Token(Whitespace)@63..64 " "
+                        Token(VarName)@64..67 "baz"
+                        Token(Whitespace)@67..68 " "
+                  Token(OpArrow)@68..70 "=>"
+                  Context(Expr)@70..77
+                    Token(Whitespace)@70..71 " "
+                    Context(String)@71..76
+                      Token(DoubleQuote)@71..72 "\""
+                      StringToken(Text)@72..75 "baz"
+                      StringToken(Delimiter)@75..76 "\""
+                    Token(Whitespace)@76..77 " "
+                Context(Branch)@77..88
+                  Token(KWIs)@77..79 "is"
+                  Context(Pattern)@79..81
+                    Token(Whitespace)@79..80 " "
+                    Token(Placeholder)@80..81 "_"
+                  Token(Whitespace)@81..82 " "
+                  Token(OpArrow)@82..84 "=>"
+                  Context(Expr)@84..88
+                    Token(Whitespace)@84..85 " "
+                    Context(String)@85..88
+                      Token(DoubleQuote)@85..86 "\""
+                      StringToken(Text)@86..87 "!"
+                      StringToken(Delimiter)@87..88 "\"""##]],
     )
 }
 

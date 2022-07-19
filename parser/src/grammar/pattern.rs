@@ -35,7 +35,26 @@ fn pattern(p: &mut Parser) {
                     todo!("ERROR: invalid type name token")
                 }
             }
-            _ => todo!("ERROR: invalid Pattern start token"),
+            Token::Hash => {
+                let con_m = p.start("variant_pattern");
+                p.bump();
+                if p.bump_matching(Token::VarName) {
+                    if p.bump_whitespace() {
+                        let args = p.start("args");
+                        loop {
+                            pattern(p); //TODO: better parsing for constructor
+                            if !p.bump_whitespace() || p.peek().is(Token::OpArrow) {
+                                break;
+                            }
+                        }
+                        args.complete(p, Context::Args);
+                    }
+                    con_m.complete(p, Context::Constructor);
+                } else {
+                    todo!("ERROR")
+                }
+            }
+            _ => todo!("ERROR: invalid Pattern start token: {:?}", tok),
         },
         TokenType::None => {}
         TokenType::String(_) => unreachable!("ERROR: recieved string token outside of string."),
