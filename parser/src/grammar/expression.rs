@@ -1,9 +1,11 @@
 use ast::expr::Operator;
 
 use crate::{
-    syntax::{Context, StringToken, Token, TokenType},
+    syntax::{Context, Token, TokenType},
     Parser,
 };
+
+use super::parse_literal;
 
 pub(super) fn expr(p: &mut Parser) {
     if !parse_subexpression(p, 0) {
@@ -15,17 +17,17 @@ fn parse_single_term(p: &mut Parser) -> bool {
     match p.peek() {
         TokenType::Token(tok) => {
             match tok {
-                Token::VarName
-                | Token::Placeholder
-                | Token::Number
+                Token::Undefined => p.bump(),
+                Token::Number
                 | Token::Bool
-                | Token::Undefined => p.bump(),
-                Token::OpSub => parse_prefix_op(p, Operator::Sub),
-                Token::DoubleQuote => parse_string(p),
+                | Token::Placeholder
+                | Token::VarName
+                | Token::OpSub
+                | Token::DoubleQuote
+                | Token::CurlyOpen
+                | Token::SquareOpen
+                | Token::ParenOpen => parse_literal(p, expr),
                 Token::Namespace => parse_scoped(p),
-                Token::ParenOpen => parse_parenthesised(p),
-                Token::CurlyOpen => parse_record(p),
-                Token::SquareOpen => parse_array(p),
                 //TODO: single-term constructors (uncommenting conflicts with Application)
                 // Token::Hash => {
                 //     let mark = p.start("single_constructor");
@@ -50,9 +52,16 @@ fn parse_single_term(p: &mut Parser) -> bool {
 fn parse_term(p: &mut Parser) {
     match p.peek() {
         TokenType::Token(tok) => match tok {
-            Token::Number | Token::VarName | Token::Placeholder => p.bump(),
-            Token::DoubleQuote => parse_string(p),
-            Token::OpSub => parse_prefix_op(p, Operator::Sub),
+            Token::Undefined => p.bump(),
+            Token::Number
+            | Token::Bool
+            | Token::Placeholder
+            | Token::VarName
+            | Token::OpSub
+            | Token::DoubleQuote
+            | Token::CurlyOpen
+            | Token::SquareOpen
+            | Token::ParenOpen => parse_literal(p, expr),
             Token::Namespace => parse_scoped(p),
             Token::Hash => {
                 let m = p.start("constructor");
@@ -75,9 +84,6 @@ fn parse_term(p: &mut Parser) {
                     todo!("ERROR")
                 }
             }
-            Token::ParenOpen => parse_parenthesised(p),
-            Token::SquareOpen => parse_array(p),
-            Token::CurlyOpen => parse_record(p),
             Token::KWIf => {
                 let conditional_m = p.start("conditional");
                 p.bump();
@@ -106,32 +112,6 @@ fn parse_term(p: &mut Parser) {
     }
 }
 
-fn parse_string(p: &mut Parser) {
-    assert_eq!(p.peek(), TokenType::Token(Token::DoubleQuote));
-    let str_m = p.start("string");
-    p.bump();
-    loop {
-        while let TokenType::String(StringToken::Text | StringToken::Escape) = p.peek() {
-            p.bump()
-        }
-        if p.bump_matching(StringToken::ExprStart) {
-            let expr_m = p.start("string_expression");
-            expr(p);
-            expr_m.complete(p, Context::Expr);
-            if !p.bump_matching(Token::CurlyClose) {
-                todo!("ERROR");
-            }
-        }
-        if p.bump_matching(StringToken::Delimiter) {
-            str_m.complete(p, Context::String);
-            break;
-        }
-        if let TokenType::Token(_) | TokenType::None = p.peek() {
-            todo!("ERROR");
-        }
-    }
-}
-
 fn parse_scoped(p: &mut Parser) {
     let m = p.start("scoped");
     loop {
@@ -147,56 +127,6 @@ fn parse_scoped(p: &mut Parser) {
             }
         } else {
             todo!("ERROR");
-        }
-    }
-}
-
-fn parse_parenthesised(p: &mut Parser) {
-    let m = p.start("paren");
-    p.bump();
-    expr(p);
-    if p.peek() == TokenType::Token(Token::ParenClose) {
-        p.bump();
-        m.complete(p, Context::Expr);
-    } //else error
-}
-
-fn parse_record(p: &mut Parser) {
-    assert!(p.peek().is(Token::CurlyOpen));
-    let rec_m = p.start("record");
-    p.bump();
-    loop {
-        let field = p.start("field");
-        p.bump_matching(Token::VarName);
-        if p.bump_matching(Token::Colon) {
-            expr(p)
-        }
-        if p.bump_matching(Token::Comma) {
-            field.complete(p, Context::Field);
-            continue; // No dangling comma
-        }
-        if p.peek().is(Token::CurlyClose) {
-            field.complete(p, Context::Field);
-            p.bump();
-            rec_m.complete(p, Context::Record);
-            break;
-        } else {
-            todo!("ERROR");
-        }
-    }
-}
-
-fn parse_array(p: &mut Parser) {
-    let m = p.start("array");
-    p.bump();
-    loop {
-        expr(p);
-        if p.bump_matching(Token::Comma) {
-            continue; // No dangling comma
-        }
-        if p.bump_matching(Token::SquareClose) {
-            m.complete(p, Context::Array);
-            break;
         }
     }
 }
@@ -260,7 +190,7 @@ fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) -> bool {
     }
 }
 
-fn parse_prefix_op(p: &mut Parser, operator: Operator) {
+pub(crate) fn parse_prefix_op(p: &mut Parser, operator: Operator) {
     let right_binding_power = prefix_binding_power(operator).unwrap();
     let m = p.start("prefix");
     p.bump();
@@ -296,6 +226,7 @@ fn parse_lambda(p: &mut Parser) {
     let params = p.start("lambda_params");
     loop {
         super::parse_pattern(p);
+        println!("Parsing lambda parameters: token = {:?}", p.peek()); //XXX
         if p.bump_matching(Token::OpArrow) {
             params.complete(p, Context::Params);
             expr(p);
@@ -316,6 +247,7 @@ fn parse_where(p: &mut Parser) {
         let branch_m = p.start("where_branch");
         if p.bump_matching(Token::KWIs) {
             super::parse_pattern(p);
+            println!("Branch: token = {:?}", p.peek()); //XXX
             if p.peek().is(Token::KWIf) {
                 let guard_m = p.start("where_guard");
                 p.bump();
@@ -330,6 +262,7 @@ fn parse_where(p: &mut Parser) {
             expr_m.complete(p, Context::Expr);
             branch_m.complete(p, Context::Branch);
         } else {
+            branch_m.discard();
             break;
         }
     }

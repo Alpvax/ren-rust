@@ -488,23 +488,56 @@ fn parse_nested_conditional() {
 #[test]
 fn parse_where() {
     check(
-        r#"where foo is 1 => "hello" is 2 => "world" _ => "!""#,
+        r#"where foo is 1 => "hello" is 2 if bar > foo => "world" _ => "!""#,
         expect![[r#"
-        Context(Expr)@0..14
-          Context(Constructor)@0..14
-            Token(Hash)@0..1 ""
-            Token(VarName)@1..4 "foo"
-            Context(Args)@4..14
-              Token(Whitespace)@4..5 " "
-              Token(VarName)@5..8 "bar"
-              Token(Whitespace)@8..9 " "
-              Context(Expr)@9..14
-                Token(ParenOpen)@9..10 "("
-                Context(BinOp)@10..13
-                  Token(Number)@10..11 "3"
-                  Token(OpSub)@11..12 "-"
-                  Token(Number)@12..13 "1"
-                Token(ParenClose)@13..14 ")""#]],
+            Context(Expr)@0..57
+              Context(Where)@0..57
+                Token(KWWhere)@0..5 "where"
+                Context(Expr)@5..10
+                  Token(Whitespace)@5..6 " "
+                  Token(VarName)@6..9 "foo"
+                  Token(Whitespace)@9..10 " "
+                Context(Branch)@10..26
+                  Token(KWIs)@10..12 "is"
+                  Context(Pattern)@12..14
+                    Token(Whitespace)@12..13 " "
+                    Token(Number)@13..14 "1"
+                  Token(Whitespace)@14..15 " "
+                  Token(OpArrow)@15..17 "=>"
+                  Context(Expr)@17..26
+                    Token(Whitespace)@17..18 " "
+                    Context(String)@18..25
+                      Token(DoubleQuote)@18..19 "\""
+                      StringToken(Text)@19..24 "hello"
+                      StringToken(Delimiter)@24..25 "\""
+                    Token(Whitespace)@25..26 " "
+                Context(Branch)@26..57
+                  Token(KWIs)@26..28 "is"
+                  Context(Pattern)@28..30
+                    Token(Whitespace)@28..29 " "
+                    Token(Number)@29..30 "2"
+                  Token(Whitespace)@30..31 " "
+                  Context(Guard)@31..44
+                    Token(KWIf)@31..33 "if"
+                    Context(BinOp)@33..44
+                      Token(Whitespace)@33..34 " "
+                      Token(VarName)@34..37 "bar"
+                      Token(Whitespace)@37..38 " "
+                      Token(OpGt)@38..39 ">"
+                      Token(Whitespace)@39..40 " "
+                      Token(VarName)@40..43 "foo"
+                      Token(Whitespace)@43..44 " "
+                  Token(OpArrow)@44..46 "=>"
+                  Context(Expr)@46..57
+                    Context(Application)@46..56
+                      Token(Whitespace)@46..47 " "
+                      Context(String)@47..54
+                        Token(DoubleQuote)@47..48 "\""
+                        StringToken(Text)@48..53 "world"
+                        StringToken(Delimiter)@53..54 "\""
+                      Token(Whitespace)@54..55 " "
+                      Token(Placeholder)@55..56 "_"
+                    Token(Whitespace)@56..57 " ""#]],
     )
 }
 
@@ -513,20 +546,32 @@ fn parse_lambda() {
     check(
         "fun a b => a * (3 - b)",
         expect![[r#"
-        Context(Expr)@0..14
-          Context(Lambda)@0..14
-            Token(Hash)@0..1 ""
-            Token(VarName)@1..4 "foo"
-            Context(Args)@4..14
-              Token(Whitespace)@4..5 " "
-              Token(VarName)@5..8 "bar"
-              Token(Whitespace)@8..9 " "
-              Context(Expr)@9..14
-                Token(ParenOpen)@9..10 "("
-                Context(BinOp)@10..13
-                  Token(Number)@10..11 "3"
-                  Token(OpSub)@11..12 "-"
-                  Token(Number)@12..13 "1"
-                Token(ParenClose)@13..14 ")""#]],
+            Context(Expr)@0..22
+              Context(Lambda)@0..22
+                Token(KWFun)@0..3 "fun"
+                Context(Params)@3..10
+                  Context(Pattern)@3..5
+                    Token(Whitespace)@3..4 " "
+                    Token(VarName)@4..5 "a"
+                  Token(Whitespace)@5..6 " "
+                  Context(Pattern)@6..7
+                    Token(VarName)@6..7 "b"
+                  Token(Whitespace)@7..8 " "
+                  Token(OpArrow)@8..10 "=>"
+                Context(BinOp)@10..22
+                  Token(Whitespace)@10..11 " "
+                  Token(VarName)@11..12 "a"
+                  Token(Whitespace)@12..13 " "
+                  Token(OpMul)@13..14 "*"
+                  Token(Whitespace)@14..15 " "
+                  Context(Expr)@15..22
+                    Token(ParenOpen)@15..16 "("
+                    Context(BinOp)@16..21
+                      Token(Number)@16..17 "3"
+                      Token(Whitespace)@17..18 " "
+                      Token(OpSub)@18..19 "-"
+                      Token(Whitespace)@19..20 " "
+                      Token(VarName)@20..21 "b"
+                    Token(ParenClose)@21..22 ")""#]],
     )
 }

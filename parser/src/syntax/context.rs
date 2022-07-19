@@ -42,4 +42,5 @@ pub(crate) enum Context {
     Args,
 
     Pattern,
+    TypeMatch,
 }
