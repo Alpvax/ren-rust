@@ -229,14 +229,14 @@ mod operator {
                         Token(Whitespace)@3..4 " "
                         Token(Number)@4..5 "2"
                         Token(Whitespace)@5..6 " "
-                        Token(Comment)@6..37 "// Not applied as a s ..."
-                        Token(Whitespace)@37..50 "\n            "
+                        Token(Comment)@6..38 "// Not applied as a s ..."
+                        Token(Whitespace)@38..50 "            "
                         Token(OpMul)@50..51 "*"
                         Token(Whitespace)@51..52 " "
                         Token(Number)@52..53 "3"
                         Token(Whitespace)@53..54 " "
-                        Token(Comment)@54..60 "// = 6"
-                        Token(Whitespace)@60..73 "\n            "
+                        Token(Comment)@54..61 "// = 6\n"
+                        Token(Whitespace)@61..73 "            "
                       Token(OpDiv)@73..74 "/"
                       Token(Whitespace)@74..87 "\n            "
                       Context(Expr)@87..95
@@ -488,10 +488,10 @@ fn parse_nested_conditional() {
 #[test]
 fn parse_where() {
     check(
-        r#"where foo is 1 => "hello" is 2 if bar > foo => "world" _ => "!""#,
+        r#"where foo is 1 => "hello" is 2 if bar > foo => "world" is _ => "!""#,
         expect![[r#"
-            Context(Expr)@0..57
-              Context(Where)@0..57
+            Context(Expr)@0..66
+              Context(Where)@0..66
                 Token(KWWhere)@0..5 "where"
                 Context(Expr)@5..10
                   Token(Whitespace)@5..6 " "
@@ -511,7 +511,7 @@ fn parse_where() {
                       StringToken(Text)@19..24 "hello"
                       StringToken(Delimiter)@24..25 "\""
                     Token(Whitespace)@25..26 " "
-                Context(Branch)@26..57
+                Context(Branch)@26..55
                   Token(KWIs)@26..28 "is"
                   Context(Pattern)@28..30
                     Token(Whitespace)@28..29 " "
@@ -528,16 +528,26 @@ fn parse_where() {
                       Token(VarName)@40..43 "foo"
                       Token(Whitespace)@43..44 " "
                   Token(OpArrow)@44..46 "=>"
-                  Context(Expr)@46..57
-                    Context(Application)@46..56
-                      Token(Whitespace)@46..47 " "
-                      Context(String)@47..54
-                        Token(DoubleQuote)@47..48 "\""
-                        StringToken(Text)@48..53 "world"
-                        StringToken(Delimiter)@53..54 "\""
-                      Token(Whitespace)@54..55 " "
-                      Token(Placeholder)@55..56 "_"
-                    Token(Whitespace)@56..57 " ""#]],
+                  Context(Expr)@46..55
+                    Token(Whitespace)@46..47 " "
+                    Context(String)@47..54
+                      Token(DoubleQuote)@47..48 "\""
+                      StringToken(Text)@48..53 "world"
+                      StringToken(Delimiter)@53..54 "\""
+                    Token(Whitespace)@54..55 " "
+                Context(Branch)@55..66
+                  Token(KWIs)@55..57 "is"
+                  Context(Pattern)@57..59
+                    Token(Whitespace)@57..58 " "
+                    Token(Placeholder)@58..59 "_"
+                  Token(Whitespace)@59..60 " "
+                  Token(OpArrow)@60..62 "=>"
+                  Context(Expr)@62..66
+                    Token(Whitespace)@62..63 " "
+                    Context(String)@63..66
+                      Token(DoubleQuote)@63..64 "\""
+                      StringToken(Text)@64..65 "!"
+                      StringToken(Delimiter)@65..66 "\"""#]],
     )
 }
 

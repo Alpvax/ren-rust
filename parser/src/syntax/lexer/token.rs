@@ -50,7 +50,7 @@ pub enum Token {
     #[regex(r"_")]
     Placeholder,
 
-    #[regex(r"//[^\r\n]*")]
+    #[regex(r"//[^\r\n]*\r?\n?")]
     Comment,
 
     /*#[regex(r#""(?:\\"|[^"])*""#, trim_quotes)] // Double quoted

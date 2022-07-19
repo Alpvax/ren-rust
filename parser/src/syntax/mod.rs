@@ -107,13 +107,17 @@ mod test {
 
     #[test]
     fn syntaxpart_u16_conversion() {
+        /// Workaround required due to addition of Into<u16> for T by reqwest lib
+        fn into_u16(sp: SyntaxPart) -> u16 {
+            <SyntaxPart as Into<u16>>::into(sp)
+        }
         for val in 0..512 {
             match SyntaxPart::try_from(val) {
                 Ok(
                     sp @ (SyntaxPart::StringToken(StringToken::Error)
                     | SyntaxPart::Token(Token::Error)),
-                ) => assert_eq!(0u16, sp.into(), "Converting Error: {:?}", sp),
-                Ok(sp) => assert_eq!(val, sp.into(), "Converting: {:?}", sp),
+                ) => assert_eq!(0u16, into_u16(sp), "Converting Error: {:?}", sp),
+                Ok(sp) => assert_eq!(val, into_u16(sp), "Converting: {:?}", sp),
                 Err(_) => (),
             }
         }

@@ -39,6 +39,12 @@ impl<'source> Parser<'source> {
         }
     }
     pub fn parse(self) -> Parsed {
+        let remaining = self.lexer.collect::<Vec<_>>();
+        assert!(
+            remaining.len() < 1,
+            "Parser ended before end of input. Remaining Lexemes: {:?}",
+            remaining
+        );
         Parsed {
             green_node: self.builder.finish(),
         }
