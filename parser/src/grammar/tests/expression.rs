@@ -377,39 +377,111 @@ fn parse_constructor() {
 #[test]
 fn parse_conditional() {
     check(
-        "if a && b then c + 4 else 2 * c",
+        "if a and b then c + 4 else 2 * c",
         expect![[r#"
-            Context(Expr)@0..31
-              Context(Conditional)@0..31
+            Context(Expr)@0..32
+              Context(Conditional)@0..32
                 Token(KWIf)@0..2 "if"
-                Context(Condition)@2..10
-                  Context(BinOp)@2..10
+                Context(Condition)@2..11
+                  Context(BinOp)@2..11
                     Token(Whitespace)@2..3 " "
                     Token(VarName)@3..4 "a"
                     Token(Whitespace)@4..5 " "
-                    Token(OpAnd)@5..7 "&&"
-                    Token(Whitespace)@7..8 " "
-                    Token(VarName)@8..9 "b"
-                    Token(Whitespace)@9..10 " "
-                Token(KWThen)@10..14 "then"
-                Context(Then)@14..21
-                  Context(BinOp)@14..21
-                    Token(Whitespace)@14..15 " "
-                    Token(VarName)@15..16 "c"
-                    Token(Whitespace)@16..17 " "
-                    Token(OpAdd)@17..18 "+"
-                    Token(Whitespace)@18..19 " "
-                    Token(Number)@19..20 "4"
-                    Token(Whitespace)@20..21 " "
-                Token(KWElse)@21..25 "else"
-                Context(Else)@25..31
-                  Context(BinOp)@25..31
-                    Token(Whitespace)@25..26 " "
-                    Token(Number)@26..27 "2"
-                    Token(Whitespace)@27..28 " "
-                    Token(OpMul)@28..29 "*"
-                    Token(Whitespace)@29..30 " "
-                    Token(VarName)@30..31 "c""#]],
+                    Token(OpAnd)@5..8 "and"
+                    Token(Whitespace)@8..9 " "
+                    Token(VarName)@9..10 "b"
+                    Token(Whitespace)@10..11 " "
+                Token(KWThen)@11..15 "then"
+                Context(Then)@15..22
+                  Context(BinOp)@15..22
+                    Token(Whitespace)@15..16 " "
+                    Token(VarName)@16..17 "c"
+                    Token(Whitespace)@17..18 " "
+                    Token(OpAdd)@18..19 "+"
+                    Token(Whitespace)@19..20 " "
+                    Token(Number)@20..21 "4"
+                    Token(Whitespace)@21..22 " "
+                Token(KWElse)@22..26 "else"
+                Context(Else)@26..32
+                  Context(BinOp)@26..32
+                    Token(Whitespace)@26..27 " "
+                    Token(Number)@27..28 "2"
+                    Token(Whitespace)@28..29 " "
+                    Token(OpMul)@29..30 "*"
+                    Token(Whitespace)@30..31 " "
+                    Token(VarName)@31..32 "c""#]],
+    )
+}
+
+#[test]
+fn parse_nested_conditional() {
+    check(
+        "if if a and b then c + 4 else 2 * c then if d or e then 2 else 3 else f",
+        expect![[r#"
+            Context(Expr)@0..71
+              Context(Conditional)@0..71
+                Token(KWIf)@0..2 "if"
+                Context(Condition)@2..36
+                  Token(Whitespace)@2..3 " "
+                  Context(Conditional)@3..36
+                    Token(KWIf)@3..5 "if"
+                    Context(Condition)@5..14
+                      Context(BinOp)@5..14
+                        Token(Whitespace)@5..6 " "
+                        Token(VarName)@6..7 "a"
+                        Token(Whitespace)@7..8 " "
+                        Token(OpAnd)@8..11 "and"
+                        Token(Whitespace)@11..12 " "
+                        Token(VarName)@12..13 "b"
+                        Token(Whitespace)@13..14 " "
+                    Token(KWThen)@14..18 "then"
+                    Context(Then)@18..25
+                      Context(BinOp)@18..25
+                        Token(Whitespace)@18..19 " "
+                        Token(VarName)@19..20 "c"
+                        Token(Whitespace)@20..21 " "
+                        Token(OpAdd)@21..22 "+"
+                        Token(Whitespace)@22..23 " "
+                        Token(Number)@23..24 "4"
+                        Token(Whitespace)@24..25 " "
+                    Token(KWElse)@25..29 "else"
+                    Context(Else)@29..36
+                      Context(BinOp)@29..36
+                        Token(Whitespace)@29..30 " "
+                        Token(Number)@30..31 "2"
+                        Token(Whitespace)@31..32 " "
+                        Token(OpMul)@32..33 "*"
+                        Token(Whitespace)@33..34 " "
+                        Token(VarName)@34..35 "c"
+                        Token(Whitespace)@35..36 " "
+                Token(KWThen)@36..40 "then"
+                Context(Then)@40..65
+                  Token(Whitespace)@40..41 " "
+                  Context(Conditional)@41..65
+                    Token(KWIf)@41..43 "if"
+                    Context(Condition)@43..51
+                      Context(BinOp)@43..51
+                        Token(Whitespace)@43..44 " "
+                        Token(VarName)@44..45 "d"
+                        Token(Whitespace)@45..46 " "
+                        Token(OpOr)@46..48 "or"
+                        Token(Whitespace)@48..49 " "
+                        Token(VarName)@49..50 "e"
+                        Token(Whitespace)@50..51 " "
+                    Token(KWThen)@51..55 "then"
+                    Context(Then)@55..58
+                      Token(Whitespace)@55..56 " "
+                      Token(Number)@56..57 "2"
+                      Token(Whitespace)@57..58 " "
+                    Token(KWElse)@58..62 "else"
+                    Context(Else)@62..65
+                      Token(Whitespace)@62..63 " "
+                      Token(Number)@63..64 "3"
+                      Token(Whitespace)@64..65 " "
+                Token(KWElse)@65..69 "else"
+                Context(Else)@69..71
+                  Token(Whitespace)@69..70 " "
+                  Token(VarName)@70..71 "f""#]],
     )
 }
 

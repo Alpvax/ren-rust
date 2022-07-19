@@ -114,9 +114,9 @@ pub enum Token {
     OpLte, //infixLeft  4
     #[token(">=")]
     OpGte, //infixLeft  4
-    #[token("&&")]
+    #[token("and")]
     OpAnd, //infixRight 3
-    #[token("||")]
+    #[token("or")]
     OpOr, //infixRight 2
     #[token("::")]
     OpCons, //infixRight 5
