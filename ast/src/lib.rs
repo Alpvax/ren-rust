@@ -1,10 +1,10 @@
 use declaration::ModuleDeclaration;
 pub use import::Import;
 
-pub mod core;
-pub mod expr;
 #[cfg(test)]
 mod conversion_tests;
+pub mod core;
+pub mod expr;
 
 pub mod declaration;
 pub mod expression;

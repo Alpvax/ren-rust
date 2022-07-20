@@ -96,7 +96,7 @@ impl Parsed {
         // We cut off the last byte because formatting the SyntaxNode adds on a newline at the end.
         formatted[0..formatted.len() - 1].to_string()
     }
-    pub fn into_ast(&self) -> ast::expr::Expr {
-        todo!()
+    pub(crate) fn syntax(&self) -> SyntaxNode {
+        SyntaxNode::new_root(self.green_node.clone())
     }
 }

@@ -41,7 +41,7 @@ pub enum Operator {
     Pipe,   //   |>
     Sub,    //    -
 }
-#[allow(dead_code)]//XXX
+
 impl Operator {
     fn from_name(name: &str) -> Option<Self> {
         OPERATORS_FULL
@@ -49,7 +49,7 @@ impl Operator {
             .find(|(_, op_name, _)| *op_name == name)
             .map(|(op, ..)| *op)
     }
-    fn from_symbol(symbol: &str) -> Option<Self> {
+    pub fn from_symbol(symbol: &str) -> Option<Self> {
         OPERATORS_FULL
             .iter()
             .find(|(.., sym)| *sym == symbol)
@@ -68,9 +68,9 @@ impl Operator {
     fn name(&self) -> &'static str {
         self.find_data()[0]
     }
-    fn symbol(&self) -> &'static str {
-        self.find_data()[1]
-    }
+    // fn symbol(&self) -> &'static str {
+    //     self.find_data()[1]
+    // }
 }
 
 macro_rules! make_operator_constants {
@@ -108,6 +108,52 @@ make_operator_constants![
 ];
 
 // -- CONSTRUCTORS ----------------------------------------------------------------
+
+impl Expr {
+    pub fn access<S: ToString>(obj: Expr, key: S) -> Self {
+        Self::Access(Box::new(obj), key.to_string())
+    }
+    pub fn binop(lhs: Self, op: Operator, rhs: Self) -> Self {
+        Self::Binop(Box::new(lhs), op, Box::new(rhs))
+    }
+    pub fn apply(func: Expr, arg: Expr) -> Self {
+        if let Self::Call(f, mut args) = func {
+            args.push(arg);
+            Self::Call(f, args)
+        } else {
+            Self::Call(Box::new(func), vec![arg])
+        }
+    }
+    pub fn apply_many<T>(func: Expr, args: T) -> Self
+    where
+        T: IntoIterator<Item = Expr>,
+    {
+        if let Self::Call(f, mut prev) = func {
+            prev.extend(args);
+            Self::Call(f, prev)
+        } else {
+            Self::Call(Box::new(func), args.into_iter().collect())
+        }
+    }
+    pub fn conditional(condition: Self, then_: Self, else_: Self) -> Self {
+        Self::If(Box::new(condition), Box::new(then_), Box::new(else_))
+    }
+    pub fn lambda() -> Self {
+        todo!()
+    }
+    pub fn binding(pattern: core::Pattern, binding_value: Expr, body: Expr) -> Self {
+        Self::Let(pattern, Box::new(binding_value), Box::new(body))
+    }
+    pub fn literal<V>(value: V) -> Self
+    where
+        V: Into<core::Literal<Expr>>,
+    {
+        Self::Literal(value.into())
+    }
+    pub fn match_() -> Self {
+        todo!()
+    }
+}
 
 // {-| Take an expression from our core 𝝺-calculus representation and raise it up
 // to the higher-level `Expr` type. This will take some of the magical variables

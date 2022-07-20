@@ -288,26 +288,42 @@ mod variable {
 #[test]
 fn parse_let() {
     check(
-        "let foo = 1; foo + 3",
+        r#"let [foo, _] = [1, "bar"]; foo + 3"#,
         expect![[r#"
-            Context(Expr)@0..20
-              Context(Declaration)@0..20
+            Context(Expr)@0..34
+              Context(Declaration)@0..34
                 Token(KWLet)@0..3 "let"
-                Token(Whitespace)@3..4 " "
-                Token(VarName)@4..7 "foo"
-                Token(Whitespace)@7..8 " "
-                Token(OpAssign)@8..9 "="
-                Context(Expr)@9..11
-                  Token(Whitespace)@9..10 " "
-                  Token(Number)@10..11 "1"
-                Token(SemiColon)@11..12 ";"
-                Context(BinOp)@12..20
-                  Token(Whitespace)@12..13 " "
-                  Token(VarName)@13..16 "foo"
-                  Token(Whitespace)@16..17 " "
-                  Token(OpAdd)@17..18 "+"
-                  Token(Whitespace)@18..19 " "
-                  Token(Number)@19..20 "3""#]],
+                Context(Pattern)@3..12
+                  Token(Whitespace)@3..4 " "
+                  Context(Array)@4..12
+                    Token(SquareOpen)@4..5 "["
+                    Token(VarName)@5..8 "foo"
+                    Token(Comma)@8..9 ","
+                    Token(Whitespace)@9..10 " "
+                    Token(Placeholder)@10..11 "_"
+                    Token(SquareClose)@11..12 "]"
+                Token(Whitespace)@12..13 " "
+                Token(OpAssign)@13..14 "="
+                Context(Expr)@14..25
+                  Token(Whitespace)@14..15 " "
+                  Context(Array)@15..25
+                    Token(SquareOpen)@15..16 "["
+                    Token(Number)@16..17 "1"
+                    Token(Comma)@17..18 ","
+                    Token(Whitespace)@18..19 " "
+                    Context(String)@19..24
+                      Token(DoubleQuote)@19..20 "\""
+                      StringToken(Text)@20..23 "bar"
+                      StringToken(Delimiter)@23..24 "\""
+                    Token(SquareClose)@24..25 "]"
+                Token(SemiColon)@25..26 ";"
+                Context(BinOp)@26..34
+                  Token(Whitespace)@26..27 " "
+                  Token(VarName)@27..30 "foo"
+                  Token(Whitespace)@30..31 " "
+                  Token(OpAdd)@31..32 "+"
+                  Token(Whitespace)@32..33 " "
+                  Token(Number)@33..34 "3""#]],
     )
 }
 

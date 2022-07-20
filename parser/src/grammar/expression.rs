@@ -5,7 +5,7 @@ use crate::{
     Parser,
 };
 
-use super::parse_literal;
+use super::{parse_literal, pattern::parse_pattern};
 
 pub(super) fn expr(p: &mut Parser) {
     if !parse_subexpression(p, 0) {
@@ -200,10 +200,7 @@ pub(crate) fn parse_prefix_op(p: &mut Parser, operator: Operator) {
 
 fn parse_let(p: &mut Parser) {
     let declaration = p.start("let_expr");
-    if p.bump_matching(Token::KWLet)
-        && p.bump_matching(Token::VarName)
-        && p.bump_matching(Token::OpAssign)
-    {
+    if p.bump_matching(Token::KWLet) && parse_pattern(p) && p.bump_matching(Token::OpAssign) {
         let expr_m = p.start("let_body");
         expr(p);
         if p.peek().is(Token::SemiColon) {

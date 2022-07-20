@@ -19,7 +19,7 @@ macro_rules! conversion_test {
     };
 }
 
-conversion_test!{ binop,
+conversion_test! { binop,
     Binop(Box::new(Literal(LNum( 3.0))), Add, Box::new(Literal (LNum( 2.0)))),
     Expr(EApp(Box::new((
         Expr(EApp(Box::new((
@@ -33,7 +33,7 @@ conversion_test!{ binop,
     ))))
 }
 
-conversion_test!{ access,
+conversion_test! { access,
     Access(Box::new(Var("foo".to_owned())), "bar".to_owned()),
     Expr(EApp(Box::new((
         Expr(EApp(Box::new((

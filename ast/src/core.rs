@@ -38,22 +38,24 @@ impl Expr {
     pub fn abs<T>(args: T, body: Self) -> Self
     where
         T: IntoIterator<Item = String>,
-        T::IntoIter : DoubleEndedIterator,
+        T::IntoIter: DoubleEndedIterator,
     {
-        args.into_iter().rfold(body, |e, arg| Self(EAbs(arg, Box::new(e))))
+        args.into_iter()
+            .rfold(body, |e, arg| Self(EAbs(arg, Box::new(e))))
     }
 
     pub fn app<T>(fun: Self, args: T) -> Self
     where
         T: IntoIterator<Item = Self>,
     {
-        args.into_iter().fold(fun, |e, arg| Self(EApp(Box::new((e, arg)))))
+        args.into_iter()
+            .fold(fun, |e, arg| Self(EApp(Box::new((e, arg)))))
     }
 
     pub fn let_<T>(bindings: T, body: Self) -> Self
     where
         T: IntoIterator<Item = (String, Self)>,
-        T::IntoIter : DoubleEndedIterator,
+        T::IntoIter: DoubleEndedIterator,
     {
         bindings.into_iter().rfold(body, |e, (pattern, expr)| {
             Self(ELet(pattern, Box::new((expr, e))))
@@ -181,9 +183,20 @@ impl<T> From<f64> for Literal<T> {
         LNum(n)
     }
 }
+// Utility to help with not requiring i.0 suffix when creating
+impl<T> From<i32> for Literal<T> {
+    fn from(n: i32) -> Self {
+        LNum(n.into())
+    }
+}
 impl<T> From<String> for Literal<T> {
     fn from(s: String) -> Self {
         LStr(s)
+    }
+}
+impl<T> From<&str> for Literal<T> {
+    fn from(s: &str) -> Self {
+        LStr(s.to_owned())
     }
 }
 impl<T> From<()> for Literal<T> {

@@ -5,13 +5,18 @@ use crate::{
 
 use super::parse_literal;
 
-pub(super) fn parse_pattern(p: &mut Parser) {
+pub(super) fn parse_pattern(p: &mut Parser) -> bool {
     let m = p.start("pattern");
-    pattern(p);
-    m.complete(p, Context::Pattern);
+    if pattern(p) {
+        m.complete(p, Context::Pattern);
+        true
+    } else {
+        m.discard();
+        false
+    }
 }
 
-fn pattern(p: &mut Parser) {
+fn pattern(p: &mut Parser) -> bool {
     match p.peek() {
         TokenType::Token(tok) => match tok {
             Token::Number
@@ -22,7 +27,9 @@ fn pattern(p: &mut Parser) {
             | Token::DoubleQuote
             | Token::CurlyOpen
             | Token::SquareOpen
-            | Token::ParenOpen => parse_literal(p, pattern),
+            | Token::ParenOpen => parse_literal(p, |p| {
+                pattern(p);
+            }),
             Token::At => {
                 let typ_m = p.start("type_match");
                 p.bump();
@@ -56,7 +63,10 @@ fn pattern(p: &mut Parser) {
             }
             _ => todo!("ERROR: invalid Pattern start token: {:?}", tok),
         },
-        TokenType::None => {}
+        TokenType::None => {
+            return false;
+        }
         TokenType::String(_) => unreachable!("ERROR: recieved string token outside of string."),
-    }
+    };
+    true
 }
