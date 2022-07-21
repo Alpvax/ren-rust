@@ -1,4 +1,4 @@
-use ast::expr::Operator;
+use elm_ast::expr::Operator;
 
 use crate::{
     syntax::{Context, Token, TokenType},

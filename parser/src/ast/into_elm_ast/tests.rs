@@ -1,4 +1,4 @@
-use ast::{
+use elm_ast::{
     core::{Literal, Pattern},
     expr::{Expr, Operator},
 };
@@ -193,7 +193,7 @@ fn let_expr() {
             Expr::Literal(Literal::LArr(vec![Expr::literal(1), Expr::literal("bar")])),
             Expr::binop(
                 Expr::Var("foo".to_string()),
-                ast::expr::Operator::Add,
+                Operator::Add,
                 Expr::literal(3),
             ),
         ),

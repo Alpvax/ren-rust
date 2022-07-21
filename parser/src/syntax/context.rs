@@ -18,6 +18,7 @@ pub(crate) enum Context {
     Scoped,
     Constructor,
     Array,
+    Item,
     Record,
     Field,
 

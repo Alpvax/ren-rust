@@ -6,7 +6,7 @@ use crate::{
 mod expression;
 mod module;
 mod pattern;
-use ast::expr::Operator;
+use elm_ast::expr::Operator;
 use pattern::parse_pattern;
 
 pub fn parse_module(input: &str) -> Parsed {
@@ -111,7 +111,9 @@ fn parse_array(p: &mut Parser, nested: ExprOrPatFn) {
             m.complete(p, Context::Array);
             break;
         }
+        let item_m = p.start("array_item");
         nested(p);
+        item_m.complete(p, Context::Item);
         if p.bump_matching(Token::Comma) {
             continue; // No dangling comma
         } else if !p.peek().is(Token::SquareClose) {

@@ -90,10 +90,12 @@ mod literal {
                 Context(Expr)@0..10
                   Context(Array)@0..10
                     Token(SquareOpen)@0..1 "["
-                    Token(VarName)@1..4 "foo"
+                    Context(Item)@1..4
+                      Token(VarName)@1..4 "foo"
                     Token(Comma)@4..5 ","
                     Token(Whitespace)@5..6 " "
-                    Token(VarName)@6..9 "bar"
+                    Context(Item)@6..9
+                      Token(VarName)@6..9 "bar"
                     Token(SquareClose)@9..10 "]""#]],
         )
     }
@@ -297,10 +299,12 @@ fn parse_let() {
                   Token(Whitespace)@3..4 " "
                   Context(Array)@4..12
                     Token(SquareOpen)@4..5 "["
-                    Token(VarName)@5..8 "foo"
+                    Context(Item)@5..8
+                      Token(VarName)@5..8 "foo"
                     Token(Comma)@8..9 ","
                     Token(Whitespace)@9..10 " "
-                    Token(Placeholder)@10..11 "_"
+                    Context(Item)@10..11
+                      Token(Placeholder)@10..11 "_"
                     Token(SquareClose)@11..12 "]"
                 Token(Whitespace)@12..13 " "
                 Token(OpAssign)@13..14 "="
@@ -308,13 +312,15 @@ fn parse_let() {
                   Token(Whitespace)@14..15 " "
                   Context(Array)@15..25
                     Token(SquareOpen)@15..16 "["
-                    Token(Number)@16..17 "1"
+                    Context(Item)@16..17
+                      Token(Number)@16..17 "1"
                     Token(Comma)@17..18 ","
                     Token(Whitespace)@18..19 " "
-                    Context(String)@19..24
-                      Token(DoubleQuote)@19..20 "\""
-                      StringToken(Text)@20..23 "bar"
-                      StringToken(Delimiter)@23..24 "\""
+                    Context(Item)@19..24
+                      Context(String)@19..24
+                        Token(DoubleQuote)@19..20 "\""
+                        StringToken(Text)@20..23 "bar"
+                        StringToken(Delimiter)@23..24 "\""
                     Token(SquareClose)@24..25 "]"
                 Token(SemiColon)@25..26 ";"
                 Context(BinOp)@26..34

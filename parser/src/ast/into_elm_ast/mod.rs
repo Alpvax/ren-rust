@@ -1,6 +1,7 @@
-use ast::{
-    core::Literal,
+use elm_ast::{
+    core::{Literal, Pattern},
     expr::{Expr, Operator},
+    Module,
 };
 
 use crate::syntax::{Context, RenLang, SyntaxNode, SyntaxPart, Token};
@@ -249,6 +250,6 @@ pub(crate) fn to_ast_expr(element: SyntaxElement) -> Result<Expr, ()> {
     }
 }
 
-fn to_ast_pattern(_node: SyntaxElement) -> Result<ast::core::Pattern, ()> {
-    todo!("Pattern AST")
+fn to_ast_pattern(_node: SyntaxElement) -> Result<Pattern, ()> {
+    todo!("Pattern AST") //TODO
 }
