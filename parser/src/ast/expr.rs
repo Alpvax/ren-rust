@@ -1,7 +1,10 @@
+use elm_ast::expr::Operator;
+use smol_str::SmolStr;
+
 use crate::syntax::{Context, Token};
 
 use super::{
-    extensions::SyntaxNodeExtension, FromSyntaxElement, SyntaxNode, SyntaxToken, skip_trivia,
+    extensions::{SyntaxNodeExtension, SyntaxIterator}, FromSyntaxElement, SyntaxNode, SyntaxToken,
 };
 
 macro_rules! make_expr_enum {
@@ -92,7 +95,7 @@ make_expr_enum! {
 // Implementations =============================================================
 
 impl ArrayExpr {
-    fn items(&self) -> Vec<Expr> {
+    pub fn items(&self) -> Vec<Expr> {
         self.0.map_children().collect()
     }
 }
@@ -104,18 +107,23 @@ impl ArrayExpr {
 // }
 
 impl ConsExpr {
-
+    pub fn get_tag(&self) -> Option<SmolStr> {
+        self.0.find_token(Token::VarName).map(|t| SmolStr::new(t.text()))
+    }
+    pub fn get_args(&self) -> Vec<Expr> {
+        self.0.find_node(Context::Args).map_or(Vec::default(), |node| node.children_with_tokens().filter_map(Expr::from_element).collect())
+    }
 }
 
 impl NumberExpr {
-    fn value(&self) -> bool {
+    pub fn value(&self) -> bool {
         self.0.text().to_string().parse().expect("Error parsing boolean from token")
     }
 }
 impl RecordExpr {
-    fn fields(&self) -> Vec<(String, Option<Expr>)> {
+    pub fn fields(&self) -> Vec<(String, Option<Expr>)> {
         self.0.children().filter_map(|field_node| {
-            let mut iter = field_node.children_with_tokens().filter(skip_trivia);
+            let mut iter = field_node.children_with_tokens().skip_trivia();
             iter.find(|n| n.kind() == Token::VarName.into()).map(|n| n.into_token().unwrap().text().to_string())
                 .and_then(|name| {
                     Some((name.clone(), iter.last().and_then(Expr::from_element)))
@@ -123,28 +131,78 @@ impl RecordExpr {
         }).collect()
     }
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StringSegment {
+    Text(SmolStr),
+    Expr(Expr),
+}
 impl StringExpr {
-
+    pub fn parts(&self) -> Vec<StringSegment> {
+        let (mut parts, text) = self.0.children_with_tokens().filter_map(|e| {
+            use crate::syntax::{StringToken, SyntaxPart};
+            match e.kind() {
+                SyntaxPart::StringToken(StringToken::Text) | SyntaxPart::StringToken(StringToken::Escape) => e.into_token().map(|t| StringSegment::Text(SmolStr::new(t.text()))),
+                SyntaxPart::Context(Context::Expr) => e.into_node().and_then(|node| Expr::from_node(Context::Expr, node)).map(|expr| StringSegment::Expr(expr)),
+                _ => None,
+            }
+        }).fold((Vec::new(), Vec::new()), |(mut acc, mut text), part| {
+            match part {
+                StringSegment::Text(txt) => {
+                    text.push(txt);
+                },
+                expr_segment => {
+                    if text.len() > 0 {
+                        acc.push(StringSegment::Text(SmolStr::new(text.join(""))));
+                        text.clear();
+                    }
+                    acc.push(expr_segment);
+                },
+            }
+            (acc, text)
+        });
+        if text.len() > 0 {
+            parts.push(StringSegment::Text(SmolStr::new(text.join(""))));
+        }
+        parts
+    }
 }
 
 impl ScopedExpr {
-
+    pub fn namespace(&self) -> Vec<SmolStr> {
+        self.0.child_tokens().filter(|t| t.kind() == Token::Namespace.into()).map(|t| SmolStr::new(t.text())).collect()
+    }
+    pub fn varname(&self) -> Option<SmolStr> {
+        self.0.find_token(Token::VarName).map(|t| SmolStr::new(t.text()))
+    }
 }
 impl VarExpr {
-
+    pub fn name(&self) -> SmolStr {
+        SmolStr::new(self.0.text())
+    }
 }
-impl PlaceholderExpr {
-
-}
+// impl PlaceholderExpr {}
 
 impl AccessExpr {
-
+    fn get_obj(&self) -> Option<Expr> {
+        self.0.children_with_tokens().skip_trivia().next().and_then(Expr::from_element)
+    }
+    fn get_key(&self) -> Option<SmolStr> {
+        self.0.child_tokens().last().map(|t| SmolStr::new(t.text()))
+    }
 }
 impl BindingExpr {
 
 }
 impl BinOpExpr {
-
+    pub fn op(&self) -> Option<Operator> {
+        self.0.child_tokens().skip_trivia().nth(1).and_then(|t| Operator::from_symbol(t.text()))
+    }
+    pub fn lhs(&self) -> Option<Expr> {
+        self.0.children_with_tokens().skip_trivia().next().and_then(Expr::from_element)
+    }
+    pub fn rhs(&self) -> Option<Expr> {
+        self.0.children_with_tokens().skip_trivia().last().and_then(Expr::from_element)
+    }
 }
 impl CallExpr {
 
