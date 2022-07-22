@@ -43,7 +43,7 @@ fn start_expression(lexer: &mut Lexer) -> Result<Expression, Error> {
                 |_| Err(Error::InvalidLiteral),
                 |l| Ok(Expression::Literal(l)),
             ),
-            Token::Bool(_) | Token::Number(_) | Token::StringLit(_) => parse_literal(lexer)
+            /*Token::Bool(_) |*/ Token::Number(_) | Token::StringLit(_) => parse_literal(lexer)
                 .map_or_else(
                     |_| Err(Error::InvalidLiteral),
                     |l| Ok(Expression::Literal(l)),

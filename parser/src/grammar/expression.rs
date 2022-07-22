@@ -17,9 +17,9 @@ fn parse_single_term(p: &mut Parser) -> bool {
     match p.peek() {
         TokenType::Token(tok) => {
             match tok {
-                Token::Undefined => p.bump(),
+                // Token::Undefined => p.bump(),
                 Token::Number
-                | Token::Bool
+                // | Token::Bool
                 | Token::Placeholder
                 | Token::VarName
                 | Token::OpSub
@@ -52,9 +52,9 @@ fn parse_single_term(p: &mut Parser) -> bool {
 fn parse_term(p: &mut Parser) {
     match p.peek() {
         TokenType::Token(tok) => match tok {
-            Token::Undefined => p.bump(),
+            // Token::Undefined => p.bump(),
             Token::Number
-            | Token::Bool
+            // | Token::Bool
             | Token::Placeholder
             | Token::VarName
             | Token::OpSub
@@ -70,10 +70,7 @@ fn parse_term(p: &mut Parser) {
                     if p.bump_whitespace() {
                         let args = p.start("args");
                         loop {
-                            if !parse_single_term(p) {
-                                todo!("ERROR: Constructor args must be single terms");
-                            }
-                            if !p.bump_whitespace() {
+                            if !parse_single_term(p) || !p.bump_whitespace() {
                                 break;
                             }
                         }

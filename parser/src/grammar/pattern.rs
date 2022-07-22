@@ -20,7 +20,7 @@ fn pattern(p: &mut Parser) -> bool {
     match p.peek() {
         TokenType::Token(tok) => match tok {
             Token::Number
-            | Token::Bool
+            // | Token::Bool
             | Token::Placeholder
             | Token::VarName
             | Token::OpSub

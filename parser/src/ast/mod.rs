@@ -35,6 +35,14 @@ trait FromSyntaxElement {
     }
 }
 
+fn skip_trivia(node: &SyntaxElement) -> bool {
+    if let SyntaxPart::Token(Token::Whitespace | Token::Comment) = node.kind() {
+        false
+    } else {
+        true
+    }
+}
+
 // pub trait ToHIR {
 //     type HIRType;
 //     type ValidationError;

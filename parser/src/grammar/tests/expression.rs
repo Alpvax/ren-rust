@@ -591,6 +591,118 @@ fn parse_where() {
                       StringToken(Delimiter)@87..88 "\"""##]],
     )
 }
+#[test]
+fn parse_where_sample() {
+    check(
+        r#"where _ is "a" => #true is "e" => #true is "i" => #true is "o" => #true is "u" => #true is _   => #false"#,
+        expect![[r##"
+            Context(Expr)@0..104
+              Context(Where)@0..104
+                Token(KWWhere)@0..5 "where"
+                Context(Expr)@5..8
+                  Token(Whitespace)@5..6 " "
+                  Token(Placeholder)@6..7 "_"
+                  Token(Whitespace)@7..8 " "
+                Context(Branch)@8..24
+                  Token(KWIs)@8..10 "is"
+                  Context(Pattern)@10..14
+                    Token(Whitespace)@10..11 " "
+                    Context(String)@11..14
+                      Token(DoubleQuote)@11..12 "\""
+                      StringToken(Text)@12..13 "a"
+                      StringToken(Delimiter)@13..14 "\""
+                  Token(Whitespace)@14..15 " "
+                  Token(OpArrow)@15..17 "=>"
+                  Context(Expr)@17..24
+                    Token(Whitespace)@17..18 " "
+                    Context(Constructor)@18..24
+                      Token(Hash)@18..19 "#"
+                      Token(VarName)@19..23 "true"
+                      Context(Args)@23..24
+                        Token(Whitespace)@23..24 " "
+                Context(Branch)@24..40
+                  Token(KWIs)@24..26 "is"
+                  Context(Pattern)@26..30
+                    Token(Whitespace)@26..27 " "
+                    Context(String)@27..30
+                      Token(DoubleQuote)@27..28 "\""
+                      StringToken(Text)@28..29 "e"
+                      StringToken(Delimiter)@29..30 "\""
+                  Token(Whitespace)@30..31 " "
+                  Token(OpArrow)@31..33 "=>"
+                  Context(Expr)@33..40
+                    Token(Whitespace)@33..34 " "
+                    Context(Constructor)@34..40
+                      Token(Hash)@34..35 "#"
+                      Token(VarName)@35..39 "true"
+                      Context(Args)@39..40
+                        Token(Whitespace)@39..40 " "
+                Context(Branch)@40..56
+                  Token(KWIs)@40..42 "is"
+                  Context(Pattern)@42..46
+                    Token(Whitespace)@42..43 " "
+                    Context(String)@43..46
+                      Token(DoubleQuote)@43..44 "\""
+                      StringToken(Text)@44..45 "i"
+                      StringToken(Delimiter)@45..46 "\""
+                  Token(Whitespace)@46..47 " "
+                  Token(OpArrow)@47..49 "=>"
+                  Context(Expr)@49..56
+                    Token(Whitespace)@49..50 " "
+                    Context(Constructor)@50..56
+                      Token(Hash)@50..51 "#"
+                      Token(VarName)@51..55 "true"
+                      Context(Args)@55..56
+                        Token(Whitespace)@55..56 " "
+                Context(Branch)@56..72
+                  Token(KWIs)@56..58 "is"
+                  Context(Pattern)@58..62
+                    Token(Whitespace)@58..59 " "
+                    Context(String)@59..62
+                      Token(DoubleQuote)@59..60 "\""
+                      StringToken(Text)@60..61 "o"
+                      StringToken(Delimiter)@61..62 "\""
+                  Token(Whitespace)@62..63 " "
+                  Token(OpArrow)@63..65 "=>"
+                  Context(Expr)@65..72
+                    Token(Whitespace)@65..66 " "
+                    Context(Constructor)@66..72
+                      Token(Hash)@66..67 "#"
+                      Token(VarName)@67..71 "true"
+                      Context(Args)@71..72
+                        Token(Whitespace)@71..72 " "
+                Context(Branch)@72..88
+                  Token(KWIs)@72..74 "is"
+                  Context(Pattern)@74..78
+                    Token(Whitespace)@74..75 " "
+                    Context(String)@75..78
+                      Token(DoubleQuote)@75..76 "\""
+                      StringToken(Text)@76..77 "u"
+                      StringToken(Delimiter)@77..78 "\""
+                  Token(Whitespace)@78..79 " "
+                  Token(OpArrow)@79..81 "=>"
+                  Context(Expr)@81..88
+                    Token(Whitespace)@81..82 " "
+                    Context(Constructor)@82..88
+                      Token(Hash)@82..83 "#"
+                      Token(VarName)@83..87 "true"
+                      Context(Args)@87..88
+                        Token(Whitespace)@87..88 " "
+                Context(Branch)@88..104
+                  Token(KWIs)@88..90 "is"
+                  Context(Pattern)@90..92
+                    Token(Whitespace)@90..91 " "
+                    Token(Placeholder)@91..92 "_"
+                  Token(Whitespace)@92..95 "   "
+                  Token(OpArrow)@95..97 "=>"
+                  Context(Expr)@97..104
+                    Token(Whitespace)@97..98 " "
+                    Context(Constructor)@98..104
+                      Token(Hash)@98..99 "#"
+                      Token(VarName)@99..104 "false"
+                      Context(Args)@104..104"##]],
+    )
+}
 
 #[test]
 fn parse_lambda() {

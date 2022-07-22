@@ -55,12 +55,12 @@ macro_rules! make_expr_enum {
 make_expr_enum! {
     // Literals
     LArray(ArrayExpr = SyntaxNode) = Context::Array,
-    LBool(BoolExpr = SyntaxToken) = Token::Bool,
+    // LBool(BoolExpr = SyntaxToken) = Token::Bool,
     LConstructor(ConsExpr = SyntaxNode) = Context::Constructor,
     LNum(NumberExpr = SyntaxToken) = Token::Number,
     LRecord(RecordExpr = SyntaxNode) = Context::Record,
     LString(StringExpr = SyntaxNode) = Context::String,
-    LUnit(UnitExpr = SyntaxToken) = Token::Undefined,
+    // LUnit(UnitExpr = SyntaxToken) = Token::Undefined,
 
     // Variable
     VScoped(ScopedExpr = SyntaxNode) = Context::Scoped,

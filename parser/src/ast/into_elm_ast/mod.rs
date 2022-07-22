@@ -102,10 +102,10 @@ pub(crate) fn to_ast_expr(element: SyntaxElement) -> Result<Expr, ()> {
                     Token::Number => Ok(Expr::Literal(Literal::LNum(
                         tok.text().to_string().parse().unwrap(),
                     ))),
-                    Token::Bool => Ok(Expr::Literal(Literal::LBool(
-                        tok.text().to_string().parse().unwrap(),
-                    ))),
-                    Token::Undefined => Ok(Expr::Literal(Literal::LUnit)),
+                    // Token::Bool => Ok(Expr::Literal(Literal::LBool(
+                    //     tok.text().to_string().parse().unwrap(),
+                    // ))),
+                    // Token::Undefined => Ok(Expr::Literal(Literal::LUnit)),
                     _ => Err(()),
                 }
             } else {

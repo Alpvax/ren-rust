@@ -9,8 +9,8 @@ pub enum Token {
     #[error]
     Error = 0,
 
-    #[token("ren")] // 'ren' keyword reserved for future use
-    KWRen,
+    // #[token("ren")] // 'ren' keyword reserved for future use
+    // KWRen,
 
     #[token("import")]
     KWImport,
@@ -60,11 +60,11 @@ pub enum Token {
     #[regex(r"((?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?)|(0|[1-9][0-9]*)|(0[xX][0-9a-fA-F]+)|(0[oO][0-7]+)|(0[bB][01]+)")]
     Number,
 
-    #[regex("true|false")]
-    Bool,
+    // #[regex("true|false")]
+    // Bool,
 
-    #[regex(r"\(\)|undefined")]
-    Undefined,
+    // #[regex(r"\(\)|undefined")]
+    // Undefined,
 
     #[token("\"")]
     DoubleQuote,

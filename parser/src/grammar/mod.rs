@@ -29,7 +29,7 @@ type ExprOrPatFn = fn(&mut Parser);
 pub(crate) fn parse_literal(p: &mut Parser, nested: ExprOrPatFn) {
     match p.peek() {
         TokenType::Token(tok) => match tok {
-            Token::Number | Token::Bool | Token::Placeholder | Token::VarName => p.bump(),
+            Token::Number | /*Token::Bool |*/ Token::Placeholder | Token::VarName => p.bump(),
             Token::OpSub => expression::parse_prefix_op(p, Operator::Sub),
             Token::DoubleQuote => parse_string(p, nested),
             Token::CurlyOpen => parse_record(p, nested),

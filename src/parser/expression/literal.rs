@@ -104,10 +104,10 @@ pub fn parse_literal(lexer: &mut Lexer) -> Result<Literal, Error> {
             // Array
             Token::SquareOpen => parse_array_literal(lexer),
             // Boolean
-            Token::Bool(b) => {
-                lexer.next();
-                Ok(Literal::Boolean(b.clone()))
-            }
+            // Token::Bool(b) => {
+            //     lexer.next();
+            //     Ok(Literal::Boolean(b.clone()))
+            // }
             // Positive number
             Token::Number(n) => {
                 lexer.next();
@@ -133,10 +133,10 @@ pub fn parse_literal(lexer: &mut Lexer) -> Result<Literal, Error> {
                 lexer.next();
                 Ok(Literal::String(s.to_owned()))
             }
-            Token::Undefined => {
-                lexer.next();
-                Ok(Literal::Undefined)
-            }
+            // Token::Undefined => {
+            //     lexer.next();
+            //     Ok(Literal::Undefined)
+            // }
             _ => Err(Error::NonLiteral),
         }
     } else {
