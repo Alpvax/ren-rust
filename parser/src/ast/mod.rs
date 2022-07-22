@@ -1,9 +1,11 @@
-mod into_elm_ast;
+// mod into_elm_ast;
 
-pub(crate) use into_elm_ast::to_ast_expr;
+// pub(crate) use into_elm_ast::to_ast_expr;
 
 mod expr;
 mod extensions;
+#[cfg(test)]
+mod tests;
 use crate::syntax::{Context, RenLang, SyntaxNode, SyntaxPart, Token};
 
 // use expr::Expr;

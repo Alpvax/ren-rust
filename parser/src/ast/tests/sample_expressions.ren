@@ -1,0 +1,9 @@
+fun name => Str.join "\n" [ line (name ++ ", " ++ name ++ ", bo-") "b" name, line "banana-fana fo-" "f" name, line "fee-fi-mo-" "m" name, name ++ "!" ] 
+ 
+where _ is "a" => #true is "e" => #true is "i" => #true is "o" => #true is "u" => #true is _   => #false 
+ 
+where _ is "b" => #true is "f" => #true is "m" => #true is _   => #false 
+ 
+fun name => if is_vowel (Str.take 1 name) then name else Str.drop 1 name 
+ 
+fun prefix letter name => if letter == Str.take 1 name then prefix ++ shorten name ++ "\n" else prefix ++ letter ++ shorten name ++ "\n"

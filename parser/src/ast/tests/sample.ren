@@ -1,0 +1,37 @@
+import "ren/core/str" as Str 
+ 
+pub let the_name_game = fun name => 
+    Str.join "\n" 
+        [ line (name ++ ", " ++ name ++ ", bo-") "b" name 
+        , line "banana-fana fo-" "f" name 
+        , line "fee-fi-mo-" "m" name 
+        , name ++ "!" 
+        ] 
+ 
+let is_vowel = where _ 
+    is "a" => #true 
+    is "e" => #true 
+    is "i" => #true 
+    is "o" => #true 
+    is "u" => #true 
+    is _   => #false 
+ 
+let is_special = where _ 
+    is "b" => #true 
+    is "f" => #true 
+    is "m" => #true 
+    is _   => #false 
+ 
+let shorten = fun name => 
+    if is_vowel (Str.take 1 name) then 
+        name 
+     
+    else 
+        Str.drop 1 name 
+ 
+let line = fun prefix letter name => 
+    if letter == Str.take 1 name then 
+        prefix ++ shorten name ++ "\n" 
+     
+    else 
+        prefix ++ letter ++ shorten name ++ "\n"
