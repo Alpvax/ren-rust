@@ -1,4 +1,4 @@
-use crate::{parse_expression};
+use crate::{parse_expression, syntax::Context};
 
 use super::{FromSyntaxElement, expr::*};
 
@@ -15,16 +15,21 @@ use super::{FromSyntaxElement, expr::*};
 
 #[test]
 fn parse_sample_exprs() {
-    include_str!("./sample_expressions.ren").split_terminator("\n\n").filter_map(|line| {
-        println!("line = {}", line);//XXX
+    include_str!("./sample_expressions.ren").split_terminator("\n").filter_map(|line| {
+        if line.trim().len() < 1 {
+            return None;
+        }
         let parsed = parse_expression(line);
         Expr::from_node(crate::syntax::Context::Expr, parsed.syntax()).map(|expr| (line, expr))
     }).zip([
-        r#"LambdaExpr( [name], Application(Scoped([Str], join)), ["\\n", Array([...])]"#,
+        r#"ELambda(LambdaExpr(Context(Lambda)@0..152))"#,
         "TODO",
         "TODO",
         "TODO",
         "TODO",
-    ]).for_each(|((line, expr), expected)| assert_eq!(format!("{:?}", expr), expected, "parsing line \"{}\"", line));
+    ]).for_each(|((line, expr), expected)| {
+        println!("line = \"{}\";\nexpr = \"{:?}\"\nexpected = {:?}", line, expr, expected);//XXX
+        assert_eq!(format!("{:?}", expr), expected, "parsing line \"{}\"", line)
+    });
 
 }

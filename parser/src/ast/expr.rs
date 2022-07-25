@@ -29,7 +29,7 @@ macro_rules! make_expr_enum {
                         $pattern_n => Some(Self::$name_n($struct_name_n(node))),
                     )*
                     $(
-                        $node_pat => $node_res,
+                        $node_pat => $node_res(node),
                     )+
                 }
             }
@@ -45,6 +45,20 @@ macro_rules! make_expr_enum {
                 }
             }
         }
+        // impl ToHIR for Expr {
+        //     type HIRType = elm_ast::Expr;
+        //     type ValidationError = ();
+        //     fn to_higher_ast(&self) -> Self::HIRType {
+        //         match self {
+        //             $(
+        //                 Self::$name(val) => elm_ast::Expr(<val as ToHIR>::to_higher_ast()),
+        //             )*
+        //         }
+        //     }
+        //     fn validate(&self) -> Option<Self::ValidationError>{
+        //             todo!("Expr::validate")
+        //         }
+        // }
         $(
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct $struct_name($typ);
@@ -73,21 +87,22 @@ make_expr_enum! {
     VPlaceholder(PlaceholderExpr = SyntaxToken) = Token::Placeholder,
 
     // Compound / nested
-    Access(AccessExpr = SyntaxNode) = Context::Access,
-    Binding(BindingExpr = SyntaxNode) = Context::Declaration,
-    BinOp(BinOpExpr = SyntaxNode) = Context::BinOp,
-    Call(CallExpr = SyntaxNode) = Context::Application,
-    Conditional(ConditionalExpr = SyntaxNode) = Context::Conditional,
-    Lambda(LambdaExpr = SyntaxNode) = Context::Lambda,
-    PrefixOp(PrefixOpExpr = SyntaxNode) = Context::PrefixOp,
-    Where(WhereExpr = SyntaxNode) = Context::Where,
+    EAccess(AccessExpr = SyntaxNode) = Context::Access,
+    EBinding(BindingExpr = SyntaxNode) = Context::Declaration,
+    EBinOp(BinOpExpr = SyntaxNode) = Context::BinOp,
+    ECall(CallExpr = SyntaxNode) = Context::Application,
+    EConditional(ConditionalExpr = SyntaxNode) = Context::Conditional,
+    ELambda(LambdaExpr = SyntaxNode) = Context::Lambda,
+    EPrefixOp(PrefixOpExpr = SyntaxNode) = Context::PrefixOp,
+    EWhere(WhereExpr = SyntaxNode) = Context::Where,
 
     {
         match token_type {
             _ => None,
         }
         match context {
-            _ => None,
+            Context::Expr => |node: SyntaxNode| node.children_with_tokens().skip_trivia().next().and_then(Expr::from_element),
+            _ => |_| None,
         }
     }
 }
@@ -208,13 +223,26 @@ impl CallExpr {
 
 }
 impl ConditionalExpr {
-
+    pub fn condition(&self) -> Option<Expr> {
+        self.0.find_node(Context::Condition).and_then(|node| Expr::from_node(Context::Expr, node))
+    }
+    pub fn true_expr(&self) -> Option<Expr> {
+        self.0.find_node(Context::Then).and_then(|node| Expr::from_node(Context::Expr, node))
+    }
+    pub fn false_expr(&self) -> Option<Expr> {
+        self.0.find_node(Context::Else).and_then(|node| Expr::from_node(Context::Expr, node))
+    }
 }
 impl LambdaExpr {
 
 }
 impl PrefixOpExpr {
-
+    pub fn op(&self) -> Option<Operator> {
+        self.0.child_tokens().skip_trivia().next().and_then(|t| Operator::from_symbol(t.text()))
+    }
+    pub fn operand(&self) -> Option<Expr> {
+        self.0.children_with_tokens().skip_trivia().last().and_then(Expr::from_element)
+    }
 }
 impl WhereExpr {
 

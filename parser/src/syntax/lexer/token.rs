@@ -45,7 +45,7 @@ pub enum Token {
 
     #[regex(r"[A-Z][A-Za-z0-9]*")]
     Namespace,
-    #[regex(r"([a-z][A-Za-z0-9]*)")]
+    #[regex(r"([a-z][A-Za-z0-9_]*)")]
     VarName,
     #[regex(r"_")]
     Placeholder,

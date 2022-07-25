@@ -2,7 +2,7 @@
 
 // pub(crate) use into_elm_ast::to_ast_expr;
 
-mod expr;
+pub(crate) mod expr;
 mod extensions;
 #[cfg(test)]
 mod tests;
@@ -37,20 +37,16 @@ trait FromSyntaxElement {
     }
 }
 
-fn skip_trivia(node: &SyntaxElement) -> bool {
-    if let SyntaxPart::Token(Token::Whitespace | Token::Comment) = node.kind() {
-        false
-    } else {
-        true
-    }
+pub(crate) fn expr_ast(node: SyntaxNode) -> Option<expr::Expr> {
+    expr::Expr::from_node(Context::Expr, node)
 }
 
-// pub trait ToHIR {
-//     type HIRType;
-//     type ValidationError;
-//     fn to_higher_ast(&self) -> Self::HIRType;
-//     fn validate(&self) -> Option<Self::ValidationError>;
-// }
+pub trait ToHIR {
+    type HIRType;
+    type ValidationError;
+    fn to_higher_ast(&self) -> Self::HIRType;
+    fn validate(&self) -> Option<Self::ValidationError>;
+}
 // pub enum ASTRoot {
 //     Module(/*Module*/),
 //     Expr(Expr),
