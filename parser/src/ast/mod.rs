@@ -3,6 +3,7 @@
 // pub(crate) use into_elm_ast::to_ast_expr;
 
 pub(crate) mod expr;
+pub(crate) mod pattern;
 mod extensions;
 #[cfg(test)]
 mod tests;
@@ -20,6 +21,15 @@ trait FromSyntaxElement {
     fn from_node(context: Context, node: SyntaxNode) -> Option<Self>
     where
         Self: Sized;
+    fn from_root_node(node: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        match node.kind() {
+            SyntaxPart::Context(ctx) => Self::from_node(ctx, node),
+            _ => None,
+        }
+    }
     fn from_element(element: SyntaxElement) -> Option<Self>
     where
         Self: Sized,

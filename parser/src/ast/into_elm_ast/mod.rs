@@ -19,7 +19,7 @@ fn is_not_trivia(node: &SyntaxElement) -> bool {
     }
 }
 
-trait RenNodeIterator: Iterator<Item = SyntaxElement> {
+pub(super) trait RenNodeIterator: Iterator<Item = SyntaxElement> {
     fn strip_trivia(self) -> std::iter::Filter<Self, fn(&SyntaxElement) -> bool>
     where
         Self: Sized,
@@ -50,7 +50,7 @@ trait RenNodeIterator: Iterator<Item = SyntaxElement> {
 }
 impl<T> RenNodeIterator for T where T: Iterator<Item = SyntaxElement> {}
 
-trait ToAstExpr {
+pub(super) trait ToAstExpr {
     type Error;
     fn to_ast(node: Self) -> Result<Expr, Self::Error>;
 }

@@ -20,7 +20,7 @@ fn parse_sample_exprs() {
             return None;
         }
         let parsed = parse_expression(line);
-        Expr::from_node(crate::syntax::Context::Expr, parsed.syntax()).map(|expr| (line, expr))
+        Expr::from_node(Context::Expr, parsed.syntax()).map(|expr| (line, expr))
     }).zip([
         r#"ELambda(LambdaExpr(Context(Lambda)@0..152))"#,
         "TODO",
