@@ -3,8 +3,8 @@
 // pub(crate) use into_elm_ast::to_ast_expr;
 
 pub(crate) mod expr;
-pub(crate) mod pattern;
 mod extensions;
+pub(crate) mod pattern;
 #[cfg(test)]
 mod tests;
 use crate::syntax::{Context, RenLang, SyntaxNode, SyntaxPart, Token};

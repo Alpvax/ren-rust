@@ -14,7 +14,9 @@ pub(super) trait SyntaxNodeExtension {
     where
         T: FromSyntaxElement;
     fn find_node(&self, kind: crate::syntax::Context) -> Option<SyntaxNode>;
-    fn find_token<T>(&self, kind: T) -> Option<SyntaxToken> where T: Into<crate::syntax::TokenType>;
+    fn find_token<T>(&self, kind: T) -> Option<SyntaxToken>
+    where
+        T: Into<crate::syntax::TokenType>;
 }
 impl SyntaxNodeExtension for SyntaxNode {
     fn child_tokens(
@@ -36,7 +38,10 @@ impl SyntaxNodeExtension for SyntaxNode {
         let kind = kind.into();
         self.children().find(|e| e.kind() == kind)
     }
-    fn find_token<T>(&self, kind: T) -> Option<SyntaxToken> where T: Into<crate::syntax::TokenType> {
+    fn find_token<T>(&self, kind: T) -> Option<SyntaxToken>
+    where
+        T: Into<crate::syntax::TokenType>,
+    {
         let kind = kind.into().into();
         self.child_tokens().find(|e| e.kind() == kind)
     }
@@ -44,17 +49,23 @@ impl SyntaxNodeExtension for SyntaxNode {
 
 pub(super) trait TokenTypeWrapper {
     fn is_trivia(&self) -> bool {
-        use crate::syntax::{SyntaxPart, Token, StringToken};
+        use crate::syntax::{StringToken, SyntaxPart, Token};
         match self.token_type() {
-            SyntaxPart::Token(Token::Whitespace | Token::Comment | Token::DoubleQuote | Token::ParenOpen) | SyntaxPart::StringToken(StringToken::ExprStart | StringToken::Delimiter) => true,
-            _ => false
+            SyntaxPart::Token(
+                Token::Whitespace | Token::Comment | Token::DoubleQuote | Token::ParenOpen,
+            )
+            | SyntaxPart::StringToken(StringToken::ExprStart | StringToken::Delimiter) => true,
+            _ => false,
         }
     }
     fn is_not_trivia(&self) -> bool {
         !self.is_trivia()
     }
     fn token_type(&self) -> <RenLang as rowan::Language>::Kind;
-    fn kind_matches<K>(&self, kind: K) -> bool where K: Into<<RenLang as rowan::Language>::Kind> {
+    fn kind_matches<K>(&self, kind: K) -> bool
+    where
+        K: Into<<RenLang as rowan::Language>::Kind>,
+    {
         self.token_type() == kind.into()
     }
 }
@@ -75,7 +86,11 @@ pub(super) trait SyntaxIterator: Iterator + Sized {
         self.filter(Self::skip_trivia_filter)
     }
 }
-impl<T, I> SyntaxIterator for T where T: Iterator<Item = I>, I: TokenTypeWrapper {
+impl<T, I> SyntaxIterator for T
+where
+    T: Iterator<Item = I>,
+    I: TokenTypeWrapper,
+{
     fn skip_trivia_filter(item: &Self::Item) -> bool {
         item.is_not_trivia()
     }

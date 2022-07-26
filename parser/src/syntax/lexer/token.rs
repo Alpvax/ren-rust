@@ -11,7 +11,6 @@ pub enum Token {
 
     // #[token("ren")] // 'ren' keyword reserved for future use
     // KWRen,
-
     #[token("import")]
     KWImport,
     #[token("pkg")]
@@ -65,7 +64,6 @@ pub enum Token {
 
     // #[regex(r"\(\)|undefined")]
     // Undefined,
-
     #[token("\"")]
     DoubleQuote,
     // #[token("'")]

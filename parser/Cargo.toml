@@ -7,7 +7,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-elm_ast = { path = "../ast", package = "ast" }
+higher_ast = { path = "../ast", package = "ast" }
 drop_bomb = "0.1.5"
 logos ="0.12"
 num-derive = "0.3.3"
