@@ -1,5 +1,6 @@
 mod expression;
 mod module;
+mod pattern;
 
 #[test]
 fn parse_nothing() {

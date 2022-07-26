@@ -35,7 +35,12 @@ fn pattern(p: &mut Parser) -> bool {
                 p.bump();
                 if p.bump_matching(Token::Namespace) {
                     if p.bump_whitespace() {
-                        todo!("Type pattern arguments");
+                        let arg_m = p.start("type_match_arg");
+                        if pattern(p) {
+                            arg_m.complete(p, Context::Pattern);
+                        } else {
+                            arg_m.discard(); // TODO: Is this correct? or should it error?
+                        }
                     }
                     typ_m.complete(p, Context::TypeMatch);
                 } else {
