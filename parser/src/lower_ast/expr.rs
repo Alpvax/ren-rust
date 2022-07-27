@@ -6,8 +6,11 @@ use crate::syntax::{Context, Token};
 use super::{
     extensions::{SyntaxIterator, SyntaxNodeExtension},
     pattern::Pattern,
-    FromSyntaxElement, SyntaxNode, SyntaxToken,
+    FromSyntaxElement, SyntaxNode, SyntaxToken, ToHIR,
 };
+
+type HigherLiteral = higher_ast::core::Literal<higher_ast::expr::Expr>;
+type HigherExpr = higher_ast::expr::Expr;
 
 macro_rules! make_expr_enum {
     ($($name:ident($struct_name:ident = $typ:ident) = $p:pat,)+ { match token_type {$($tok_pat:pat => $tok_res:expr,)+} match context {$($node_pat:pat => $node_res:expr,)+}}) => {
@@ -46,21 +49,24 @@ macro_rules! make_expr_enum {
                     )+
                 }
             }
+            fn from_root_node(node: SyntaxNode) -> Option<Self> {
+                Self::from_node(Context::Expr, node)
+            }
         }
-        // impl ToHIR for Expr {
-        //     type HIRType = elm_ast::Expr;
-        //     type ValidationError = ();
-        //     fn to_higher_ast(&self) -> Self::HIRType {
-        //         match self {
-        //             $(
-        //                 Self::$name(val) => elm_ast::Expr(<val as ToHIR>::to_higher_ast()),
-        //             )*
-        //         }
-        //     }
-        //     fn validate(&self) -> Option<Self::ValidationError>{
-        //             todo!("Expr::validate")
-        //         }
-        // }
+        impl ToHIR for Expr {
+            type HIRType = higher_ast::expr::Expr;
+            type ValidationError = ();
+            fn to_higher_ast(&self) -> Self::HIRType {
+                match self {
+                    $(
+                        Self::$name(val) => val.to_higher_ast().into(),
+                    )*
+                }
+            }
+            fn validate(&self) -> Option<Self::ValidationError>{
+                todo!("Expr::validate")
+            }
+        }
         $(
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct $struct_name($typ);
@@ -113,23 +119,43 @@ make_expr_enum! {
 
 impl ArrayExpr {
     pub fn items(&self) -> Vec<Expr> {
-        self.0.map_children().collect()
+        self.0
+            .children()
+            .filter_map(|node| {
+                if node.kind() == Context::Item.into() {
+                    Expr::from_node(Context::Expr, node)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+}
+impl ToHIR for ArrayExpr {
+    type HIRType = HigherLiteral;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherLiteral::LArr(
+            self.items()
+                .into_iter()
+                .map(|item| item.to_higher_ast())
+                .collect(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
     }
 }
 
-// impl BoolExpr {
-//     fn value(&self) -> bool {
-//         self.0.text().to_string().parse().expect("Error parsing boolean from token")
-//     }
-// }
-
 impl ConsExpr {
-    pub fn get_tag(&self) -> Option<SmolStr> {
+    pub fn tag(&self) -> Option<SmolStr> {
         self.0
             .find_token(Token::VarName)
             .map(|t| SmolStr::new(t.text()))
     }
-    pub fn get_args(&self) -> Vec<Expr> {
+    pub fn args(&self) -> Vec<Expr> {
         self.0
             .find_node(Context::Args)
             .map_or(Vec::default(), |node| {
@@ -139,16 +165,51 @@ impl ConsExpr {
             })
     }
 }
+impl ToHIR for ConsExpr {
+    type HIRType = HigherLiteral;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        self.tag()
+            .map(|tag| {
+                HigherLiteral::LCon(
+                    tag.to_string(),
+                    self.args()
+                        .into_iter()
+                        .map(|arg| arg.to_higher_ast())
+                        .collect(),
+                )
+            })
+            .unwrap()
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
 
 impl NumberExpr {
-    pub fn value(&self) -> bool {
+    pub fn value(&self) -> f64 {
         self.0
             .text()
             .to_string()
             .parse()
-            .expect("Error parsing boolean from token")
+            .expect("Error parsing number from token")
     }
 }
+impl ToHIR for NumberExpr {
+    type HIRType = HigherLiteral;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherLiteral::LNum(self.value())
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl RecordExpr {
     pub fn fields(&self) -> Vec<(String, Option<Expr>)> {
         self.0
@@ -162,6 +223,25 @@ impl RecordExpr {
             .collect()
     }
 }
+impl ToHIR for RecordExpr {
+    type HIRType = HigherLiteral;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        fn map_field((name, val): (String, Option<Expr>)) -> (String, HigherExpr) {
+            let val = val
+                .map(|v| v.to_higher_ast())
+                .unwrap_or(HigherExpr::Var(name.clone()));
+            (name, val)
+        }
+        HigherLiteral::LRec(self.fields().into_iter().map(map_field).collect())
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StringSegment {
     Text(SmolStr),
@@ -207,6 +287,27 @@ impl StringExpr {
         parts
     }
 }
+impl ToHIR for StringExpr {
+    type HIRType = HigherLiteral; //TODO: HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        //TODO: proper string ast
+        HigherLiteral::LStr(
+            self.parts()
+                .into_iter()
+                .find_map(|part| match part {
+                    StringSegment::Text(text) => Some(text.to_string()),
+                    StringSegment::Expr(_) => None,
+                })
+                .unwrap_or("NO_TEXT_PART".to_string()),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
 
 impl ScopedExpr {
     pub fn namespace(&self) -> Vec<SmolStr> {
@@ -222,15 +323,59 @@ impl ScopedExpr {
             .map(|t| SmolStr::new(t.text()))
     }
 }
+impl ToHIR for ScopedExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::Scoped(
+            self.namespace()
+                .into_iter()
+                .map(|s| s.to_string())
+                .collect(),
+            self.varname().unwrap().to_string(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl VarExpr {
     pub fn name(&self) -> SmolStr {
         SmolStr::new(self.0.text())
     }
 }
+impl ToHIR for VarExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::Var(self.name().to_string())
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 // impl PlaceholderExpr {}
+impl ToHIR for PlaceholderExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::Placeholder
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
 
 impl AccessExpr {
-    pub fn get_bj(&self) -> Option<Expr> {
+    pub fn obj(&self) -> Option<Expr> {
         self.0
             .children_with_tokens()
             .skip_trivia()
@@ -241,6 +386,22 @@ impl AccessExpr {
         self.0.child_tokens().last().map(|t| SmolStr::new(t.text()))
     }
 }
+impl ToHIR for AccessExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::access(
+            self.obj().to_higher_ast().unwrap(),
+            self.key().unwrap().to_string(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl BindingExpr {
     pub fn pattern(&self) -> Option<Pattern> {
         self.0
@@ -259,13 +420,30 @@ impl BindingExpr {
             .and_then(Expr::from_element)
     }
 }
+impl ToHIR for BindingExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::binding(
+            self.pattern().to_higher_ast().unwrap(),
+            self.binding_expr().to_higher_ast().unwrap(),
+            self.result_expr().to_higher_ast().unwrap(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl BinOpExpr {
     pub fn op(&self) -> Option<Operator> {
         self.0
-            .child_tokens()
+            .children_with_tokens()
             .skip_trivia()
             .nth(1)
-            .and_then(|t| Operator::from_symbol(t.text()))
+            .and_then(|e| Operator::from_symbol(e.into_token().unwrap().text()))
     }
     pub fn lhs(&self) -> Option<Expr> {
         self.0
@@ -282,6 +460,23 @@ impl BinOpExpr {
             .and_then(Expr::from_element)
     }
 }
+impl ToHIR for BinOpExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::binop(
+            self.lhs().to_higher_ast().unwrap(),
+            self.op().unwrap(),
+            self.rhs().to_higher_ast().unwrap(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl CallExpr {
     pub fn func(&self) -> Option<Expr> {
         self.0
@@ -298,6 +493,29 @@ impl CallExpr {
             .and_then(Expr::from_element)
     }
 }
+impl ToHIR for CallExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        let mut func = self.func().unwrap();
+        let mut r_args = vec![self.arg()];
+        while let Expr::ECall(call) = func {
+            r_args.push(call.arg());
+            func = call.func().unwrap();
+        }
+        r_args.reverse();
+        HigherExpr::apply_many(
+            func.to_higher_ast(),
+            r_args.into_iter().filter_map(|arg| arg.to_higher_ast()),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl ConditionalExpr {
     pub fn condition(&self) -> Option<Expr> {
         self.0
@@ -315,6 +533,23 @@ impl ConditionalExpr {
             .and_then(Expr::from_root_node)
     }
 }
+impl ToHIR for ConditionalExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::conditional(
+            self.condition().to_higher_ast().unwrap(),
+            self.true_expr().to_higher_ast().unwrap(),
+            self.false_expr().to_higher_ast().unwrap(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl LambdaExpr {
     pub fn params(&self) -> Vec<Pattern> {
         self.0
@@ -339,6 +574,25 @@ impl LambdaExpr {
             .and_then(Expr::from_element)
     }
 }
+impl ToHIR for LambdaExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::lambda(
+            self.params()
+                .into_iter()
+                .map(|p| p.to_higher_ast())
+                .collect(),
+            self.body().to_higher_ast().unwrap(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl PrefixOpExpr {
     pub fn op(&self) -> Option<Operator> {
         self.0
@@ -355,6 +609,23 @@ impl PrefixOpExpr {
             .and_then(Expr::from_element)
     }
 }
+impl ToHIR for PrefixOpExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::binop(
+            HigherExpr::literal(0),
+            self.op().unwrap(),
+            self.operand().to_higher_ast().unwrap(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
+    }
+}
+
 impl WhereExpr {
     pub fn expr(&self) -> Option<Expr> {
         self.0
@@ -397,5 +668,29 @@ impl WhereExpr {
                 }
             })
             .collect()
+    }
+}
+impl ToHIR for WhereExpr {
+    type HIRType = HigherExpr;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        HigherExpr::Switch(
+            Box::new(self.expr().to_higher_ast().unwrap()),
+            self.branches()
+                .into_iter()
+                .map(|(p, g, e)| {
+                    (
+                        p.to_higher_ast(),
+                        g.map(|ge| ge.to_higher_ast()),
+                        e.to_higher_ast(),
+                    )
+                })
+                .collect(),
+        )
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
     }
 }

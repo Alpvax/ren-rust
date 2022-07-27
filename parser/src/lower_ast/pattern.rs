@@ -4,8 +4,11 @@ use crate::syntax::{Context, SyntaxNode, Token};
 
 use super::{
     extensions::{SyntaxIterator, SyntaxNodeExtension},
-    FromSyntaxElement, SyntaxToken,
+    FromSyntaxElement, SyntaxToken, ToHIR,
 };
+
+type HigherPattern = higher_ast::core::Pattern;
+type HigherLiteral = higher_ast::core::Literal<HigherPattern>;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Pattern {
@@ -18,26 +21,32 @@ pub enum Pattern {
     PTyp(PType),
     PVar(PVar),
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PNumber(SyntaxToken);
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PString(SyntaxNode);
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PRecord(SyntaxNode);
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PArray(SyntaxNode);
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PConstructor(SyntaxNode);
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PType(SyntaxNode);
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PVar(SyntaxToken);
+
+macro_rules! make_pattern_types {
+    ($($variant:ident = $name:ident($typ:ty)),+ $(,)?) => {
+        $(
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct $name($typ);
+            impl From<$name> for Pattern {
+                fn from(v: $name) -> Self {
+                    Self::$variant(v)
+                }
+            }
+        )+
+    };
+}
+make_pattern_types! {
+    PNum = PNumber(SyntaxToken),
+    PStr = PString(SyntaxNode),
+    PRec = PRecord(SyntaxNode),
+    PArr = PArray(SyntaxNode),
+    PCon = PConstructor(SyntaxNode),
+    PTyp = PType(SyntaxNode),
+    PVar = PVar(SyntaxToken),
+}
 
 impl FromSyntaxElement for Pattern {
-    fn from_token(token_type: Token, token: SyntaxToken) -> Option<Self>
-    where
-        Self: Sized,
-    {
+    fn from_token(token_type: Token, token: SyntaxToken) -> Option<Self> {
         match token_type {
             Token::Placeholder => Some(Self::PAny),
             Token::Number => Some(Self::PNum(PNumber(token))),
@@ -46,11 +55,13 @@ impl FromSyntaxElement for Pattern {
         }
     }
 
-    fn from_node(context: Context, node: SyntaxNode) -> Option<Self>
-    where
-        Self: Sized,
-    {
+    fn from_node(context: Context, node: SyntaxNode) -> Option<Self> {
         match context {
+            Context::Pattern => node
+                .children_with_tokens()
+                .skip_trivia()
+                .next()
+                .and_then(Self::from_element),
             Context::String => Some(Self::PStr(PString(node))),
             Context::Record => Some(Self::PRec(PRecord(node))),
             Context::Array => Some(Self::PArr(PArray(node))),
@@ -58,6 +69,54 @@ impl FromSyntaxElement for Pattern {
             Context::TypeMatch => Some(Self::PTyp(PType(node))),
             _ => None,
         }
+    }
+    fn from_root_node(node: SyntaxNode) -> Option<Self> {
+        Self::from_node(Context::Pattern, node)
+    }
+}
+impl ToHIR for Pattern {
+    type HIRType = HigherPattern;
+    type ValidationError = ();
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        match self {
+            Pattern::PAny => HigherPattern::PAny,
+            Pattern::PNum(p) => HigherPattern::PLit(p.value().unwrap().into()),
+            Pattern::PStr(p) => todo!("String patterns: \"{:?}\"", p), //HigherPattern::PLit(p.parts()),
+            Pattern::PRec(p) => HigherPattern::PLit(HigherLiteral::LRec(
+                p.fields()
+                    .into_iter()
+                    .map(|(name, val)| {
+                        let val = val
+                            .map(|p| p.to_higher_ast())
+                            .unwrap_or(HigherPattern::PVar(name.clone()));
+                        (name, val)
+                    })
+                    .collect(),
+            )),
+            Pattern::PArr(p) => HigherPattern::PLit(HigherLiteral::LArr(
+                p.items()
+                    .into_iter()
+                    .map(|item| item.to_higher_ast())
+                    .collect(),
+            )),
+            Pattern::PCon(p) => HigherPattern::PLit(HigherLiteral::LCon(
+                p.get_tag().unwrap().to_string(),
+                p.get_args()
+                    .into_iter()
+                    .map(|p| p.to_higher_ast())
+                    .collect(),
+            )),
+            Pattern::PTyp(p) => HigherPattern::PTyp(
+                p.type_name().unwrap().to_string(),
+                Box::new(p.binding().to_higher_ast().unwrap()),
+            ),
+            Pattern::PVar(p) => HigherPattern::PVar(p.name().to_string()),
+        }
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        todo!()
     }
 }
 

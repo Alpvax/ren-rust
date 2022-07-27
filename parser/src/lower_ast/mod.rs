@@ -23,13 +23,7 @@ trait FromSyntaxElement {
         Self: Sized;
     fn from_root_node(node: SyntaxNode) -> Option<Self>
     where
-        Self: Sized,
-    {
-        match node.kind() {
-            SyntaxPart::Context(ctx) => Self::from_node(ctx, node),
-            _ => None,
-        }
-    }
+        Self: Sized;
     fn from_element(element: SyntaxElement) -> Option<Self>
     where
         Self: Sized,
@@ -56,6 +50,22 @@ pub trait ToHIR {
     type ValidationError;
     fn to_higher_ast(&self) -> Self::HIRType;
     fn validate(&self) -> Option<Self::ValidationError>;
+}
+impl<T> ToHIR for Option<T>
+where
+    T: ToHIR,
+{
+    type HIRType = Option<T::HIRType>;
+
+    type ValidationError = T::ValidationError;
+
+    fn to_higher_ast(&self) -> Self::HIRType {
+        self.as_ref().map(|val| val.to_higher_ast())
+    }
+
+    fn validate(&self) -> Option<Self::ValidationError> {
+        self.as_ref().and_then(|val| val.validate())
+    }
 }
 // pub enum ASTRoot {
 //     Module(/*Module*/),

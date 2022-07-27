@@ -1,6 +1,6 @@
 use crate::{parse_expression, syntax::Context};
 
-use super::{expr::*, FromSyntaxElement};
+use super::{expr::Expr, FromSyntaxElement, ToHIR};
 
 // #[test]
 // #[ignore = "module unimplemented"]
@@ -14,25 +14,16 @@ use super::{expr::*, FromSyntaxElement};
 // }
 
 #[test]
-#[ignore = "does not pass (not fully implemented)"]
 fn parse_sample_exprs() {
-    include_str!("./sample_expressions.ren")
+    let exprs = include_str!("./sample_expressions.ren")
         .split_terminator("\n\n")
+        .enumerate()//TODO: enable
+        .filter_map(|(i, e)| if i == 0 || i > 2 { Some(e) } else { None }) // Skip string patterns until implemented
         .filter_map(|line| {
-            Expr::from_node(Context::Expr, parse_expression(line).syntax()).map(|expr| (line, expr))
+            Expr::from_node(Context::Expr, parse_expression(line).syntax())
+                .map(|e| e.to_higher_ast())
+            //.map(|expr| (line, expr))
         })
-        .zip([
-            r#"ELambda(LambdaExpr(Context(Lambda)@0..151))"#,
-            "TODO",
-            "TODO",
-            "TODO",
-            "TODO",
-        ])
-        .for_each(|((line, expr), expected)| {
-            println!(
-                "line = \"{}\";\nexpr = \"{:?}\"\nexpected = {:?}",
-                line, expr, expected
-            ); //XXX
-            assert_eq!(format!("{:?}", expr), expected, "parsing line \"{}\"", line)
-        });
+        .collect::<Vec<_>>();
+    expect_test::expect_file!["./sample_expressions.ren.expected"].assert_debug_eq(&exprs);
 }

@@ -21,6 +21,11 @@ impl Default for Expr {
         Self::Literal(core::Literal::LUnit)
     }
 }
+impl From<core::Literal<Expr>> for Expr {
+    fn from(l: core::Literal<Expr>) -> Self {
+        Self::Literal(l)
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Operator {
@@ -138,8 +143,11 @@ impl Expr {
     pub fn conditional(condition: Self, then_: Self, else_: Self) -> Self {
         Self::If(Box::new(condition), Box::new(then_), Box::new(else_))
     }
-    pub fn lambda() -> Self {
-        todo!()
+    pub fn lambda(params: Vec<core::Pattern>, body: Expr) -> Self {
+        Self::Lambda(
+            params.into_iter().map(|p| format!("{:?}", p)).collect(),
+            Box::new(body),
+        )
     }
     pub fn binding(pattern: core::Pattern, binding_value: Expr, body: Expr) -> Self {
         Self::Let(pattern, Box::new(binding_value), Box::new(body))
