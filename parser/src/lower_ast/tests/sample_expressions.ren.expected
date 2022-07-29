@@ -1,7 +1,9 @@
 [
     Lambda(
         [
-            "PVar(\"name\")",
+            PVar(
+                "name",
+            ),
         ],
         Call(
             Scoped(
@@ -152,9 +154,185 @@
             ],
         ),
     ),
+    Switch(
+        Placeholder,
+        [
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "a",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "e",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "i",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "o",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "u",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PAny,
+                None,
+                Literal(
+                    LCon(
+                        "false",
+                        [],
+                    ),
+                ),
+            ),
+        ],
+    ),
+    Switch(
+        Placeholder,
+        [
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "b",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "f",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PLit(
+                    LStr(
+                        [
+                            Left(
+                                "m",
+                            ),
+                        ],
+                    ),
+                ),
+                None,
+                Literal(
+                    LCon(
+                        "true",
+                        [],
+                    ),
+                ),
+            ),
+            (
+                PAny,
+                None,
+                Literal(
+                    LCon(
+                        "false",
+                        [],
+                    ),
+                ),
+            ),
+        ],
+    ),
     Lambda(
         [
-            "PVar(\"name\")",
+            PVar(
+                "name",
+            ),
         ],
         If(
             Call(
@@ -207,9 +385,15 @@
     ),
     Lambda(
         [
-            "PVar(\"prefix\")",
-            "PVar(\"letter\")",
-            "PVar(\"name\")",
+            PVar(
+                "prefix",
+            ),
+            PVar(
+                "letter",
+            ),
+            PVar(
+                "name",
+            ),
         ],
         If(
             Binop(

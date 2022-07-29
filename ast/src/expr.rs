@@ -1,7 +1,5 @@
 use array_init::array_init;
 
-use crate::core::StringParts;
-
 use super::core;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -10,7 +8,7 @@ pub enum Expr {
     Binop(Box<Expr>, Operator, Box<Expr>),
     Call(Box<Expr>, Vec<Expr>),
     If(Box<Expr>, Box<Expr>, Box<Expr>),
-    Lambda(Vec<String>, Box<Expr>),
+    Lambda(Vec<core::Pattern>, Box<Expr>),
     Let(core::Pattern, Box<Expr>, Box<Expr>),
     Literal(core::Literal<Expr>),
     Placeholder,
@@ -50,31 +48,31 @@ pub enum Operator {
 }
 
 impl Operator {
-    fn from_name(name: &str) -> Option<Self> {
-        OPERATORS_FULL
-            .iter()
-            .find(|(_, op_name, _)| *op_name == name)
-            .map(|(op, ..)| *op)
-    }
+    // fn from_name(name: &str) -> Option<Self> {
+    //     OPERATORS_FULL
+    //         .iter()
+    //         .find(|(_, op_name, _)| *op_name == name)
+    //         .map(|(op, ..)| *op)
+    // }
     pub fn from_symbol(symbol: &str) -> Option<Self> {
         OPERATORS_FULL
             .iter()
             .find(|(.., sym)| *sym == symbol)
             .map(|(op, ..)| *op)
     }
-    fn find_data(&self) -> [&'static str; 2] {
-        OPERATORS_FULL
-            .iter()
-            .find(|(op, ..)| op == self)
-            .map(|(_, name, sym)| [*name, *sym])
-            .expect(&format!(
-                "OPERATOR {:?} is not in {:?}",
-                self, OPERATORS_FULL
-            ))
-    }
-    fn name(&self) -> &'static str {
-        self.find_data()[0]
-    }
+    // fn find_data(&self) -> [&'static str; 2] {
+    //     OPERATORS_FULL
+    //         .iter()
+    //         .find(|(op, ..)| op == self)
+    //         .map(|(_, name, sym)| [*name, *sym])
+    //         .expect(&format!(
+    //             "OPERATOR {:?} is not in {:?}",
+    //             self, OPERATORS_FULL
+    //         ))
+    // }
+    // fn name(&self) -> &'static str {
+    //     self.find_data()[0]
+    // }
     // fn symbol(&self) -> &'static str {
     //     self.find_data()[1]
     // }
@@ -146,10 +144,7 @@ impl Expr {
         Self::If(Box::new(condition), Box::new(then_), Box::new(else_))
     }
     pub fn lambda(params: Vec<core::Pattern>, body: Expr) -> Self {
-        Self::Lambda(
-            params.into_iter().map(|p| format!("{:?}", p)).collect(),
-            Box::new(body),
-        )
+        Self::Lambda(params, Box::new(body))
     }
     pub fn binding(pattern: core::Pattern, binding_value: Expr, body: Expr) -> Self {
         Self::Let(pattern, Box::new(binding_value), Box::new(body))
@@ -187,75 +182,75 @@ impl Expr {
 //         )
 
 // -}
-pub fn raise(expr: core::Expr) -> Expr {
-    use super::core::{ExprF::*, Literal::*};
-    use Expr::*;
-    core::fold(
-        &|expr_f| match expr_f {
-            EAbs(arg, fun) => match *fun {
-                Lambda(mut args, body) => {
-                    args.insert(0, arg);
-                    Lambda(args, body)
-                }
-                f => Lambda(vec![arg], Box::new(f)),
-            },
-            EApp(boxed) => match *boxed {
-                (Call(f, mut args), expr) => match (*f, &args[..]) {
-                    (Var(ref s), [Literal(LStr(key))]) if s == "<access>" => Access(
-                        Box::new(expr),
-                        key.as_simple()
-                            .expect("Recieved non-simple text access string"),
-                    ),
-                    (Var(ref s), [Literal(LStr(op_str)), lhs]) if s == "<binop>" => {
-                        match Operator::from_name(
-                            op_str
-                                .as_simple_str()
-                                .expect("Recieved non-simple text operator"),
-                        ) {
-                            Some(op) => Binop(Box::new(lhs.to_owned()), op, Box::new(expr)),
-                            None => Call(
-                                Box::new(Literal(LStr(op_str.to_owned()))),
-                                vec![lhs.to_owned(), expr],
-                            ),
-                        }
-                    }
-                    (Var(ref s), [cond, then_]) if s == "<if>" => If(
-                        Box::new(cond.to_owned()),
-                        Box::new(then_.to_owned()),
-                        Box::new(expr),
-                    ),
-                    (fun, _) => {
-                        args.push(expr);
-                        Call(Box::new(fun), args)
-                    }
-                },
-                (fun, arg) => Call(Box::new(fun), vec![arg]),
-            },
-            ELet(name, boxed) => {
-                let (expr, body) = *boxed;
-                Let(core::Pattern::PVar(name), Box::new(expr), Box::new(body))
-            }
-            ELit(l) => Literal(l),
-            EVar(ref s) if s == "<placeholder>" => Placeholder,
-            EVar(var) => {
-                let mut names = var.split('$').map(|s| s.to_owned()).collect::<Vec<_>>();
-                let name = names.pop();
-                match name {
-                    None => Placeholder,
-                    Some(name) => {
-                        if names.len() < 1 {
-                            Var(name)
-                        } else {
-                            Scoped(names, name)
-                        }
-                    }
-                }
-            }
-            EPat(expr, cases) => Switch(expr, cases),
-        },
-        expr,
-    )
-}
+// pub fn raise(expr: core::Expr) -> Expr {
+//     use super::core::{ExprF::*, Literal::*};
+//     use Expr::*;
+//     core::fold(
+//         &|expr_f| match expr_f {
+//             EAbs(arg, fun) => match *fun {
+//                 Lambda(mut args, body) => {
+//                     args.insert(0, arg);
+//                     Lambda(args, body)
+//                 }
+//                 f => Lambda(vec![arg], Box::new(f)),
+//             },
+//             EApp(boxed) => match *boxed {
+//                 (Call(f, mut args), expr) => match (*f, &args[..]) {
+//                     (Var(ref s), [Literal(LStr(key))]) if s == "<access>" => Access(
+//                         Box::new(expr),
+//                         key.as_simple()
+//                             .expect("Recieved non-simple text access string"),
+//                     ),
+//                     (Var(ref s), [Literal(LStr(op_str)), lhs]) if s == "<binop>" => {
+//                         match Operator::from_name(
+//                             op_str
+//                                 .as_simple_str()
+//                                 .expect("Recieved non-simple text operator"),
+//                         ) {
+//                             Some(op) => Binop(Box::new(lhs.to_owned()), op, Box::new(expr)),
+//                             None => Call(
+//                                 Box::new(Literal(LStr(op_str.to_owned()))),
+//                                 vec![lhs.to_owned(), expr],
+//                             ),
+//                         }
+//                     }
+//                     (Var(ref s), [cond, then_]) if s == "<if>" => If(
+//                         Box::new(cond.to_owned()),
+//                         Box::new(then_.to_owned()),
+//                         Box::new(expr),
+//                     ),
+//                     (fun, _) => {
+//                         args.push(expr);
+//                         Call(Box::new(fun), args)
+//                     }
+//                 },
+//                 (fun, arg) => Call(Box::new(fun), vec![arg]),
+//             },
+//             ELet(name, boxed) => {
+//                 let (expr, body) = *boxed;
+//                 Let(core::Pattern::PVar(name), Box::new(expr), Box::new(body))
+//             }
+//             ELit(l) => Literal(l),
+//             EVar(ref s) if s == "<placeholder>" => Placeholder,
+//             EVar(var) => {
+//                 let mut names = var.split('$').map(|s| s.to_owned()).collect::<Vec<_>>();
+//                 let name = names.pop();
+//                 match name {
+//                     None => Placeholder,
+//                     Some(name) => {
+//                         if names.len() < 1 {
+//                             Var(name)
+//                         } else {
+//                             Scoped(names, name)
+//                         }
+//                     }
+//                 }
+//             }
+//             EPat(expr, cases) => Switch(expr, cases),
+//         },
+//         expr,
+//     )
+// }
 
 // -- MANIPULATIONS ---------------------------------------------------------------
 
@@ -271,7 +266,7 @@ pub fn replace_placeholders(expr: Expr) -> Expr {
             |(mut names, mut args), (i, e)| {
                 args.push(if let Placeholder = e {
                     let name = name(i);
-                    names.push(name.clone());
+                    names.push(core::Pattern::PVar(name.clone()));
                     Var(name)
                 } else {
                     e
@@ -291,7 +286,7 @@ pub fn replace_placeholders(expr: Expr) -> Expr {
             |(mut names, mut args), (i, e)| {
                 args[i] = if let Placeholder = e {
                     let name = name(i);
-                    names.push(name.clone());
+                    names.push(core::Pattern::PVar(name.clone()));
                     Var(name)
                 } else {
                     e
@@ -314,7 +309,7 @@ pub fn replace_placeholders(expr: Expr) -> Expr {
             |(mut names, mut args), (arg_index, (i, e))| {
                 args[arg_index] = if let Placeholder = e {
                     let name = name(i);
-                    names.push(name.clone());
+                    names.push(core::Pattern::PVar(name.clone()));
                     Var(name)
                 } else {
                     e
@@ -329,9 +324,10 @@ pub fn replace_placeholders(expr: Expr) -> Expr {
         }
     }
     match expr {
-        Access(rec, key) if *rec == Placeholder => {
-            Lambda(vec![name(0)], Box::new(Access(Box::new(Var(name(0))), key)))
-        }
+        Access(rec, key) if *rec == Placeholder => Lambda(
+            vec![core::Pattern::PVar(name(0))],
+            Box::new(Access(Box::new(Var(name(0))), key)),
+        ),
         Binop(lhs, op, rhs) => map_positional([(0, *lhs), (2, *rhs)], &|[lhs, rhs]| {
             Binop(Box::new(lhs), op, Box::new(rhs))
         }),
@@ -343,7 +339,7 @@ pub fn replace_placeholders(expr: Expr) -> Expr {
             If(Box::new(cond), Box::new(then_), Box::new(else_))
         }),
         Switch(expr_, cases) if *expr_ == Placeholder => Lambda(
-            vec![name(0)],
+            vec![core::Pattern::PVar(name(0))],
             Box::new(Switch(Box::new(Var(name(0))), cases)),
         ),
         _ => expr,
@@ -374,56 +370,56 @@ pub fn replace_placeholders(expr: Expr) -> Expr {
 // should get back exactly the same expression.
 
 // -}
-pub fn lower(expr: Expr) -> core::Expr {
-    match replace_placeholders(expr) {
-        Expr::Access(expr, key) => core::Expr::app(
-            core::Expr::var("<access>".to_owned()),
-            [core::Expr::text_str(key), lower(*expr)],
-        ),
-        Expr::Binop(lhs, op, rhs) => core::Expr::app(
-            core::Expr::var("<binop>".to_owned()),
-            [
-                core::Expr::text_str(op.name().to_owned()),
-                lower(*lhs),
-                lower(*rhs),
-            ],
-        ),
-        Expr::Call(fun, args) => core::Expr::app(lower(*fun), args.into_iter().map(lower)),
-        Expr::If(cond, then_, else_) => core::Expr::app(
-            core::Expr::var("<if>".to_owned()),
-            [lower(*cond), lower(*then_), lower(*else_)],
-        ),
-        Expr::Lambda(args, body) => core::Expr::abs(args, lower(*body)),
-        Expr::Let(core::Pattern::PVar(name), expr, body) => {
-            core::Expr::let_([(name, lower(*expr))], lower(*body))
-        }
-        Expr::Let(pattern, expr, body) => {
-            core::Expr::pattern(lower(*expr), vec![(pattern, None, lower(*body))])
-        }
-        Expr::Literal(core::Literal::LArr(elements)) => {
-            core::Expr::arr(elements.into_iter().map(lower).collect())
-        }
-        Expr::Literal(core::Literal::LBool(b)) => core::Expr::bool(b),
-        Expr::Literal(core::Literal::LCon(tag, args)) => {
-            core::Expr::con(tag, args.into_iter().map(lower).collect())
-        }
-        Expr::Literal(core::Literal::LNum(n)) => core::Expr::num(n),
-        Expr::Literal(core::Literal::LRec(fields)) => {
-            core::Expr::rec(fields.into_iter().map(|(k, e)| (k, lower(e))).collect())
-        }
-        Expr::Literal(core::Literal::LStr(s)) => {
-            core::Expr::str(s.into_iter().map(|part| part.map_right(lower)).collect())
-        }
-        Expr::Literal(core::Literal::LUnit) => core::Expr::unit(),
-        Expr::Placeholder => core::Expr::unit(),
-        Expr::Scoped(scope, name) => core::Expr::var(format!("{}${}", scope.join("$"), name)),
-        Expr::Switch(expr, cases) => core::Expr::pattern(
-            lower(*expr),
-            cases
-                .into_iter()
-                .map(|(pattern, guard, body)| (pattern, guard.map(lower), lower(body)))
-                .collect(),
-        ),
-        Expr::Var(name) => core::Expr::var(name),
-    }
-}
+// pub fn lower(expr: Expr) -> core::Expr {
+//     match replace_placeholders(expr) {
+//         Expr::Access(expr, key) => core::Expr::app(
+//             core::Expr::var("<access>".to_owned()),
+//             [core::Expr::text_str(key), lower(*expr)],
+//         ),
+//         Expr::Binop(lhs, op, rhs) => core::Expr::app(
+//             core::Expr::var("<binop>".to_owned()),
+//             [
+//                 core::Expr::text_str(op.name().to_owned()),
+//                 lower(*lhs),
+//                 lower(*rhs),
+//             ],
+//         ),
+//         Expr::Call(fun, args) => core::Expr::app(lower(*fun), args.into_iter().map(lower)),
+//         Expr::If(cond, then_, else_) => core::Expr::app(
+//             core::Expr::var("<if>".to_owned()),
+//             [lower(*cond), lower(*then_), lower(*else_)],
+//         ),
+//         Expr::Lambda(args, body) => core::Expr::abs(args, lower(*body)),
+//         Expr::Let(core::Pattern::PVar(name), expr, body) => {
+//             core::Expr::let_([(name, lower(*expr))], lower(*body))
+//         }
+//         Expr::Let(pattern, expr, body) => {
+//             core::Expr::pattern(lower(*expr), vec![(pattern, None, lower(*body))])
+//         }
+//         Expr::Literal(core::Literal::LArr(elements)) => {
+//             core::Expr::arr(elements.into_iter().map(lower).collect())
+//         }
+//         Expr::Literal(core::Literal::LBool(b)) => core::Expr::bool(b),
+//         Expr::Literal(core::Literal::LCon(tag, args)) => {
+//             core::Expr::con(tag, args.into_iter().map(lower).collect())
+//         }
+//         Expr::Literal(core::Literal::LNum(n)) => core::Expr::num(n),
+//         Expr::Literal(core::Literal::LRec(fields)) => {
+//             core::Expr::rec(fields.into_iter().map(|(k, e)| (k, lower(e))).collect())
+//         }
+//         Expr::Literal(core::Literal::LStr(s)) => {
+//             core::Expr::str(s.into_iter().map(|part| part.map_right(lower)).collect())
+//         }
+//         Expr::Literal(core::Literal::LUnit) => core::Expr::unit(),
+//         Expr::Placeholder => core::Expr::unit(),
+//         Expr::Scoped(scope, name) => core::Expr::var(format!("{}${}", scope.join("$"), name)),
+//         Expr::Switch(expr, cases) => core::Expr::pattern(
+//             lower(*expr),
+//             cases
+//                 .into_iter()
+//                 .map(|(pattern, guard, body)| (pattern, guard.map(lower), lower(body)))
+//                 .collect(),
+//         ),
+//         Expr::Var(name) => core::Expr::var(name),
+//     }
+// }

@@ -17,8 +17,6 @@ use super::{expr::Expr, FromSyntaxElement, ToHIR};
 fn parse_sample_exprs() {
     let exprs = include_str!("./sample_expressions.ren")
         .split_terminator("\n\n")
-        .enumerate() //TODO: enable
-        .filter_map(|(i, e)| if i == 0 || i > 2 { Some(e) } else { None }) // Skip string patterns until implemented
         .filter_map(|line| {
             Expr::from_root_node(parse_expression(line).syntax()).map(|e| e.to_higher_ast())
             //.map(|expr| (line, expr))

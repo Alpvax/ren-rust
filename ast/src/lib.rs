@@ -1,8 +1,8 @@
 use declaration::ModuleDeclaration;
 pub use import::Import;
 
-#[cfg(test)]
-mod conversion_tests;
+// #[cfg(test)]
+// mod conversion_tests;
 pub mod core;
 pub mod expr;
 
