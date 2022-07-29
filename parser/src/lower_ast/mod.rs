@@ -4,6 +4,8 @@
 
 pub(crate) mod expr;
 mod extensions;
+mod literal;
+mod macro_impl;
 pub(crate) mod pattern;
 #[cfg(test)]
 mod tests;
@@ -14,7 +16,7 @@ use crate::syntax::{Context, RenLang, SyntaxNode, SyntaxPart, Token};
 type SyntaxElement = rowan::SyntaxElement<RenLang>;
 type SyntaxToken = rowan::SyntaxToken<RenLang>;
 
-trait FromSyntaxElement {
+pub trait FromSyntaxElement {
     fn from_token(token_type: Token, token: SyntaxToken) -> Option<Self>
     where
         Self: Sized;
@@ -66,6 +68,10 @@ where
     fn validate(&self) -> Option<Self::ValidationError> {
         self.as_ref().and_then(|val| val.validate())
     }
+}
+
+trait HigherASTWithVar {
+    fn var_value(var: String) -> Self;
 }
 // pub enum ASTRoot {
 //     Module(/*Module*/),

@@ -8,7 +8,7 @@ pub(crate) use lexer::{StringToken, Token, TokenType};
 use rowan::{Language, SyntaxKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) enum SyntaxPart {
+pub enum SyntaxPart {
     Error, // = 0
     EOF,   // = 1
 
@@ -86,7 +86,7 @@ impl TryFrom<u16> for SyntaxPart {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct RenLang;
+pub struct RenLang;
 impl Language for RenLang {
     type Kind = SyntaxPart;
 

@@ -25,7 +25,7 @@ conversion_test! { binop,
         Expr(EApp(Box::new((
             Expr(EApp(Box::new((
                 Expr(EVar("<binop>".to_owned())),
-                Expr(ELit(LStr("add".to_owned()))),
+                Expr::text_str("add".to_owned()),
             )))),
             (Expr(ELit(LNum(3.0)))),
         )))),
@@ -38,7 +38,7 @@ conversion_test! { access,
     Expr(EApp(Box::new((
         Expr(EApp(Box::new((
             Expr(EVar("<access>".to_owned())),
-            Expr(ELit(LStr("bar".to_owned()))),
+            Expr::text_str("bar".to_owned()),
         )))),
         (Expr(EVar("foo".to_owned()))),
     ))))

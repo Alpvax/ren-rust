@@ -13,7 +13,11 @@
             [
                 Literal(
                     LStr(
-                        "\\n",
+                        [
+                            Left(
+                                "\\n",
+                            ),
+                        ],
                     ),
                 ),
                 Literal(
@@ -32,7 +36,11 @@
                                         Binop(
                                             Literal(
                                                 LStr(
-                                                    ", ",
+                                                    [
+                                                        Left(
+                                                            ", ",
+                                                        ),
+                                                    ],
                                                 ),
                                             ),
                                             Concat,
@@ -43,7 +51,11 @@
                                                 Concat,
                                                 Literal(
                                                     LStr(
-                                                        ", bo-",
+                                                        [
+                                                            Left(
+                                                                ", bo-",
+                                                            ),
+                                                        ],
                                                     ),
                                                 ),
                                             ),
@@ -51,7 +63,11 @@
                                     ),
                                     Literal(
                                         LStr(
-                                            "b",
+                                            [
+                                                Left(
+                                                    "b",
+                                                ),
+                                            ],
                                         ),
                                     ),
                                     Var(
@@ -66,12 +82,20 @@
                                 [
                                     Literal(
                                         LStr(
-                                            "banana-fana fo-",
+                                            [
+                                                Left(
+                                                    "banana-fana fo-",
+                                                ),
+                                            ],
                                         ),
                                     ),
                                     Literal(
                                         LStr(
-                                            "f",
+                                            [
+                                                Left(
+                                                    "f",
+                                                ),
+                                            ],
                                         ),
                                     ),
                                     Var(
@@ -86,12 +110,20 @@
                                 [
                                     Literal(
                                         LStr(
-                                            "fee-fi-mo-",
+                                            [
+                                                Left(
+                                                    "fee-fi-mo-",
+                                                ),
+                                            ],
                                         ),
                                     ),
                                     Literal(
                                         LStr(
-                                            "m",
+                                            [
+                                                Left(
+                                                    "m",
+                                                ),
+                                            ],
                                         ),
                                     ),
                                     Var(
@@ -106,7 +138,11 @@
                                 Concat,
                                 Literal(
                                     LStr(
-                                        "!",
+                                        [
+                                            Left(
+                                                "!",
+                                            ),
+                                        ],
                                     ),
                                 ),
                             ),
@@ -220,7 +256,11 @@
                 Concat,
                 Literal(
                     LStr(
-                        "\\n",
+                        [
+                            Left(
+                                "\\n",
+                            ),
+                        ],
                     ),
                 ),
             ),
@@ -249,7 +289,11 @@
                     Concat,
                     Literal(
                         LStr(
-                            "\\n",
+                            [
+                                Left(
+                                    "\\n",
+                                ),
+                            ],
                         ),
                     ),
                 ),

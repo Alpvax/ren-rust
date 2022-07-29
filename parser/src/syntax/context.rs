@@ -1,7 +1,7 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, FromPrimitive, ToPrimitive)]
-pub(crate) enum Context {
+pub enum Context {
     Module, // Root context
 
     Imports,

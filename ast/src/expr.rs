@@ -1,5 +1,7 @@
 use array_init::array_init;
 
+use crate::core::StringParts;
+
 use super::core;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -199,11 +201,17 @@ pub fn raise(expr: core::Expr) -> Expr {
             },
             EApp(boxed) => match *boxed {
                 (Call(f, mut args), expr) => match (*f, &args[..]) {
-                    (Var(ref s), [Literal(LStr(key))]) if s == "<access>" => {
-                        Access(Box::new(expr), key.to_owned())
-                    }
+                    (Var(ref s), [Literal(LStr(key))]) if s == "<access>" => Access(
+                        Box::new(expr),
+                        key.as_simple()
+                            .expect("Recieved non-simple text access string"),
+                    ),
                     (Var(ref s), [Literal(LStr(op_str)), lhs]) if s == "<binop>" => {
-                        match Operator::from_name(op_str) {
+                        match Operator::from_name(
+                            op_str
+                                .as_simple_str()
+                                .expect("Recieved non-simple text operator"),
+                        ) {
                             Some(op) => Binop(Box::new(lhs.to_owned()), op, Box::new(expr)),
                             None => Call(
                                 Box::new(Literal(LStr(op_str.to_owned()))),
@@ -370,12 +378,12 @@ pub fn lower(expr: Expr) -> core::Expr {
     match replace_placeholders(expr) {
         Expr::Access(expr, key) => core::Expr::app(
             core::Expr::var("<access>".to_owned()),
-            [core::Expr::str(key), lower(*expr)],
+            [core::Expr::text_str(key), lower(*expr)],
         ),
         Expr::Binop(lhs, op, rhs) => core::Expr::app(
             core::Expr::var("<binop>".to_owned()),
             [
-                core::Expr::str(op.name().to_owned()),
+                core::Expr::text_str(op.name().to_owned()),
                 lower(*lhs),
                 lower(*rhs),
             ],
@@ -403,7 +411,9 @@ pub fn lower(expr: Expr) -> core::Expr {
         Expr::Literal(core::Literal::LRec(fields)) => {
             core::Expr::rec(fields.into_iter().map(|(k, e)| (k, lower(e))).collect())
         }
-        Expr::Literal(core::Literal::LStr(s)) => core::Expr::str(s),
+        Expr::Literal(core::Literal::LStr(s)) => {
+            core::Expr::str(s.into_iter().map(|part| part.map_right(lower)).collect())
+        }
         Expr::Literal(core::Literal::LUnit) => core::Expr::unit(),
         Expr::Placeholder => core::Expr::unit(),
         Expr::Scoped(scope, name) => core::Expr::var(format!("{}${}", scope.join("$"), name)),

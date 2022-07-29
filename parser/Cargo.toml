@@ -14,6 +14,7 @@ num-derive = "0.3.3"
 num-traits = "0.2.15"
 rowan = "0.15"
 smol_str = "0.1.23"
+either = "1.7"
 
 [dev-dependencies]
 expect-test = "1.3"

@@ -19,6 +19,15 @@ pub enum Pattern {
     PVar(String),
 }
 
+pub type StringPart<T> = Either<String, T>;
+pub trait StringParts<T> {
+    fn is_simple(&self) -> bool;
+    fn as_simple_str(&self) -> Option<&String>;
+    fn as_simple(&self) -> Option<String> {
+        self.as_simple_str().cloned()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal<T> {
     LArr(Vec<T>),
@@ -26,12 +35,25 @@ pub enum Literal<T> {
     LCon(String, Vec<T>),
     LNum(f64),
     LRec(Vec<(String, T)>),
-    LStr(String),
+    LStr(Vec<StringPart<T>>),
     LUnit,
+}
+impl<T> StringParts<T> for Vec<StringPart<T>> {
+    fn is_simple(&self) -> bool {
+        self.len() == 1 && self[0].is_left()
+    }
+    fn as_simple_str(&self) -> Option<&String> {
+        if self.len() == 1 {
+            (&self[0]).as_ref().left()
+        } else {
+            None
+        }
+    }
 }
 
 use ExprF::*;
 // use Pattern::*;
+use either::Either;
 use Literal::*;
 
 impl Expr {
@@ -82,8 +104,12 @@ impl Expr {
         Self(ELit(LRec(fields)))
     }
 
-    pub fn str(s: String) -> Self {
-        Self(ELit(LStr(s)))
+    pub fn str(parts: Vec<StringPart<Self>>) -> Self {
+        Self(ELit(LStr(parts)))
+    }
+
+    pub fn text_str(s: String) -> Self {
+        Self(ELit(LStr(vec![StringPart::Left(s)])))
     }
 
     pub fn unit() -> Self {
@@ -122,7 +148,9 @@ pub fn map<T, U>(f: &dyn Fn(T) -> U, expr_f: ExprF<T>) -> ExprF<U> {
         ELit(LCon(tag, args)) => ELit(LCon(tag, args.into_iter().map(f).collect())),
         ELit(LNum(n)) => ELit(LNum(n)),
         ELit(LRec(fields)) => ELit(LRec(fields.into_iter().map(|(k, v)| (k, f(v))).collect())),
-        ELit(LStr(s)) => ELit(LStr(s)),
+        ELit(LStr(parts)) => ELit(LStr(
+            parts.into_iter().map(|part| part.map_right(f)).collect(),
+        )),
         ELit(LUnit) => ELit(LUnit),
         EVar(name) => EVar(name),
         EPat(expr, cases) => EPat(
@@ -191,12 +219,12 @@ impl<T> From<i32> for Literal<T> {
 }
 impl<T> From<String> for Literal<T> {
     fn from(s: String) -> Self {
-        LStr(s)
+        LStr(vec![StringPart::Left(s)])
     }
 }
 impl<T> From<&str> for Literal<T> {
     fn from(s: &str) -> Self {
-        LStr(s.to_owned())
+        LStr(vec![StringPart::Left(s.to_owned())])
     }
 }
 impl<T> From<()> for Literal<T> {
@@ -207,5 +235,10 @@ impl<T> From<()> for Literal<T> {
 impl<T: Into<Literal<Expr>>> From<T> for Expr {
     fn from(l: T) -> Self {
         Expr(ELit(l.into()))
+    }
+}
+impl From<Literal<Pattern>> for Pattern {
+    fn from(l: Literal<Pattern>) -> Self {
+        Self::PLit(l)
     }
 }
