@@ -9,7 +9,7 @@ use super::{
     FromSyntaxElement, SyntaxToken, ToHIR,
 };
 
-type HigherPattern = higher_ast::core::Pattern;
+type HigherPattern = higher_ast::expr::Pattern;
 
 create_ast_enum! {
     Pattern = Context::Pattern => <HigherPattern, ()> {
@@ -25,7 +25,7 @@ create_ast_enum! {
 }
 impl super::HigherASTWithVar for HigherPattern {
     fn var_value(var: String) -> Self {
-        Self::PVar(var)
+        Self::Var(var)
     }
 }
 
@@ -34,7 +34,7 @@ impl ToHIR for PAny {
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherPattern::PAny
+        HigherPattern::Any
     }
 
     fn validate(&self) -> Option<Self::ValidationError> {
@@ -61,7 +61,7 @@ impl ToHIR for PType {
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherPattern::PTyp(
+        HigherPattern::Type(
             self.type_name().unwrap().to_string(),
             Box::new(self.binding().to_higher_ast().unwrap()),
         )
@@ -83,7 +83,7 @@ impl ToHIR for PVar {
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherPattern::PVar(self.name().to_string())
+        HigherPattern::Var(self.name().to_string())
     }
 
     fn validate(&self) -> Option<Self::ValidationError> {

@@ -10,7 +10,7 @@ use super::{
     FromSyntaxElement, HigherASTWithVar, SyntaxNode, SyntaxToken, ToHIR,
 };
 
-type HigherLiteral<T> = higher_ast::core::Literal<T>;
+type HigherLiteral<T> = higher_ast::expr::Literal<T>;
 
 pub(crate) enum Literal<T> {
     //where T: ToHIR {
@@ -72,7 +72,7 @@ where
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherLiteral::LNum(self.value())
+        HigherLiteral::Number(self.value())
     }
 
     fn validate(&self) -> Option<Self::ValidationError> {
@@ -173,7 +173,7 @@ where
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherLiteral::LRec(
+        HigherLiteral::Record(
             self.fields()
                 .into_iter()
                 .map(|(name, val)| {
@@ -216,7 +216,7 @@ where
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherLiteral::LArr(
+        HigherLiteral::Array(
             self.items()
                 .into_iter()
                 .map(|item| item.to_higher_ast())
@@ -258,7 +258,7 @@ where
     fn to_higher_ast(&self) -> Self::HIRType {
         self.tag()
             .map(|tag| {
-                HigherLiteral::LCon(
+                HigherLiteral::Enum(
                     tag.to_string(),
                     self.args()
                         .into_iter()

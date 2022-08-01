@@ -44,7 +44,7 @@ create_ast_enum! {
 }
 impl super::HigherASTWithVar for HigherExpr {
     fn var_value(var: String) -> Self {
-        Self::Var(var)
+        Self::var(var)
     }
 }
 
@@ -69,7 +69,7 @@ impl ToHIR for ScopedExpr {
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherExpr::Scoped(
+        HigherExpr::scoped(
             self.namespace()
                 .into_iter()
                 .map(|s| s.to_string())
@@ -93,7 +93,7 @@ impl ToHIR for VarExpr {
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherExpr::Var(self.name().to_string())
+        HigherExpr::var(self.name().to_string())
     }
 
     fn validate(&self) -> Option<Self::ValidationError> {
@@ -107,7 +107,7 @@ impl ToHIR for PlaceholderExpr {
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherExpr::Placeholder
+        HigherExpr::placeholder()
     }
 
     fn validate(&self) -> Option<Self::ValidationError> {
@@ -416,8 +416,8 @@ impl ToHIR for WhereExpr {
     type ValidationError = ();
 
     fn to_higher_ast(&self) -> Self::HIRType {
-        HigherExpr::Switch(
-            Box::new(self.expr().to_higher_ast().unwrap()),
+        HigherExpr::switch(
+            self.expr().to_higher_ast().unwrap(),
             self.branches()
                 .into_iter()
                 .map(|(p, g, e)| {

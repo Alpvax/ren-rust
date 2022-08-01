@@ -1,12 +1,27 @@
 [
     Lambda(
+        Meta {
+            typ: Hole,
+            span: (),
+            comment: [],
+        },
         [
-            PVar(
+            Var(
                 "name",
             ),
         ],
         Call(
+            Meta {
+                typ: Hole,
+                span: (),
+                comment: [],
+            },
             Scoped(
+                Meta {
+                    typ: Hole,
+                    span: (),
+                    comment: [],
+                },
                 [
                     "Str",
                 ],
@@ -14,6 +29,11 @@
             ),
             [
                 Literal(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     LStr(
                         [
                             Left(
@@ -23,20 +43,55 @@
                     ),
                 ),
                 Literal(
-                    LArr(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Array(
                         [
                             Call(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
                                 Var(
+                                    Meta {
+                                        typ: Hole,
+                                        span: (),
+                                        comment: [],
+                                    },
                                     "line",
                                 ),
                                 [
                                     Binop(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         Var(
+                                            Meta {
+                                                typ: Hole,
+                                                span: (),
+                                                comment: [],
+                                            },
                                             "name",
                                         ),
                                         Concat,
                                         Binop(
+                                            Meta {
+                                                typ: Hole,
+                                                span: (),
+                                                comment: [],
+                                            },
                                             Literal(
+                                                Meta {
+                                                    typ: Hole,
+                                                    span: (),
+                                                    comment: [],
+                                                },
                                                 LStr(
                                                     [
                                                         Left(
@@ -47,11 +102,26 @@
                                             ),
                                             Concat,
                                             Binop(
+                                                Meta {
+                                                    typ: Hole,
+                                                    span: (),
+                                                    comment: [],
+                                                },
                                                 Var(
+                                                    Meta {
+                                                        typ: Hole,
+                                                        span: (),
+                                                        comment: [],
+                                                    },
                                                     "name",
                                                 ),
                                                 Concat,
                                                 Literal(
+                                                    Meta {
+                                                        typ: Hole,
+                                                        span: (),
+                                                        comment: [],
+                                                    },
                                                     LStr(
                                                         [
                                                             Left(
@@ -64,6 +134,11 @@
                                         ),
                                     ),
                                     Literal(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         LStr(
                                             [
                                                 Left(
@@ -73,16 +148,36 @@
                                         ),
                                     ),
                                     Var(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         "name",
                                     ),
                                 ],
                             ),
                             Call(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
                                 Var(
+                                    Meta {
+                                        typ: Hole,
+                                        span: (),
+                                        comment: [],
+                                    },
                                     "line",
                                 ),
                                 [
                                     Literal(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         LStr(
                                             [
                                                 Left(
@@ -92,6 +187,11 @@
                                         ),
                                     ),
                                     Literal(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         LStr(
                                             [
                                                 Left(
@@ -101,16 +201,36 @@
                                         ),
                                     ),
                                     Var(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         "name",
                                     ),
                                 ],
                             ),
                             Call(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
                                 Var(
+                                    Meta {
+                                        typ: Hole,
+                                        span: (),
+                                        comment: [],
+                                    },
                                     "line",
                                 ),
                                 [
                                     Literal(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         LStr(
                                             [
                                                 Left(
@@ -120,6 +240,11 @@
                                         ),
                                     ),
                                     Literal(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         LStr(
                                             [
                                                 Left(
@@ -129,16 +254,36 @@
                                         ),
                                     ),
                                     Var(
+                                        Meta {
+                                            typ: Hole,
+                                            span: (),
+                                            comment: [],
+                                        },
                                         "name",
                                     ),
                                 ],
                             ),
                             Binop(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
                                 Var(
+                                    Meta {
+                                        typ: Hole,
+                                        span: (),
+                                        comment: [],
+                                    },
                                     "name",
                                 ),
                                 Concat,
                                 Literal(
+                                    Meta {
+                                        typ: Hole,
+                                        span: (),
+                                        comment: [],
+                                    },
                                     LStr(
                                         [
                                             Left(
@@ -155,10 +300,21 @@
         ),
     ),
     Switch(
-        Placeholder,
+        Meta {
+            typ: Hole,
+            span: (),
+            comment: [],
+        },
+        Placeholder(
+            Meta {
+                typ: Hole,
+                span: (),
+                comment: [],
+            },
+        ),
         [
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -169,14 +325,19 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -187,14 +348,19 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -205,14 +371,19 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -223,14 +394,19 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -241,17 +417,27 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PAny,
+                Any,
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "false",
                         [],
                     ),
@@ -260,10 +446,21 @@
         ],
     ),
     Switch(
-        Placeholder,
+        Meta {
+            typ: Hole,
+            span: (),
+            comment: [],
+        },
+        Placeholder(
+            Meta {
+                typ: Hole,
+                span: (),
+                comment: [],
+            },
+        ),
         [
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -274,14 +471,19 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -292,14 +494,19 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PLit(
+                Literal(
                     LStr(
                         [
                             Left(
@@ -310,17 +517,27 @@
                 ),
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "true",
                         [],
                     ),
                 ),
             ),
             (
-                PAny,
+                Any,
                 None,
                 Literal(
-                    LCon(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
+                    Enum(
                         "false",
                         [],
                     ),
@@ -329,19 +546,49 @@
         ],
     ),
     Lambda(
+        Meta {
+            typ: Hole,
+            span: (),
+            comment: [],
+        },
         [
-            PVar(
+            Var(
                 "name",
             ),
         ],
         If(
+            Meta {
+                typ: Hole,
+                span: (),
+                comment: [],
+            },
             Call(
+                Meta {
+                    typ: Hole,
+                    span: (),
+                    comment: [],
+                },
                 Var(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     "is_vowel",
                 ),
                 [
                     Call(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
                         Scoped(
+                            Meta {
+                                typ: Hole,
+                                span: (),
+                                comment: [],
+                            },
                             [
                                 "Str",
                             ],
@@ -349,11 +596,21 @@
                         ),
                         [
                             Literal(
-                                LNum(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
+                                Number(
                                     1.0,
                                 ),
                             ),
                             Var(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
                                 "name",
                             ),
                         ],
@@ -361,10 +618,25 @@
                 ],
             ),
             Var(
+                Meta {
+                    typ: Hole,
+                    span: (),
+                    comment: [],
+                },
                 "name",
             ),
             Call(
+                Meta {
+                    typ: Hole,
+                    span: (),
+                    comment: [],
+                },
                 Scoped(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     [
                         "Str",
                     ],
@@ -372,11 +644,21 @@
                 ),
                 [
                     Literal(
-                        LNum(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
+                        Number(
                             1.0,
                         ),
                     ),
                     Var(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
                         "name",
                     ),
                 ],
@@ -384,25 +666,55 @@
         ),
     ),
     Lambda(
+        Meta {
+            typ: Hole,
+            span: (),
+            comment: [],
+        },
         [
-            PVar(
+            Var(
                 "prefix",
             ),
-            PVar(
+            Var(
                 "letter",
             ),
-            PVar(
+            Var(
                 "name",
             ),
         ],
         If(
+            Meta {
+                typ: Hole,
+                span: (),
+                comment: [],
+            },
             Binop(
+                Meta {
+                    typ: Hole,
+                    span: (),
+                    comment: [],
+                },
                 Var(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     "letter",
                 ),
                 Eq,
                 Call(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     Scoped(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
                         [
                             "Str",
                         ],
@@ -410,28 +722,68 @@
                     ),
                     [
                         Literal(
-                            LNum(
+                            Meta {
+                                typ: Hole,
+                                span: (),
+                                comment: [],
+                            },
+                            Number(
                                 1.0,
                             ),
                         ),
                         Var(
+                            Meta {
+                                typ: Hole,
+                                span: (),
+                                comment: [],
+                            },
                             "name",
                         ),
                     ],
                 ),
             ),
             Binop(
+                Meta {
+                    typ: Hole,
+                    span: (),
+                    comment: [],
+                },
                 Binop(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     Var(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
                         "prefix",
                     ),
                     Concat,
                     Call(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
                         Var(
+                            Meta {
+                                typ: Hole,
+                                span: (),
+                                comment: [],
+                            },
                             "shorten",
                         ),
                         [
                             Var(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
                                 "name",
                             ),
                         ],
@@ -439,6 +791,11 @@
                 ),
                 Concat,
                 Literal(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     LStr(
                         [
                             Left(
@@ -449,22 +806,62 @@
                 ),
             ),
             Binop(
+                Meta {
+                    typ: Hole,
+                    span: (),
+                    comment: [],
+                },
                 Var(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     "prefix",
                 ),
                 Concat,
                 Binop(
+                    Meta {
+                        typ: Hole,
+                        span: (),
+                        comment: [],
+                    },
                     Binop(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
                         Var(
+                            Meta {
+                                typ: Hole,
+                                span: (),
+                                comment: [],
+                            },
                             "letter",
                         ),
                         Concat,
                         Call(
+                            Meta {
+                                typ: Hole,
+                                span: (),
+                                comment: [],
+                            },
                             Var(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
                                 "shorten",
                             ),
                             [
                                 Var(
+                                    Meta {
+                                        typ: Hole,
+                                        span: (),
+                                        comment: [],
+                                    },
                                     "name",
                                 ),
                             ],
@@ -472,6 +869,11 @@
                     ),
                     Concat,
                     Literal(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
                         LStr(
                             [
                                 Left(
