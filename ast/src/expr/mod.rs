@@ -1,8 +1,12 @@
+use array_init::array_init;
+
 use crate::ren_type::Type;
 
 pub mod literal;
 pub mod operator;
 pub mod pattern;
+#[cfg(test)]
+mod tests;
 
 pub use literal::Literal;
 pub use operator::Operator;
@@ -38,10 +42,14 @@ pub enum Expr {
     Switch(Meta, Box<Expr>, Vec<(Pattern, Option<Expr>, Expr)>),
     Var(Meta, String),
 }
-
 impl<T: Into<Literal<Expr>>> From<T> for Expr {
     fn from(l: T) -> Self {
         Self::Literal(Meta::default(), l.into())
+    }
+}
+impl Default for Expr {
+    fn default() -> Self {
+        Self::literal(())
     }
 }
 
@@ -64,6 +72,111 @@ impl Expr {
     // }
     //TODO fn references(&self) -> ...
     //TODO fn shadows(&self) -> ...
+    fn is_placeholder(&self) -> bool {
+        if let Self::Placeholder(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+    fn replace_placeholders(self) -> Self {
+        use Expr::*;
+        /// Creates a valid JavaScript variable name from a placholder.
+        fn name(i: usize) -> String {
+            format!("$temp{}", i)
+        }
+        fn map_placeholders(exprs: Vec<Expr>, expr_factory: &dyn Fn(Vec<Expr>) -> Expr) -> Expr {
+            let (names, args) = exprs.into_iter().enumerate().fold(
+                (Vec::new(), Vec::new()),
+                |(mut names, mut args), (i, e)| {
+                    args.push(if let Placeholder(meta) = e {
+                        let name = name(i);
+                        names.push(Pattern::Var(name.clone()));
+                        Var(meta, name)
+                    } else {
+                        e
+                    });
+                    (names, args)
+                },
+            );
+            if names.len() > 0 {
+                Expr::lambda(names, expr_factory(args))
+            } else {
+                expr_factory(args)
+            }
+        }
+        fn map_arr<const N: usize>(
+            exprs: [Expr; N],
+            expr_factory: &dyn Fn([Expr; N]) -> Expr,
+        ) -> Expr {
+            let (names, args) = IntoIterator::into_iter(exprs).enumerate().fold(
+                (Vec::new(), array_init(|_| Expr::default())),
+                |(mut names, mut args), (i, e)| {
+                    args[i] = if let Placeholder(meta) = e {
+                        let name = name(i);
+                        names.push(Pattern::Var(name.clone()));
+                        Var(meta, name)
+                    } else {
+                        e
+                    };
+                    (names, args)
+                },
+            );
+            if names.len() > 0 {
+                Expr::lambda(names, expr_factory(args))
+            } else {
+                expr_factory(args)
+            }
+        }
+        fn map_positional<const N: usize>(
+            exprs: [(usize, Expr); N],
+            expr_factory: &dyn Fn([Expr; N]) -> Expr,
+        ) -> Expr {
+            let (names, args) = IntoIterator::into_iter(exprs).enumerate().fold(
+                (Vec::new(), array_init(|_| Expr::default())),
+                |(mut names, mut args), (arg_index, (i, e))| {
+                    args[arg_index] = if let Placeholder(meta) = e {
+                        let name = name(i);
+                        names.push(Pattern::Var(name.clone()));
+                        Var(meta, name)
+                    } else {
+                        e
+                    };
+                    (names, args)
+                },
+            );
+            if names.len() > 0 {
+                Expr::lambda(names, expr_factory(args))
+            } else {
+                expr_factory(args)
+            }
+        }
+        match self {
+            Access(meta, rec, key) if rec.is_placeholder() => Lambda(
+                meta,
+                vec![Pattern::Var(name(0))],
+                Box::new(Expr::access(Expr::var(name(0)), key)),
+            ),
+            Binop(_, lhs, op, rhs) => map_positional([(0, *lhs), (2, *rhs)], &|[lhs, rhs]| {
+                Expr::binop(lhs, op, rhs)
+            }),
+            Call(_, fun, args) => map_placeholders([vec![*fun], args].concat(), &|exprs| {
+                let mut iter = exprs.into_iter();
+                Expr::apply_many(iter.next().unwrap(), iter)
+            }),
+            If(_, cond, then_, else_) => {
+                map_arr([*cond, *then_, *else_], &|[cond, then_, else_]| {
+                    Expr::conditional(cond, then_, else_)
+                })
+            }
+            Switch(meta, expr_, cases) if expr_.is_placeholder() => Lambda(
+                meta,
+                vec![Pattern::Var(name(0))],
+                Box::new(Expr::switch(Expr::var(name(0)), cases)),
+            ),
+            _ => self,
+        }
+    }
 
     // CONSTRUCTORS ============================================================
     pub fn access<S: ToString>(obj: Expr, key: S) -> Self {
@@ -128,7 +241,7 @@ impl Expr {
     pub fn switch(expr: Expr, arms: Vec<(Pattern, Option<Expr>, Expr)>) -> Self {
         Self::Switch(Meta::default(), Box::new(expr), arms)
     }
-    pub fn var(name: String) -> Self {
-        Self::Var(Meta::default(), name)
+    pub fn var<S: ToString>(name: S) -> Self {
+        Self::Var(Meta::default(), name.to_string())
     }
 }

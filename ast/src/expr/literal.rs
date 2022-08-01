@@ -1,4 +1,5 @@
 use either::Either;
+use serde::Deserialize;
 
 pub type StringPart<T> = Either<String, T>;
 pub trait StringParts<T> {
@@ -50,5 +51,10 @@ impl<T> From<String> for Literal<T> {
 impl<T> From<&str> for Literal<T> {
     fn from(s: &str) -> Self {
         Self::LStr(vec![StringPart::Left(s.to_owned())])
+    }
+}
+impl<T> From<()> for Literal<T> {
+    fn from(_: ()) -> Self {
+        Self::Enum("undefined".to_owned(), Vec::new())
     }
 }
