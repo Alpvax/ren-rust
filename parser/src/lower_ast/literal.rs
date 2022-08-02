@@ -92,10 +92,19 @@ where
             .filter_map(|e| {
                 use crate::syntax::{StringToken, SyntaxPart};
                 match e.kind() {
-                    SyntaxPart::StringToken(StringToken::Text)
-                    | SyntaxPart::StringToken(StringToken::Escape) => e
+                    SyntaxPart::StringToken(StringToken::Text) => e
                         .into_token()
                         .map(|t| StringPart::Left(SmolStr::new(t.text()))),
+                    SyntaxPart::StringToken(StringToken::Escape) => e.into_token().map(|t| {
+                        StringPart::Left(SmolStr::new(match t.text().chars().last().unwrap() {
+                            '$' => "$",
+                            '\\' => "\\",
+                            'n' => "\n",
+                            'r' => "\r",
+                            't' => "\t",
+                            c => unreachable!("String escape {} should not be possible", c),
+                        }))
+                    }),
                     SyntaxPart::Context(Context::Expr) => e
                         .into_node()
                         .and_then(|node| T::from_node(Context::Expr, node))

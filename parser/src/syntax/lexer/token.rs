@@ -152,7 +152,7 @@ pub enum StringToken {
     #[error]
     Error = 0,
 
-    #[regex(r"\\[\\nrt$`]", priority = 5)]
+    #[regex(r#"\\[\\nrt$"]"#, priority = 5)]
     Escape,
 
     #[token("\"")]

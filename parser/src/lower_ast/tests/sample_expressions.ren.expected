@@ -37,7 +37,7 @@
                     LStr(
                         [
                             Left(
-                                "\\n",
+                                "\n",
                             ),
                         ],
                     ),
@@ -799,7 +799,7 @@
                     LStr(
                         [
                             Left(
-                                "\\n",
+                                "\n",
                             ),
                         ],
                     ),
@@ -877,13 +877,43 @@
                         LStr(
                             [
                                 Left(
-                                    "\\n",
+                                    "\n",
                                 ),
                             ],
                         ),
                     ),
                 ),
             ),
+        ),
+    ),
+    Literal(
+        Meta {
+            typ: Hole,
+            span: (),
+            comment: [],
+        },
+        LStr(
+            [
+                Left(
+                    "string with ",
+                ),
+                Right(
+                    Literal(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
+                        LStr(
+                            [
+                                Left(
+                                    "template ${sections}",
+                                ),
+                            ],
+                        ),
+                    ),
+                ),
+            ],
         ),
     ),
 ]

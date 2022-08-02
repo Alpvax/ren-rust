@@ -7,3 +7,5 @@ where _ is "b" => #true is "f" => #true is "m" => #true is _   => #false
 fun name => if is_vowel (Str.take 1 name) then name else Str.drop 1 name
 
 fun prefix letter name => if letter == Str.take 1 name then prefix ++ shorten name ++ "\n" else prefix ++ letter ++ shorten name ++ "\n"
+
+"string with ${"template \${sections}"}"
