@@ -10,6 +10,7 @@ pub enum Pattern {
     Type(String, Box<Pattern>),
     Var(String),
 }
+#[allow(dead_code)] //XXX
 impl Pattern {
     /// Check if a particular variable name is bound by a pattern. Names are bound
     /// no matter how deeply nested a pattern is, so this recursively checks any nested

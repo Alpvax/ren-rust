@@ -1,6 +1,6 @@
 use array_init::array_init;
 
-use crate::ren_type::Type;
+use crate::{ren_type::Type, serde_utils::serialise_tagged};
 
 pub mod literal;
 pub mod operator;
@@ -79,6 +79,7 @@ impl Expr {
             false
         }
     }
+    #[allow(dead_code)]//XXX
     fn replace_placeholders(self) -> Self {
         use Expr::*;
         /// Creates a valid JavaScript variable name from a placholder.
@@ -243,5 +244,18 @@ impl Expr {
     }
     pub fn var<S: ToString>(name: S) -> Self {
         Self::Var(Meta::default(), name.to_string())
+    }
+}
+
+impl serde::Serialize for Expr {
+    fn serialize<S>(&self, serialiser: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if let Self::Literal(_meta, l) = self {
+            serialise_tagged!(serialiser, "Lit", [], [l])
+        } else {
+            todo!()
+        }
     }
 }

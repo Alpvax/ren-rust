@@ -1,5 +1,7 @@
 use super::{Expr, Literal, Operator, Pattern};
 
+mod serde;
+
 mod expand_placeholders {
     use super::*;
 
