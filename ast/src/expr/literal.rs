@@ -1,9 +1,9 @@
 use either::Either;
-use serde::{ser::SerializeSeq, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::serde_utils::{serialise_tagged, serialise_tagged_seq};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum StringPart<T> {
     Text(String),
     Value(T),
@@ -22,7 +22,10 @@ impl<T> StringPart<T> {
             Self::Value(_) => None,
         }
     }
-    pub fn map<U, F>(self, f: F) -> StringPart<U> where F: FnOnce(T) -> U {
+    pub fn map<U, F>(self, f: F) -> StringPart<U>
+    where
+        F: FnOnce(T) -> U,
+    {
         match self {
             Self::Text(s) => StringPart::Text(s),
             Self::Value(v) => StringPart::Value(f(v)),
@@ -46,12 +49,18 @@ impl<T> From<&str> for StringPart<T> {
         Self::Text(s.to_owned())
     }
 }
-impl<T> From<T> for StringPart<T> where T: crate::ASTType {
+impl<T> From<T> for StringPart<T>
+where
+    T: crate::ASTType,
+{
     fn from(v: T) -> Self {
         Self::Value(v)
     }
 }
-impl<S, T> From<Either<S, T>> for StringPart<T> where S: Into<String>{
+impl<S, T> From<Either<S, T>> for StringPart<T>
+where
+    S: Into<String>,
+{
     fn from(e: Either<S, T>) -> Self {
         match e {
             Either::Left(s) => Self::Text(s.into()),
@@ -59,7 +68,10 @@ impl<S, T> From<Either<S, T>> for StringPart<T> where S: Into<String>{
         }
     }
 }
-impl<T, S> From<StringPart<T>> for Either<S, T> where S: From<String> {
+impl<T, S> From<StringPart<T>> for Either<S, T>
+where
+    S: From<String>,
+{
     fn from(sp: StringPart<T>) -> Self {
         match sp {
             StringPart::Text(s) => Either::Left(s.into()),
@@ -129,6 +141,7 @@ where
     where
         S: serde::Serializer,
     {
+        use serde::ser::SerializeSeq;
         match self {
             Literal::Array(items) => {
                 let mut seq = serializer.serialize_seq(Some(items.len()))?;
@@ -153,15 +166,17 @@ where
                 let mut seq = serialise_tagged_seq(serializer, "String", None, Some(parts.len()))?;
                 for p in parts {
                     match p {
-                        StringPart::Left(s) => {
+                        StringPart::Text(s) => {
                             seq.serialize_element(&serde_json::json!([ { "$": "Text" }, s]))?
                         }
-                        StringPart::Right(t) => seq.serialize_element(t)?,
+                        StringPart::Value(t) => seq.serialize_element(t)?,
                     }
                 }
                 seq.end()
             }
         }
+    }
+}
 impl<T> From<Vec<T>> for Literal<T> {
     fn from(items: Vec<T>) -> Self {
         Self::Array(items)

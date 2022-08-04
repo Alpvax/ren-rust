@@ -1,7 +1,8 @@
 use array_init::array_init;
 use ren_json_derive::RenJson;
+use serde::{Deserialize, Serialize};
 
-use crate::{ren_type::Type, serde_utils::serialise_tagged};
+use crate::ren_type::Type;
 
 pub mod literal;
 pub mod operator;
@@ -10,11 +11,11 @@ pub mod pattern;
 mod tests;
 
 pub use literal::Literal;
+pub use literal::StringPart;
 pub use operator::Operator;
 pub use pattern::Pattern;
-pub use literal::StringPart;
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Meta {
     typ: Type,
     span: (),
@@ -31,20 +32,29 @@ impl Meta {
 
 #[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Expr {
-    #[ren_json(tag(meta, obj, key) => (meta, (obj, key)))]
+    #[ren_json((meta, obj, key) => (meta, (obj, key)))]
     Access(Meta, Box<Expr>, String),
     #[ren_json((meta, expr, typ) => (meta, (expr, typ)))]
     Annotated(Meta, Box<Expr>, Type),
+    #[ren_json((meta, lhs, op, rhs) => (meta, (lhs, op, rhs)))]
     Binop(Meta, Box<Expr>, Operator, Box<Expr>),
+    #[ren_json((meta, expr, args) => (meta, (expr, args)))]
     Call(Meta, Box<Expr>, Vec<Expr>),
+    #[ren_json((meta, cond, tru, fals) => (meta, (cond, tru, fals)))]
     If(Meta, Box<Expr>, Box<Expr>, Box<Expr>),
+    #[ren_json((meta, params, body) => (meta, (params, body)))]
     Lambda(Meta, Vec<Pattern>, Box<Expr>),
+    #[ren_json((meta, pat, bind, body) => (meta, (pat, bind, body)))]
     Let(Meta, Pattern, Box<Expr>, Box<Expr>),
-    #[ren_json(tag = "Lit", (meta, obj, key) => (meta, [obj, key]))]
+    #[ren_json(tag = "Lit", (meta, lit) => (meta, lit))]
     Literal(Meta, Literal<Expr>),
+    #[ren_json((meta) => (meta, ()))]
     Placeholder(Meta),
+    #[ren_json((meta, namespace, name) => (meta, (namespace, name)))]
     Scoped(Meta, Vec<String>, String),
+    #[ren_json((meta, expr, arms) => (meta, (expr, arms)))]
     Switch(Meta, Box<Expr>, Vec<(Pattern, Option<Expr>, Expr)>),
+    #[ren_json((meta, name) => (meta, name))]
     Var(Meta, String),
 }
 impl<T: Into<Literal<Expr>>> From<T> for Expr {
@@ -85,7 +95,7 @@ impl Expr {
             false
         }
     }
-    #[allow(dead_code)]//XXX
+    #[allow(dead_code)] //XXX
     fn replace_placeholders(self) -> Self {
         use Expr::*;
         /// Creates a valid JavaScript variable name from a placholder.

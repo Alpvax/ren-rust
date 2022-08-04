@@ -1,6 +1,34 @@
 use serde::ser::SerializeSeq;
 use serde_json::{json, Map, Value};
 
+#[derive(Debug)]
+pub struct TaggedMeta<'a>(&'static str, Option<&'a Meta>);
+impl<'a> TaggedMeta<'a> {
+    pub fn new(tag: &'static str) -> Self {
+        Self(tag, None)
+    }
+    pub fn new_with_meta(tag: &'static str, meta: &'a Meta) -> Self {
+        Self(tag, Some(meta))
+    }
+}
+impl<'a> serde::Serialize for TaggedMeta<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = if let Some(meta) = self.1 {
+            match json!(*meta) {
+                Value::Object(m) => m,
+                m => panic!("Expected meta to be an object, recieved: {:?}", m),
+            }
+        } else {
+            Map::new()
+        };
+        map.insert("$".to_string(), self.0.into());
+        map.serialize(serializer)
+    }
+}
+
 pub(crate) fn serialise_tagged_seq<S>(
     serialiser: S,
     tag: &str,
@@ -54,3 +82,5 @@ macro_rules! serialise_tagged {
 }
 
 pub(crate) use serialise_tagged;
+
+use crate::expr::Meta;
