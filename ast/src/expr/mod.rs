@@ -1,4 +1,5 @@
 use array_init::array_init;
+use ren_json_derive::RenJson;
 
 use crate::{ren_type::Type, serde_utils::serialise_tagged};
 
@@ -27,15 +28,18 @@ impl Meta {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Expr {
+    #[ren_json(tag(meta, obj, key) => (meta, (obj, key)))]
     Access(Meta, Box<Expr>, String),
+    #[ren_json((meta, expr, typ) => (meta, (expr, typ)))]
     Annotated(Meta, Box<Expr>, Type),
     Binop(Meta, Box<Expr>, Operator, Box<Expr>),
     Call(Meta, Box<Expr>, Vec<Expr>),
     If(Meta, Box<Expr>, Box<Expr>, Box<Expr>),
     Lambda(Meta, Vec<Pattern>, Box<Expr>),
     Let(Meta, Pattern, Box<Expr>, Box<Expr>),
+    #[ren_json(tag = "Lit", (meta, obj, key) => (meta, [obj, key]))]
     Literal(Meta, Literal<Expr>),
     Placeholder(Meta),
     Scoped(Meta, Vec<String>, String),
@@ -247,15 +251,15 @@ impl Expr {
     }
 }
 
-impl serde::Serialize for Expr {
-    fn serialize<S>(&self, serialiser: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        if let Self::Literal(_meta, l) = self {
-            serialise_tagged!(serialiser, "Lit", [], [l])
-        } else {
-            todo!()
-        }
-    }
-}
+// impl serde::Serialize for Expr {
+//     fn serialize<S>(&self, serialiser: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: serde::Serializer,
+//     {
+//         if let Self::Literal(_meta, l) = self {
+//             serialise_tagged!(serialiser, "Lit", [], [l])
+//         } else {
+//             todo!()
+//         }
+//     }
+// }

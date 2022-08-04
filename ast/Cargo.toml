@@ -7,6 +7,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ren_json_derive = { path = "../ren_json_derive" }
 array-init = "2.0"
 either ="1.7"
 serde = "1.0.140"
