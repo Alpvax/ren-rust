@@ -12,6 +12,7 @@ mod tests;
 pub use literal::Literal;
 pub use operator::Operator;
 pub use pattern::Pattern;
+pub use literal::StringPart;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Meta {
@@ -56,6 +57,7 @@ impl Default for Expr {
         Self::literal(())
     }
 }
+impl crate::ASTType for Expr {}
 
 impl Expr {
     // fn meta(&self) -> Meta {

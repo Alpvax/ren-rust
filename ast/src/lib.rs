@@ -11,6 +11,8 @@ mod serde_utils;
 // pub mod expression;
 // pub mod pattern;
 
+trait ASTType {}
+
 //TODO:
 // pub type Ident = String;
 

@@ -54,3 +54,4 @@ impl From<Literal<Pattern>> for Pattern {
         Self::Literal(l)
     }
 }
+impl crate::ASTType for Pattern {}

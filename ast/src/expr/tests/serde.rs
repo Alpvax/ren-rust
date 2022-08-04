@@ -13,7 +13,7 @@ where
 }
 
 mod literal {
-    use crate::expr::{literal::StringPart, Literal};
+    use crate::expr::Literal;
 
     use super::*;
 
@@ -73,8 +73,8 @@ mod literal {
     fn nested_string() {
         check_serialise(
             Literal::<Expr>::LStr(vec![
-                StringPart::Left("Hello\n".to_string()),
-                StringPart::Right(Expr::literal("\tworld \\${text}")),
+                "Hello\n".into(),
+                Expr::literal("\tworld \\${text}").into(),
             ]),
             expect![[r#"
                 [
@@ -107,23 +107,43 @@ mod literal {
         )
     }
 
-    // #[test]
-    // fn array() {
-    //     check_serialise(
-    //         Literal::<()>::from([foo, bar]),
-    //         expect![[r#"
-    //             Context(Pattern)@0..10
-    //               Context(Array)@0..10
-    //                 Token(SquareOpen)@0..1 "["
-    //                 Context(Item)@1..4
-    //                   Token(VarName)@1..4 "foo"
-    //                 Token(Comma)@4..5 ","
-    //                 Token(Whitespace)@5..6 " "
-    //                 Context(Item)@6..9
-    //                   Token(VarName)@6..9 "bar"
-    //                 Token(SquareClose)@9..10 "]""#]],
-    //     )
-    // }
+    #[test]
+    fn array() {
+        check_serialise(
+            Literal::Array(vec![Expr::literal("foo"), Expr::literal("bar")]),
+            expect![[r#"
+                [
+                    {
+                        "$": "Array"
+                    },
+                    [
+                        [
+                            {
+                                "$": "Lit"
+                            },
+                            [
+                                {
+                                    "$": "String"
+                                },
+                                "foo"
+                            ]
+                        ],
+                        [
+                            {
+                                "$": "Lit"
+                            },
+                            [
+                                {
+                                    "$": "String"
+                                },
+                                "bar"
+                            ]
+                        ]
+                    ]
+                ]""#]],
+        )
+    }
+
     // #[test]
     // fn record() {
     //     check_serialise(
