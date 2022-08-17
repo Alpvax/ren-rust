@@ -1,5 +1,7 @@
 use std::fmt::Debug;
 
+use quote::TokenStreamExt;
+
 use super::{debug_member, FieldsKind};
 
 macro_rules! parse_unordered_fields {
@@ -60,7 +62,7 @@ impl From<RenJsonTagField> for String {
     }
 }
 
-struct RenJsonMetaField<T>(T); // where T: syn::parse::Parse;
+struct RenJsonMetaField<T>(T);
 impl<T> syn::parse::Parse for RenJsonMetaField<T>
 where
     T: syn::parse::Parse,
@@ -276,7 +278,7 @@ where
         let mut items = iter.into_iter().collect::<Vec<_>>();
         match items.len() {
             0 => Self::None,
-            1 => Self::SingleList(
+            1 => Self::SingleValue(
                 items
                     .pop()
                     .expect("collecting SingleList from iterator: unwrapping"),
@@ -285,24 +287,24 @@ where
         }
     }
 }
-// impl<T> ::quote::ToTokens for RenJsonItems<T>
-// where
-//     T: ::quote::ToTokens,
-// {
-//     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-//         match self {
-//             RenJsonItems::None => {}
-//             RenJsonItems::SingleValue(v) => v.to_tokens(tokens),
-//             RenJsonItems::SingleList(v) => {
-//                 syn::token::Bracket::default().surround(tokens, |tokens| v.to_tokens(tokens))
-//             }
-//             RenJsonItems::Multiple(vec) => syn::token::Paren::default()
-//                 .surround(tokens, |tokens| {
-//                     tokens.append_separated(vec.iter(), syn::token::Comma::default())
-//                 }),
-//         }
-//     }
-// }
+impl<T> ::quote::ToTokens for RenJsonItems<T>
+where
+    T: ::quote::ToTokens,
+{
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            RenJsonItems::None => {}
+            RenJsonItems::SingleValue(v) => v.to_tokens(tokens),
+            RenJsonItems::SingleList(v) => {
+                syn::token::Bracket::default().surround(tokens, |tokens| v.to_tokens(tokens))
+            }
+            RenJsonItems::Multiple(vec) => syn::token::Paren::default()
+                .surround(tokens, |tokens| {
+                    tokens.append_separated(vec.iter(), syn::token::Comma::default())
+                }),
+        }
+    }
+}
 
 struct RenJsonItemsField<T>(RenJsonItems<T>)
 where
@@ -340,10 +342,12 @@ impl syn::parse::Parse for RenJsonPatField {
                     for syn::FieldPat { pat: f_pat, .. } in fields {
                         if let syn::Pat::Ident(syn::PatIdent { ident, .. }) = &**f_pat {
                             let name = ident.to_string();
-                            if name == "meta" && meta.is_none() {
-                                meta = Some(ident.clone());
-                            } else if meta.is_some() {
-                                return Err(input.error("duplicate pattern field \"meta\""));
+                            if name == "meta" {
+                                if meta.is_none() {
+                                    meta = Some(ident.clone());
+                                } else {
+                                    return Err(input.error("duplicate pattern field \"meta\""));
+                                }
                             } else if name.starts_with("item") {
                                 if name.len() > 4 {
                                     items.push((ident.clone(), (&name[4..]).parse::<usize>().ok()));
@@ -370,10 +374,12 @@ impl syn::parse::Parse for RenJsonPatField {
                     for elem in elems {
                         if let syn::Pat::Ident(syn::PatIdent { ident, .. }) = elem {
                             let name = ident.to_string();
-                            if name == "meta" && meta.is_none() {
-                                meta = Some(ident.clone());
-                            } else if meta.is_some() {
-                                return Err(input.error("duplicate pattern field \"meta\""));
+                            if name == "meta" {
+                                if meta.is_none() {
+                                    meta = Some(ident.clone());
+                                } else {
+                                    return Err(input.error("duplicate pattern field \"meta\""));
+                                }
                             } else if name.starts_with("item") {
                                 if name.len() > 4 {
                                     items.push((ident.clone(), (&name[4..]).parse::<usize>().ok()));
@@ -394,66 +400,48 @@ impl syn::parse::Parse for RenJsonPatField {
             }
         } else if lookahead.peek(syn::Token![=>]) {
             input.parse::<syn::Token![=>]>()?;
-            let (meta, items) = parse_unordered_fields!(
-                meta = kw::meta => RenJsonMetaField<syn::Ident>,
-                items = kw::items => RenJsonItemsField<syn::Ident>,
-            )(&input)?;
-            (meta.map(|m| m.0), items.map(|i| i.0))
+            if input.peek(syn::token::Brace) {
+                let content;
+                syn::braced!(content in input);
+                if content.is_empty() {
+                    return Err(content.error("braced pattern result must match the format `{meta, items}` or `{items}` where meta is an ident, and items is RenJsonItems"));
+                }
+                (
+                    if content.peek2(syn::Token![,]) {
+                        let meta = content.parse::<syn::Ident>()?;
+                        content.parse::<syn::Token![,]>()?;
+                        Some(meta)
+                    } else {
+                        None
+                    },
+                    Some(content.parse::<RenJsonItems<syn::Ident>>()?),
+                )
+            } else {
+                let (meta, items) = parse_unordered_fields!(
+                    meta = kw::meta => RenJsonMetaField<syn::Ident>,
+                    items = kw::items => RenJsonItemsField<syn::Ident>,
+                )(&input)?;
+                (meta.map(|m| m.0), items.map(|i| i.0))
+            }
         } else {
             return Err(lookahead.error());
         };
-        // let mut meta = None;
-        // let mut items = None;
-        // let mut lookahead = input.lookahead1();
-        // if input.is_empty() || lookahead.peek(syn::token::Comma) {
-        //     todo!("parse meta, items from pat")
-        // } else if lookahead.peek(syn::Token![=>]) {
-        //     loop {
-        //         input.parse::<syn::Token![=>]>()?;
-        //         lookahead = input.lookahead1();
-        //         if lookahead.peek(kw::meta) {
-        //             if meta.is_some() {
-        //                 break Err(input.error("Duplicate meta field"));
-        //             }
-        //             meta = input.parse()?;
-        //         } else if lookahead.peek(kw::items) {
-        //             if items.is_some() {
-        //                 break Err(input.error("Duplicate items field"));
-        //             }
-        //             items = Some(input.parse::<RenJsonItemsField<syn::Ident>>()?.0);
-        //         } else {
-        //             break Err(lookahead.error());
-        //         }
-        //         if input.peek(syn::Token![,]) {
-        //             input.parse::<syn::Token![,]>()?;
-        //             if meta.is_some() && items.is_some() {
-        //                 break Ok(());
-        //             } else {
-        //                 continue;
-        //             }
-        //         } else {
-        //             break Ok(());
-        //         }
-        //     }?;
-        // } else {
-        //     return Err(lookahead.error());
-        // }
         Ok(Self(pat, meta, items))
     }
 }
 impl RenJsonPatField {
     pub fn with_variant_data<'a>(
         &self,
-        enum_name: &'a syn::Ident,
         variant_name: syn::Ident,
+        tag: Option<&String>,
         fields: &super::VariantFields,
-    ) -> super::VariantArm<'a> {
+    ) -> super::VariantArmSer {
         let items = self.2.as_ref().unwrap_or_default();
         let pat = &self.0;
         let pattern = syn::parse_quote! { Self::#variant_name #pat };
-        super::VariantArm {
-            enum_name,
+        super::VariantArmSer {
             variant_name,
+            tag: tag.map(|s| s.to_string()),
             meta: self.1.as_ref().cloned(),
             items: if fields.kind == FieldsKind::Named {
                 items.filtered(|item| fields.contains(item))

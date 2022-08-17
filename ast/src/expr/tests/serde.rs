@@ -20,7 +20,7 @@ mod literal {
     #[test]
     fn number() {
         check_serialise(
-            Literal::<()>::from(143),
+            Literal::<Expr>::from(143),
             expect![[r#"
             [
               {
@@ -34,17 +34,19 @@ mod literal {
     #[test]
     fn simple_string() {
         check_serialise(
-            Literal::<()>::from("Hello World"),
+            Literal::<Expr>::from("Hello World"),
             expect![[r#"
                 [
                   {
                     "$": "String"
                   },
                   [
-                    {
-                      "$": "Text"
-                    },
-                    "Hello World"
+                    [
+                      {
+                        "$": "Text"
+                      },
+                      "Hello World"
+                    ]
                   ]
                 ]"#]],
         )
@@ -53,17 +55,19 @@ mod literal {
     #[test]
     fn string_with_escapes() {
         check_serialise(
-            Literal::<()>::from("Hello\n\tWorld"),
+            Literal::<Expr>::from("Hello\n\tWorld"),
             expect![[r#"
                 [
                   {
                     "$": "String"
                   },
                   [
-                    {
-                      "$": "Text"
-                    },
-                    "Hello\n\tWorld"
+                    [
+                      {
+                        "$": "Text"
+                      },
+                      "Hello\n\tWorld"
+                    ]
                   ]
                 ]"#]],
         )
@@ -90,20 +94,31 @@ mod literal {
                     ],
                     [
                       {
-                        "$": "Lit",
-                        "comment": [],
-                        "span": null,
-                        "type": "Hole"
+                        "$": "Value"
                       },
                       [
                         {
-                          "$": "String"
+                          "$": "Lit",
+                          "comment": [],
+                          "span": null,
+                          "type": [
+                            {
+                              "$": "Hole"
+                            }
+                          ]
                         },
                         [
                           {
-                            "$": "Text"
+                            "$": "String"
                           },
-                          "\tworld \\${text}"
+                          [
+                            [
+                              {
+                                "$": "Text"
+                              },
+                              "\tworld \\${text}"
+                            ]
+                          ]
                         ]
                       ]
                     ]

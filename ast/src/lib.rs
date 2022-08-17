@@ -6,12 +6,12 @@
 // pub mod core;
 pub mod expr;
 mod ren_type;
-mod serde_utils;
+// mod serde_utils;
 // pub mod declaration;
 // pub mod expression;
 // pub mod pattern;
 
-trait ASTType {}
+pub trait ASTType: ::serde::Serialize {}
 
 //TODO:
 // pub type Ident = String;

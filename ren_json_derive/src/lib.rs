@@ -13,9 +13,9 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
         mut variants,
         ..
     } = syn::parse(tokens).expect("Error parsing stream as variant");
-    let (v_arm, v_def) = std::mem::take(&mut variants).into_iter().fold(
+    let (v_ser_arm, _v_de_arm) = std::mem::take(&mut variants).into_iter().fold(
         (Vec::new(), Vec::new()),
-        |(mut arms, mut defs),
+        |(mut ser_arms, mut de_arms),
          syn::Variant {
              ident: var_ident,
              attrs,
@@ -33,11 +33,7 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
                 })
             {
                 match syn::parse2::<RenJsonAttribute>(tokens) {
-                    Ok(att) =>
-                    /*emit_call_site_error!("Parsed ren_json attribute: {:?}", att),*/
-                    {
-                        data.apply_attribute(att)
-                    }
+                    Ok(att) => data.apply_attribute(att),
                     Err(e) => emit_call_site_error!(
                         "Error parsing #[ren_json(..)] attribute for variant {}:\n\t{}",
                         var_ident,
@@ -45,10 +41,10 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
                     ),
                 }
             }
-            match data.split_arm_def() {
+            match data.split_arms() {
                 Ok(res) => {
-                    arms.push(res.0);
-                    defs.push(res.1);
+                    ser_arms.push(res.0);
+                    de_arms.push(res.1);
                 }
                 Err(e) => emit_call_site_error!(
                     "Error generating RenJson code for variant {}:\n\t{}",
@@ -56,23 +52,25 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
                     e
                 ),
             }
-            (arms, defs)
+            (ser_arms, de_arms)
         },
     );
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     quote! {
-        impl #generics serde::Serialize for #enum_ident #generics {
+        impl #impl_generics ::serde::Serialize for #enum_ident #ty_generics #where_clause {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: serde::Serializer,
             {
+                use ::serde::ser::SerializeSeq;
                 match self {
-                    #(#v_arm)*
+                    #(#v_ser_arm)*
                 }
             }
         }
-        #(
-            #v_def
-        )*
+        // #(
+        //     #v_def
+        // )*
     }
     .into()
 }

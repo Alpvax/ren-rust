@@ -50,7 +50,7 @@ pub enum Expr {
     // #[ren_json(items = (1, 2, 3))]
     Let(Meta, Pattern, Box<Expr>, Box<Expr>),
     // #[ren_json(tag = "Lit", items = [1])]
-    #[ren_json(tag = "Lit")]
+    #[ren_json(tag = "Lit", (meta, item) => {meta, item})]
     Literal(Meta, Literal<Expr>),
     // #[ren_json(items = [])]
     Placeholder(Meta),
