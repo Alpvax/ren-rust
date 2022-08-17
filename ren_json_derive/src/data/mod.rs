@@ -93,7 +93,7 @@ impl VariantArmSer {
     }
     fn with_data(mut self, tag: Option<&String>, meta: Option<&syn::Member>) -> VariantArmSer {
         self.tag = tag.map(|s| s.to_string());
-        self.meta = meta.map(as_ident);
+        self.meta = meta.map(as_ident).or(self.meta);
         self
     }
 }
@@ -101,6 +101,7 @@ impl core::fmt::Debug for VariantArmSer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariantArm")
             .field("variant_name", &self.variant_name)
+            .field("tag", &self.tag)
             .field("meta", &self.meta)
             .field("items", &self.items)
             .field("pattern", &format!("{}", self.pattern.to_token_stream()))
@@ -153,10 +154,10 @@ impl ToTokens for VariantArmSer {
 #[derive(Clone)]
 pub(crate) struct VariantArmDe {
     variant_name: syn::Ident,
-    generics: syn::Generics,
     tag: Option<String>,
-    meta: Option<syn::Type>,
-    items: RenJsonItems<syn::Type>,
+    meta: Option<syn::Ident>,
+    items: RenJsonItems<syn::Ident>,
+    pattern: syn::Pat,
 }
 #[allow(dead_code, unused_variables)]
 impl<'a> VariantArmDe {
@@ -172,20 +173,21 @@ impl<'a> VariantArmDe {
     fn has_fields(&self) -> bool {
         self.has_meta() || self.has_items()
     }
-    fn from_fields(
-        enum_name: &'a syn::Ident,
-        variant_name: &syn::Ident,
-        enum_generics: &syn::Generics,
-        fields: &VariantFields,
-    ) -> syn::Result<Self> {
-        todo!()
+    fn from_fields(variant_name: &syn::Ident, fields: &VariantFields) -> syn::Result<Self> {
+        //TODO: implement
+        Ok(Self {
+            variant_name: variant_name.clone(),
+            tag: None,
+            meta: None,
+            items: RenJsonItems::None,
+            pattern: syn::parse_quote! { Self::#variant_name },
+        })
     }
-
-    fn with_data(mut self, tag: Option<String>, meta: Option<syn::Type>) -> VariantArmDe {
-        self.tag = tag;
-        self.meta = meta;
-        self
-    }
+    // TODO: fn with_data(mut self, tag: Option<String>, meta: Option<syn::Type>) -> VariantArmDe {
+    //     self.tag = tag;
+    //     self.meta = meta;
+    //     self
+    // }
 }
 impl<'a> core::fmt::Display for VariantArmDe {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -195,7 +197,7 @@ impl<'a> core::fmt::Display for VariantArmDe {
 #[allow(unused_variables)]
 impl<'a> ToTokens for VariantArmDe {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        todo!()
+        tokens.extend(quote! { const __RenJsonDe: &'static str = "TODO: RenJson Deserialize NOT YET IMPLEMENTED"; });
     }
 }
 
@@ -306,14 +308,15 @@ impl VariantFields {
 pub(crate) struct VariantData<'a> {
     enum_name: &'a syn::Ident,
     name: syn::Ident,
+    #[allow(dead_code)] //XXX
     generics: &'a syn::Generics,
     fields: VariantFields,
     filtered_fields: Option<VariantFields>,
     tag: Option<String>,
     meta: Option<(syn::Member, syn::Type)>,
     items: RenJsonItems<syn::Ident>,
-    arm: Option<VariantArmSer>,
-    def: Option<VariantArmDe>,
+    arm_ser: Option<VariantArmSer>,
+    arm_de: Option<VariantArmDe>,
 }
 impl<'a> VariantData<'a> {
     pub fn new(
@@ -331,8 +334,8 @@ impl<'a> VariantData<'a> {
             tag: None,
             meta: None,
             items: RenJsonItems::None,
-            arm: None,
-            def: None,
+            arm_ser: None,
+            arm_de: None,
         }
     }
     pub fn apply_attribute(&mut self, attr: RenJsonAttribute) {
@@ -352,7 +355,7 @@ impl<'a> VariantData<'a> {
         }
         if let Some(pat) = attr.pattern {
             self.filtered_fields = Some(self.fields.filtered_items(&pat.items()));
-            self.arm =
+            self.arm_ser =
                 Some(pat.with_variant_data(self.name.clone(), self.tag.as_ref(), &self.fields));
         }
         if let Some(items) = attr.items {
@@ -366,7 +369,7 @@ impl<'a> VariantData<'a> {
     }
     pub fn split_arms(self) -> syn::Result<(VariantArmSer, VariantArmDe)> {
         Ok((
-            match self.arm {
+            match self.arm_ser {
                 Some(arm) => arm,
                 None => VariantArmSer::from_fields(
                     &self.name,
@@ -374,15 +377,12 @@ impl<'a> VariantData<'a> {
                 )?
                 .with_data(self.tag.as_ref(), self.meta.as_ref().map(|(i, _)| i)),
             },
-            match self.def {
+            match self.arm_de {
                 Some(def) => def,
                 None => VariantArmDe::from_fields(
-                    self.enum_name,
                     &self.name,
-                    self.generics,
                     self.filtered_fields.as_ref().unwrap_or(&self.fields),
-                )?
-                .with_data(self.tag, self.meta.map(|(_, t)| t)),
+                )?, // .with_data(self.tag, self.meta.map(|(_, t)| t)),
             },
         ))
     }
@@ -400,7 +400,7 @@ impl core::fmt::Debug for VariantData<'_> {
                 &self.meta.as_ref().map(|(mem, _typ)| debug_member(mem)),
             )
             .field("items", &self.items)
-            .field("arm", &self.arm)
+            .field("arm", &self.arm_ser)
             // .field("def", &self.def)
             .finish()
     }

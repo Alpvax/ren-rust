@@ -1,6 +1,6 @@
 use either::Either;
 use ren_json_derive::RenJson;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 // use crate::serde_utils::{serialise_tagged, serialise_tagged_seq};
 

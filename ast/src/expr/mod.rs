@@ -35,30 +35,18 @@ impl Meta {
 
 #[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Expr {
-    // #[ren_json(items = (1, 2))]
     Access(Meta, Box<Expr>, String),
-    // #[ren_json(items = (1, 2))]
     Annotated(Meta, Box<Expr>, Type),
-    // #[ren_json(items = (1, 2, 3))]
     Binop(Meta, Box<Expr>, Operator, Box<Expr>),
-    // #[ren_json(items = (1, 2))]
     Call(Meta, Box<Expr>, Vec<Expr>),
-    // #[ren_json(items = (1, 2, 3))]
     If(Meta, Box<Expr>, Box<Expr>, Box<Expr>),
-    // #[ren_json(items = (1, 2))]
     Lambda(Meta, Vec<Pattern>, Box<Expr>),
-    // #[ren_json(items = (1, 2, 3))]
     Let(Meta, Pattern, Box<Expr>, Box<Expr>),
-    // #[ren_json(tag = "Lit", items = [1])]
-    #[ren_json(tag = "Lit", (meta, item) => {meta, item})]
+    #[ren_json(tag = "Lit")]
     Literal(Meta, Literal<Expr>),
-    // #[ren_json(items = [])]
     Placeholder(Meta),
-    // #[ren_json(items = (1, 2))]
     Scoped(Meta, Vec<String>, String),
-    // #[ren_json(items = (1, 2))]
     Switch(Meta, Box<Expr>, Vec<(Pattern, Option<Expr>, Expr)>),
-    // #[ren_json(items = (1))]
     Var(Meta, String),
 }
 impl<T: Into<Literal<Expr>>> From<T> for Expr {

@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use quote::TokenStreamExt;
+use quote::{ToTokens, TokenStreamExt};
 
 use super::{debug_member, FieldsKind};
 
@@ -396,7 +396,7 @@ impl syn::parse::Parse for RenJsonPatField {
                     }
                     (meta, Some(items.into_iter().map(|(n, _)| n).collect()))
                 }
-                _ => todo!(),
+                _ => unimplemented!("invalid ren_json attribute pattern type"),
             }
         } else if lookahead.peek(syn::Token![=>]) {
             input.parse::<syn::Token![=>]>()?;
@@ -456,82 +456,6 @@ impl RenJsonPatField {
     }
 }
 
-// enum RenJsonAttributeField {
-//     Tag(String),
-//     Meta(syn::Member),
-//     Items(syn::punctuated::Punctuated<syn::Member, syn::token::Comma>),
-//     Pattern(syn::Pat, Option<syn::Ident>, Option<Vec<syn::Ident>>),
-// }
-// impl syn::parse::Parse for RenJsonAttributeField {
-//     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-//         if input.peek(syn::Ident) && input.peek2(syn::Token![=]) {
-//             match input.parse::<syn::Ident>()?.to_string().as_str() {
-//                 "tag" | "name" => {
-//                     input.parse::<syn::Token![=]>()?;
-//                     Ok(Self::Tag(input.parse::<syn::LitStr>()?.value()))
-//                 }
-//                 "meta" => {
-//                     input.parse::<syn::Token![=]>()?;
-//                     Ok(Self::Meta(input.parse::<syn::Member>()?))
-//                 }
-//                 "items" => {
-//                     input.parse::<syn::Token![=]>()?;
-//                     let content;
-//                     if input.peek(syn::token::Paren) {
-//                         syn::parenthesized!(content in input);
-//                     } else if input.peek(syn::token::Bracket) {
-//                         syn::bracketed!(content in input);
-//                     } else {
-//                         // return Err(input.error("items = not (..) or [..]"));
-//                         return Ok(Self::Items(syn::punctuated::Punctuated::new()));
-//                     }
-//                     Ok(Self::Items(syn::punctuated::Punctuated::parse_terminated(
-//                         &content,
-//                     )?))
-//                 }
-//                 key => Err(input.error(format!(
-//                     "Unexpected key: {}, should be one of [tag, meta, items]",
-//                     key
-//                 ))),
-//             }
-//         } else {
-//             input.parse::<syn::Pat>().and_then( |pat| {
-//                 if input.is_empty() || input.peek(syn::token::Comma) {
-//                     todo!("parse meta, items from pat")
-//                 } else if input.peek(syn::Token![=>]) {
-//                     input.parse::<syn::Token![=>]>()?;
-//                     todo!("parse meta, items from pat expr")
-//                 } else {
-//                     Err(input.error("pattern followed by invalid symbol. (should be \",\" or \"=> ...\")"))
-//                 }
-//             }).map_err(|e| {
-//                 let mut err = input.error(format!("Not a (key = value) attribute field or pattern: {:?}", input));
-//                 err.combine(e);
-//                 err
-//             })
-//         }
-//     }
-// }
-// impl std::fmt::Debug for RenJsonAttributeField {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             Self::Tag(tag) => f.debug_tuple("Tag").field(tag).finish(),
-//             Self::Meta(mem) => f.debug_tuple("Meta").field(&format_member(mem)).finish(),
-//             Self::Items(items) => f
-//                 .debug_tuple("Items")
-//                 .field(
-//                     &items
-//                         .iter()
-//                         .map(format_member)
-//                         .collect::<Vec<_>>()
-//                         .join(", "),
-//                 )
-//                 .finish(),
-//             Self::Pattern(_pat, _meta, _items) => todo!(),
-//         }
-//     }
-// }
-
 pub(crate) struct RenJsonAttribute {
     pub tag: Option<String>,
     pub meta: Option<syn::Member>,
@@ -550,7 +474,13 @@ impl core::fmt::Debug for RenJsonAttribute {
                     .as_ref()
                     .map(|items| items.iter().map(debug_member).collect::<Vec<_>>()),
             )
-            .field("pattern", &"...") //&self.pattern)
+            .field(
+                "pattern",
+                &self
+                    .pattern
+                    .as_ref()
+                    .map(|p| format!("{} => ...", p.0.to_token_stream())),
+            )
             .finish()
     }
 }
