@@ -1,7 +1,7 @@
 macro_rules! make_operator {
     ($(($op:ident, $name:literal, $symbol:literal)),+ $(,)?) => {
         // static OPERATORS: &'static [(Operator, &'static str, &'static str)] = &[$((Operator::$op, $name, $symbol)),+];
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
         pub enum Operator {$(
             /// $symbol
             $op,

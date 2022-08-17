@@ -1,13 +1,20 @@
 use std::collections::HashSet;
 
+use ren_json_derive::RenJson;
+
 use super::literal::Literal;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Pattern {
+    #[ren_json]
     Any,
+    #[ren_json]
     Literal(Literal<Pattern>),
+    #[ren_json]
     Spread(String),
+    #[ren_json]
     Type(String, Box<Pattern>),
+    #[ren_json]
     Var(String),
 }
 #[allow(dead_code)] //XXX

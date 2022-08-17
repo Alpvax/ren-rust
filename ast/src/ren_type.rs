@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)] //TODO: RenJson)]
+use ren_json_derive::RenJson;
+
+#[derive(Debug, Clone, PartialEq, Eq, RenJson, serde::Deserialize)]
 pub enum Type {
     /// any type, e.g. "*"
     Any,

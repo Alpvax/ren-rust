@@ -82,24 +82,29 @@ mod literal {
                     "$": "String"
                   },
                   [
-                    {
-                      "$": "Text"
-                    },
-                    "Hello\n"
-                  ],
-                  [
-                    {
-                      "$": "Lit"
-                    },
                     [
                       {
-                        "$": "String"
+                        "$": "Text"
+                      },
+                      "Hello\n"
+                    ],
+                    [
+                      {
+                        "$": "Lit",
+                        "comment": [],
+                        "span": null,
+                        "type": "Hole"
                       },
                       [
                         {
-                          "$": "Text"
+                          "$": "String"
                         },
-                        "\tworld \\${text}"
+                        [
+                          {
+                            "$": "Text"
+                          },
+                          "\tworld \\${text}"
+                        ]
                       ]
                     ]
                   ]
@@ -110,37 +115,63 @@ mod literal {
     #[test]
     fn array() {
         check_serialise(
-            Literal::Array(vec![Expr::literal("foo"), Expr::literal("bar")]),
+            Expr::literal(vec![Expr::literal(3), Expr::literal(13)]),
             expect![[r#"
+            [
+              {
+                "$": "Lit",
+                "comment": [],
+                "span": null,
+                "type": [
+                  {
+                    "$": "Hole"
+                  }
+                ]
+              },
+              [
+                {
+                  "$": "Array"
+                },
                 [
+                  [
                     {
-                        "$": "Array"
+                      "$": "Lit",
+                      "comment": [],
+                      "span": null,
+                      "type": [
+                        {
+                          "$": "Hole"
+                        }
+                      ]
                     },
                     [
-                        [
-                            {
-                                "$": "Lit"
-                            },
-                            [
-                                {
-                                    "$": "String"
-                                },
-                                "foo"
-                            ]
-                        ],
-                        [
-                            {
-                                "$": "Lit"
-                            },
-                            [
-                                {
-                                    "$": "String"
-                                },
-                                "bar"
-                            ]
-                        ]
+                      {
+                        "$": "Number"
+                      },
+                      3.0
                     ]
-                ]""#]],
+                  ],
+                  [
+                    {
+                      "$": "Lit",
+                      "comment": [],
+                      "span": null,
+                      "type": [
+                        {
+                          "$": "Hole"
+                        }
+                      ]
+                    },
+                    [
+                      {
+                        "$": "Number"
+                      },
+                      13.0
+                    ]
+                  ]
+                ]
+              ]
+            ]"#]],
         )
     }
 

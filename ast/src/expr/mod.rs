@@ -7,6 +7,8 @@ use crate::ren_type::Type;
 pub mod literal;
 pub mod operator;
 pub mod pattern;
+// mod pattern_expanded;
+// pub use pattern_expanded::pattern;
 #[cfg(test)]
 mod tests;
 
@@ -17,6 +19,7 @@ pub use pattern::Pattern;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Meta {
+    #[serde(rename = "type")]
     typ: Type,
     span: (),
     comment: Vec<String>,
@@ -32,29 +35,30 @@ impl Meta {
 
 #[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Expr {
-    #[ren_json((meta, obj, key) => (meta, (obj, key)))]
+    // #[ren_json(items = (1, 2))]
     Access(Meta, Box<Expr>, String),
-    #[ren_json((meta, expr, typ) => (meta, (expr, typ)))]
+    // #[ren_json(items = (1, 2))]
     Annotated(Meta, Box<Expr>, Type),
-    #[ren_json((meta, lhs, op, rhs) => (meta, (lhs, op, rhs)))]
+    // #[ren_json(items = (1, 2, 3))]
     Binop(Meta, Box<Expr>, Operator, Box<Expr>),
-    #[ren_json((meta, expr, args) => (meta, (expr, args)))]
+    // #[ren_json(items = (1, 2))]
     Call(Meta, Box<Expr>, Vec<Expr>),
-    #[ren_json((meta, cond, tru, fals) => (meta, (cond, tru, fals)))]
+    // #[ren_json(items = (1, 2, 3))]
     If(Meta, Box<Expr>, Box<Expr>, Box<Expr>),
-    #[ren_json((meta, params, body) => (meta, (params, body)))]
+    // #[ren_json(items = (1, 2))]
     Lambda(Meta, Vec<Pattern>, Box<Expr>),
-    #[ren_json((meta, pat, bind, body) => (meta, (pat, bind, body)))]
+    // #[ren_json(items = (1, 2, 3))]
     Let(Meta, Pattern, Box<Expr>, Box<Expr>),
-    #[ren_json(tag = "Lit", (meta, lit) => (meta, lit))]
+    // #[ren_json(tag = "Lit", items = [1])]
+    #[ren_json(tag = "Lit")]
     Literal(Meta, Literal<Expr>),
-    #[ren_json((meta) => (meta, ()))]
+    // #[ren_json(items = [])]
     Placeholder(Meta),
-    #[ren_json((meta, namespace, name) => (meta, (namespace, name)))]
+    // #[ren_json(items = (1, 2))]
     Scoped(Meta, Vec<String>, String),
-    #[ren_json((meta, expr, arms) => (meta, (expr, arms)))]
+    // #[ren_json(items = (1, 2))]
     Switch(Meta, Box<Expr>, Vec<(Pattern, Option<Expr>, Expr)>),
-    #[ren_json((meta, name) => (meta, name))]
+    // #[ren_json(items = (1))]
     Var(Meta, String),
 }
 impl<T: Into<Literal<Expr>>> From<T> for Expr {

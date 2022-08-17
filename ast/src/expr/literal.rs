@@ -1,7 +1,8 @@
 use either::Either;
-use serde::{Deserialize, Serialize};
+use ren_json_derive::RenJson;
+use serde::Deserialize; /*, Serialize};
 
-use crate::serde_utils::{serialise_tagged, serialise_tagged_seq};
+                        use crate::serde_utils::{serialise_tagged, serialise_tagged_seq};*/
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StringPart<T> {
@@ -96,8 +97,9 @@ impl<T> StringParts<T> for Vec<StringPart<T>> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Literal<T> {
+    #[ren_json((items) => items = items)]
     Array(Vec<T>),
     Enum(String, Vec<T>),
     Number(f64),
@@ -133,50 +135,50 @@ impl<T> From<()> for Literal<T> {
     }
 }
 
-impl<T> Serialize for Literal<T>
-where
-    T: Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeSeq;
-        match self {
-            Literal::Array(items) => {
-                let mut seq = serializer.serialize_seq(Some(items.len()))?;
-                seq.serialize_element(&serde_json::json!({
-                    "$": "Array",
-                }))?;
-                for item in items {
-                    seq.serialize_element(item)?;
-                }
-                seq.end()
-            }
-            Literal::Enum(name, args) => serialise_tagged!(serializer, "Enum", [], [name, args]),
-            Literal::Number(num) => serialise_tagged!(serializer, "Number", [], [num]),
-            Literal::Record(fields) => {
-                let mut seq = serialise_tagged_seq(serializer, "Record", None, Some(fields.len()))?;
-                for (k, v) in fields {
-                    seq.serialize_element(&serde_json::json!([ { "$": "Field" }, k, v ]))?;
-                }
-                seq.end()
-            }
-            Literal::LStr(parts) => {
-                let mut seq = serialise_tagged_seq(serializer, "String", None, Some(parts.len()))?;
-                for p in parts {
-                    match p {
-                        StringPart::Text(s) => {
-                            seq.serialize_element(&serde_json::json!([ { "$": "Text" }, s]))?
-                        }
-                        StringPart::Value(t) => seq.serialize_element(t)?,
-                    }
-                }
-                seq.end()
-            }
-        }
-    }
-}
+// impl<T> Serialize for Literal<T>
+// where
+//     T: Serialize,
+// {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: serde::Serializer,
+//     {
+//         use serde::ser::SerializeSeq;
+//         match self {
+//             Literal::Array(items) => {
+//                 let mut seq = serializer.serialize_seq(Some(items.len()))?;
+//                 seq.serialize_element(&serde_json::json!({
+//                     "$": "Array",
+//                 }))?;
+//                 for item in items {
+//                     seq.serialize_element(item)?;
+//                 }
+//                 seq.end()
+//             }
+//             Literal::Enum(name, args) => serialise_tagged!(serializer, "Enum", [], [name, args]),
+//             Literal::Number(num) => serialise_tagged!(serializer, "Number", [], [num]),
+//             Literal::Record(fields) => {
+//                 let mut seq = serialise_tagged_seq(serializer, "Record", None, Some(fields.len()))?;
+//                 for (k, v) in fields {
+//                     seq.serialize_element(&serde_json::json!([ { "$": "Field" }, k, v ]))?;
+//                 }
+//                 seq.end()
+//             }
+//             Literal::LStr(parts) => {
+//                 let mut seq = serialise_tagged_seq(serializer, "String", None, Some(parts.len()))?;
+//                 for p in parts {
+//                     match p {
+//                         StringPart::Text(s) => {
+//                             seq.serialize_element(&serde_json::json!([ { "$": "Text" }, s]))?
+//                         }
+//                         StringPart::Value(t) => seq.serialize_element(t)?,
+//                     }
+//                 }
+//                 seq.end()
+//             }
+//         }
+//     }
+// }
 impl<T> From<Vec<T>> for Literal<T> {
     fn from(items: Vec<T>) -> Self {
         Self::Array(items)

@@ -672,6 +672,8 @@ dependencies = [
 name = "ren_json_derive"
 version = "0.1.0"
 dependencies = [
+ "array-init",
+ "indexmap",
  "proc-macro-error",
  "proc-macro2",
  "quote",
