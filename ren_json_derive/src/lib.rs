@@ -135,8 +135,8 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
                     fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error> where S: ::serde::de::SeqAccess<'de> {
                         use ::serde::de::{Error, Unexpected};
                         let meta_el = seq.next_element::<::serde_json::Map<String, ::serde_json::Value>>()?;
-                        if let Some(meta) = meta_el {
-                            let tag_val = meta.get("$").ok_or(S::Error::missing_field("$"))?;
+                        if let Some(mut meta) = meta_el {
+                            let tag_val = meta.remove("$").ok_or(S::Error::missing_field("$"))?;
                             if let ::serde_json::Value::String(tag) = tag_val {
                                 match tag {
                                     _ => Err(S::Error::custom(format!("Unable to deserialize {} variant from unsupported tag: \"{}\"", stringify!(#enum_ident), tag))),
