@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use ::syn::parse::Parse;
 use quote::{ToTokens, TokenStreamExt};
 
 use super::{debug_member, FieldsKind};
@@ -49,7 +50,7 @@ mod kw {
 }
 
 struct RenJsonTagField(syn::LitStr);
-impl syn::parse::Parse for RenJsonTagField {
+impl Parse for RenJsonTagField {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         input.parse::<kw::tag>()?;
         input.parse::<syn::Token![=]>()?;
@@ -63,9 +64,9 @@ impl From<RenJsonTagField> for String {
 }
 
 struct RenJsonMetaField<T>(T);
-impl<T> syn::parse::Parse for RenJsonMetaField<T>
+impl<T> Parse for RenJsonMetaField<T>
 where
-    T: syn::parse::Parse,
+    T: Parse,
 {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         input.parse::<kw::meta>()?;
@@ -88,7 +89,7 @@ where
 //         field.0
 //     }
 // }
-// impl<T, U> From<RenJsonMetaField<T>> for Option<U> where T: syn::parse::Parse + Into<U> {
+// impl<T, U> From<RenJsonMetaField<T>> for Option<U> where T: Parse + Into<U> {
 //     fn from(field: RenJsonMetaField<T>) -> Self {
 //         Some(field.0.into())
 //     }
@@ -113,9 +114,9 @@ pub(crate) enum RenJsonItems<T> {
     /// [{$: tag, ...meta}, [...values]]
     Multiple(Vec<T>),
 }
-impl<T> syn::parse::Parse for RenJsonItems<T>
+impl<T> Parse for RenJsonItems<T>
 where
-    T: syn::parse::Parse,
+    T: Parse,
 {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
@@ -308,10 +309,10 @@ where
 
 struct RenJsonItemsField<T>(RenJsonItems<T>)
 where
-    T: syn::parse::Parse;
-impl<T> syn::parse::Parse for RenJsonItemsField<T>
+    T: Parse;
+impl<T> Parse for RenJsonItemsField<T>
 where
-    T: syn::parse::Parse,
+    T: Parse,
 {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         input.parse::<kw::items>()?;
@@ -330,7 +331,7 @@ pub(super) struct RenJsonPatField(
     Option<syn::Ident>,
     Option<RenJsonItems<syn::Ident>>,
 );
-impl syn::parse::Parse for RenJsonPatField {
+impl Parse for RenJsonPatField {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let pat = input.parse()?;
         let lookahead = input.lookahead1();
@@ -484,7 +485,7 @@ impl core::fmt::Debug for RenJsonAttribute {
             .finish()
     }
 }
-impl syn::parse::Parse for RenJsonAttribute {
+impl Parse for RenJsonAttribute {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let content;
         if input.peek(syn::token::Paren) {
@@ -525,6 +526,30 @@ impl syn::parse::Parse for RenJsonAttribute {
                 items: items.map(|i| i.0),
                 pattern: None,
             }
+        })
+    }
+}
+
+pub(crate) struct RenJsonEnumAttribute {
+    pub(crate) types: Vec<syn::Ident>,
+}
+impl Parse for RenJsonEnumAttribute {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let content;
+        if input.peek(syn::token::Paren) {
+            syn::parenthesized!(content in input);
+        } else if input.peek(syn::token::Bracket) {
+            syn::bracketed!(content in input);
+        } else if input.peek(syn::token::Brace) {
+            syn::braced!(content in input);
+        } else {
+            return Ok(Self { types: Vec::new() });
+        }
+        Ok(Self {
+            types: content
+                .parse_terminated::<_, syn::Token![,]>(syn::Ident::parse)?
+                .into_iter()
+                .collect(),
         })
     }
 }

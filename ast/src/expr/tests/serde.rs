@@ -1,15 +1,24 @@
-use expect_test::{expect, Expect};
+use ::expect_test::{expect, Expect};
 
-use crate::expr::Expr;
+use crate::expr::{Expr, Pattern};
 
 fn check_serialise<T>(to_ser: T, expected: Expect)
 where
-    T: serde::Serialize + std::fmt::Debug,
+    T: ::serde::Serialize + std::fmt::Debug,
 {
     expected.assert_eq(
         &serde_json::to_string_pretty(&to_ser)
             .expect(&format!("Error serialising {:?} to JSON", to_ser)),
-    )
+    );
+}
+fn check_deserialise<T>(input: &'static str, expected: Expect)
+where
+    T: ::serde::Deserialize<'static> + std::fmt::Debug,
+{
+    expected.assert_debug_eq(
+        &serde_json::from_str::<'static, T>(&input)
+            .expect(&format!("Error deserialising {:?} from JSON", input)),
+    );
 }
 
 mod literal {
@@ -18,7 +27,7 @@ mod literal {
     use super::*;
 
     #[test]
-    fn number() {
+    fn number_ser() {
         check_serialise(
             Literal::<Expr>::from(143),
             expect![[r#"
@@ -28,6 +37,19 @@ mod literal {
               },
               143.0
             ]"#]],
+        );
+    }
+    #[test]
+    fn number_de() {
+        check_deserialise::<Literal<Pattern>>(
+            r#"
+            [
+              {
+                "$": "Number"
+              },
+              143.0
+            ]"#,
+            expect![[r""]],
         );
     }
 

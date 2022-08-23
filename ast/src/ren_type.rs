@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ren_json_derive::RenJson;
 
-#[derive(Debug, Clone, PartialEq, Eq, RenJson, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, RenJson)]
 pub enum Type {
     /// any type, e.g. "*"
     Any,

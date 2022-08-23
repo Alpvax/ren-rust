@@ -3,8 +3,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 
 mod attribute;
-pub(crate) use attribute::RenJsonAttribute;
 use attribute::RenJsonItems;
+pub(crate) use attribute::{RenJsonAttribute, RenJsonEnumAttribute};
 
 use super::as_ident;
 
