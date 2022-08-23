@@ -121,13 +121,13 @@ mod literal {
                       [
                         {
                           "$": "Lit",
-                          "comment": [],
-                          "span": null,
                           "type": [
                             {
                               "$": "Hole"
                             }
-                          ]
+                          ],
+                          "span": null,
+                          "comment": []
                         },
                         [
                           {
@@ -154,61 +154,61 @@ mod literal {
         check_serialise(
             Expr::literal(vec![Expr::literal(3), Expr::literal(13)]),
             expect![[r#"
-            [
-              {
-                "$": "Lit",
-                "comment": [],
-                "span": null,
-                "type": [
-                  {
-                    "$": "Hole"
-                  }
-                ]
-              },
-              [
-                {
-                  "$": "Array"
-                },
                 [
+                  {
+                    "$": "Lit",
+                    "type": [
+                      {
+                        "$": "Hole"
+                      }
+                    ],
+                    "span": null,
+                    "comment": []
+                  },
                   [
                     {
-                      "$": "Lit",
-                      "comment": [],
-                      "span": null,
-                      "type": [
-                        {
-                          "$": "Hole"
-                        }
-                      ]
+                      "$": "Array"
                     },
                     [
-                      {
-                        "$": "Number"
-                      },
-                      3.0
-                    ]
-                  ],
-                  [
-                    {
-                      "$": "Lit",
-                      "comment": [],
-                      "span": null,
-                      "type": [
+                      [
                         {
-                          "$": "Hole"
-                        }
+                          "$": "Lit",
+                          "type": [
+                            {
+                              "$": "Hole"
+                            }
+                          ],
+                          "span": null,
+                          "comment": []
+                        },
+                        [
+                          {
+                            "$": "Number"
+                          },
+                          3.0
+                        ]
+                      ],
+                      [
+                        {
+                          "$": "Lit",
+                          "type": [
+                            {
+                              "$": "Hole"
+                            }
+                          ],
+                          "span": null,
+                          "comment": []
+                        },
+                        [
+                          {
+                            "$": "Number"
+                          },
+                          13.0
+                        ]
                       ]
-                    },
-                    [
-                      {
-                        "$": "Number"
-                      },
-                      13.0
                     ]
                   ]
-                ]
-              ]
-            ]"#]],
+                ]"#]],
         )
     }
 

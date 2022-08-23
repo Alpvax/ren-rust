@@ -11,7 +11,7 @@ ren_json_derive = { path = "../ren_json_derive" }
 array-init = "2.0"
 either = "1.7"
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
 
 [dev-dependencies]
 expect-test = "1.3"

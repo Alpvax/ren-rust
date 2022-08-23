@@ -118,34 +118,33 @@ impl ToTokens for VariantArmSer {
         self.pattern.to_tokens(tokens);
         <syn::Token![=>]>::default().to_tokens(tokens);
         syn::token::Brace::default().surround(tokens, |tokens| {
-            if let Some(meta) = &self.meta {
-                tokens.extend(quote! {
-                    let mut map = if let ::serde_json::Value::Object(m) = ::serde_json::json!(#meta) {
-                        m
-                    } else {
-                        ::serde_json::Map::new()
-                    };
-                });
-            } else {
-                tokens.extend(quote! { let mut map = ::serde_json::Map::new(); });
-            }
             let tag = match &self.tag {
                 Some(tag) => tag.to_token_stream(),
                 None => self.variant_name.to_string().to_token_stream(),
             };
-            let count = if self.has_items() { 2usize } else { 1 };
-            tokens.extend(quote!{
+            tokens.extend(quote! {
+                let mut map = ::serde_json::Map::new();
                 map.insert("$".to_string(), #tag.into());
+            });
+            if let Some(meta) = &self.meta {
+                tokens.extend(quote! {
+                    if let ::serde_json::Value::Object(m) = ::serde_json::json!(#meta) {
+                        map.extend(m);
+                    }
+                });
+            }
+            let count = if self.has_items() { 2usize } else { 1 };
+            tokens.extend(quote! {
                 let mut seq = serializer.serialize_seq(Some(#count))?;
                 seq.serialize_element(&map)?;
             });
             if self.has_items() {
                 let items = &self.items;
-                tokens.extend(quote!{
+                tokens.extend(quote! {
                     seq.serialize_element(&#items)?;
                 });
             }
-            tokens.extend(quote!{ seq.end() });
+            tokens.extend(quote! { seq.end() });
         });
     }
 }
