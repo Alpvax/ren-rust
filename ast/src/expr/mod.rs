@@ -254,16 +254,3 @@ impl Expr {
         Self::Var(Meta::default(), name.to_string())
     }
 }
-
-// impl serde::Serialize for Expr {
-//     fn serialize<S>(&self, serialiser: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: serde::Serializer,
-//     {
-//         if let Self::Literal(_meta, l) = self {
-//             serialise_tagged!(serialiser, "Lit", [], [l])
-//         } else {
-//             todo!()
-//         }
-//     }
-// }

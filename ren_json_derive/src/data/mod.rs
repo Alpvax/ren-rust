@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use indexmap::IndexMap;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
@@ -43,7 +45,7 @@ impl VariantArmSer {
     // fn has_fields(&self) -> bool {
     //     self.has_meta() || self.has_items()
     // }
-    fn from_fields(variant_name: &syn::Ident, fields: &VariantFields) -> syn::Result<Self> {
+    fn from_field_defaults(variant_name: &syn::Ident, fields: &FieldDefaults) -> syn::Result<Self> {
         if let FieldsKind::None = fields.kind {
             Ok(Self {
                 variant_name: variant_name.clone(),
@@ -53,41 +55,41 @@ impl VariantArmSer {
                 pattern: syn::parse_quote! { Self::#variant_name },
             })
         } else {
-            let (meta, items, fields_vec) = fields.iter().fold(
-                (None, Vec::new(), Vec::new()),
-                |(mut meta, mut items, mut all), (f, t)| {
-                    all.push(f);
-                    if let syn::Type::Path(syn::TypePath { path, .. }) = t {
-                        if path
-                            .segments
-                            .last()
-                            .filter(|syn::PathSegment { ident, .. }| ident.to_string() == "Meta")
-                            .is_some()
-                            && meta.is_none()
-                        {
-                            meta = Some(f.clone());
-                            return (meta, items, all);
-                        }
-                    }
-                    items.push(f);
-                    (meta, items, all)
-                },
-            );
-            let pattern: syn::Pat = if let FieldsKind::Named = fields.kind {
-                syn::parse_quote! {
-                    Self::#variant_name{ #(#fields_vec),* }
-                }
-            } else {
-                syn::parse_quote! {
-                    Self::#variant_name(#(#fields_vec),*)
-                }
-            };
+            // let (meta, items, fields_vec) = fields.iter().fold(
+            //     (None, Vec::new(), Vec::new()),
+            //     |(mut meta, mut items, mut all), (f, t)| {
+            //         all.push(f);
+            //         if let syn::Type::Path(syn::TypePath { path, .. }) = t {
+            //             if path
+            //                 .segments
+            //                 .last()
+            //                 .filter(|syn::PathSegment { ident, .. }| ident.to_string() == "Meta")
+            //                 .is_some()
+            //                 && meta.is_none()
+            //             {
+            //                 meta = Some(f.clone());
+            //                 return (meta, items, all);
+            //             }
+            //         }
+            //         items.push(f);
+            //         (meta, items, all)
+            //     },
+            // );
+            // let pattern: syn::Pat = if let FieldsKind::Named = fields.kind {
+            //     syn::parse_quote! {
+            //         Self::#variant_name{ #(#fields_vec),* }
+            //     }
+            // } else {
+            //     syn::parse_quote! {
+            //         Self::#variant_name(#(#fields_vec),*)
+            //     }
+            // };
             Ok(Self {
                 variant_name: variant_name.clone(),
                 tag: None,
-                meta,
-                items: items.into(),
-                pattern,
+                meta: fields.meta_ident(),
+                items: fields.item_idents(),
+                pattern: fields.self_pattern(variant_name),
             })
         }
     }
@@ -151,36 +153,71 @@ impl ToTokens for VariantArmSer {
 
 #[allow(dead_code)]
 #[derive(Clone)]
-pub(crate) struct VariantArmDe {
+pub(crate) struct VariantArmDe<'a> {
+    enum_ident: &'a syn::Ident,
     variant_name: syn::Ident,
     tag: Option<String>,
-    meta: Option<syn::Ident>,
-    items: RenJsonItems<syn::Ident>,
-    pattern: syn::Pat,
+    pattern: Option<syn::Pat>,
+    meta: bool,
+    body: VariantConstructor,
 }
 #[allow(dead_code, unused_variables)]
-impl<'a> VariantArmDe {
-    fn has_meta(&self) -> bool {
-        self.meta.is_some()
-    }
-    fn has_items(&self) -> bool {
-        match self.items {
-            RenJsonItems::None => false,
-            _ => true,
-        }
-    }
-    fn has_fields(&self) -> bool {
-        self.has_meta() || self.has_items()
-    }
-    fn from_fields(variant_name: &syn::Ident, fields: &VariantFields) -> syn::Result<Self> {
-        //TODO: implement
+impl<'a> VariantArmDe<'a> {
+    fn new(
+        enum_ident: &'a syn::Ident,
+        tag: Option<String>,
+        variant_name: &syn::Ident,
+        ctor: VariantConstructor,
+        fields: &FieldDefaults,
+    ) -> syn::Result<Self> {
+        // if let VariantConstructor::None = &fields {
         Ok(Self {
+            enum_ident,
             variant_name: variant_name.clone(),
-            tag: None,
-            meta: None,
-            items: RenJsonItems::None,
-            pattern: syn::parse_quote! { Self::#variant_name },
+            tag,
+            pattern: fields.items().de_pattern(),
+            meta: fields.meta.is_some(),
+            body: ctor,
         })
+        // } else {
+        //     let (meta, items, fields_vec) = fields.iter().fold(
+        //         (None, Vec::new(), Vec::new()),
+        //         |(mut meta, mut items, mut all), (f, t)| {
+        //             all.push(f);
+        //             if let syn::Type::Path(syn::TypePath { path, .. }) = t {
+        //                 if path
+        //                     .segments
+        //                     .last()
+        //                     .filter(|syn::PathSegment { ident, .. }| ident.to_string() == "Meta")
+        //                     .is_some()
+        //                     && meta.is_none()
+        //                 {
+        //                     meta = Some(syn::Member::Named(f.clone()));
+        //                     return (meta, items, all);
+        //                 }
+        //             }
+        //             items.push(f);
+        //             (meta, items, all)
+        //         },
+        //     );
+        //     let pattern: syn::Pat = if let FieldsKind::Named = fields.kind {
+        //         syn::parse_quote! {
+        //             Self::#variant_name{ #(#fields_vec),* }
+        //         }
+        //     } else {
+        //         syn::parse_quote! {
+        //             Self::#variant_name(#(#fields_vec),*)
+        //         }
+        //     };
+        //     Ok(Self {
+        //         variant_name: variant_name.clone(),
+        //         kind: fields.kind,
+        //         tag: None,
+        //         meta,
+        //         items: items.into_iter().cloned().map(syn::Member::Named).collect(),
+        //         pattern: Some(pattern),
+        //     })
+        // }
     }
     // TODO: fn with_data(mut self, tag: Option<String>, meta: Option<syn::Type>) -> VariantArmDe {
     //     self.tag = tag;
@@ -188,15 +225,79 @@ impl<'a> VariantArmDe {
     //     self
     // }
 }
-impl<'a> core::fmt::Display for VariantArmDe {
+impl core::fmt::Display for VariantArmDe<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.to_token_stream())
     }
 }
 #[allow(unused_variables)]
-impl<'a> ToTokens for VariantArmDe {
+impl ToTokens for VariantArmDe<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(quote! { const __RenJsonDe: &'static str = "TODO: RenJson Deserialize NOT YET IMPLEMENTED"; });
+        match &self.tag {
+            Some(tag) => tag.to_tokens(tokens),
+            None => self.variant_name.to_string().to_tokens(tokens),
+        };
+        <syn::Token![=>]>::default().to_tokens(tokens);
+        let name: syn::Path = {
+            let e_name = self.enum_ident;
+            let name = &self.variant_name;
+            syn::parse_quote! { #e_name::#name }
+        };
+        let name_str = format!("{}::{}", self.enum_ident, self.variant_name);
+        if let VariantConstructor::None = &self.body {
+            tokens.extend(quote! { Ok(#name) });
+        } else {
+            syn::token::Brace::default().surround(tokens, |tokens| {
+                if let Some(pat) = self.pattern.as_ref() {
+                    tokens.extend(quote! {
+                        let #pat = seq.next_element()?.ok_or(
+                            S::Error::custom(format!("Missing value(s) when deserialising {}", #name_str)),
+                        )?;
+                    });
+                }
+                if self.meta {
+                    tokens.extend(quote! {
+                        let meta = ::serde_json::from_value(::serde_json::Value::Object(meta))
+                            .map_err(|e| S::Error::custom(format!("Error parsing meta as object when deserialising {}: {}", #name_str, e)))?;
+                        });
+                }
+                let body = &self.body;
+                tokens.extend(quote! { Ok(#name #body) });
+                // let (pat, body) = match self.kind {
+                //     FieldsKind::None => unreachable!("Already handled"),
+                //     FieldsKind::Named => todo!("Named fields"),//syn::token::Brace::default().surround(tokens, args_func),
+                //     FieldsKind::Unnamed => {
+                //          else {
+                //             self.body.pattern()
+                //         }
+                //         fn to_index(member: &syn::Member) -> u32 {
+                //             match member {
+                //                 syn::Member::Named(i) => (&i.to_string()[6..]).parse().expect("parsing field index from ident"),
+                //                 syn::Member::Unnamed(i) => i.index,
+                //             }
+                //         }
+                //         let mut expr: syn::ExprCall = syn::parse_quote!{ Self::#name() };
+                //         let mut args = if self.has_items() {
+                //             self.items.iter().map(to_index).collect()
+                //         } else {
+                //             Vec::new()
+                //         };
+                //         if let Some(meta) = &self.meta {
+                //             let i = to_index(meta);
+
+                //         }
+                //         expr
+                //     },
+                // };
+                // tokens.extend(quote!{
+                //     if let Some(#pat) = seq.next_element()? {
+                //         #body
+                //     } else {
+                //         Err(S::Error::custom("Missing / malformed value(s)"))
+                //     }
+                // });
+            });
+        }
     }
 }
 
@@ -302,20 +403,275 @@ impl VariantFields {
     //         syn::Member::Unnamed(idx) => self.contains(&format_ident!("field_{}", idx)),
     //     }
     // }
+    fn defaults(&self) -> FieldDefaults {
+        let (meta, fields) = self
+            .iter()
+            .fold((None, Vec::new()), |(mut meta, mut all), (f, t)| {
+                all.push(f.clone().into());
+                if let syn::Type::Path(syn::TypePath { path, .. }) = t {
+                    if path
+                        .segments
+                        .last()
+                        .filter(|syn::PathSegment { ident, .. }| ident.to_string() == "Meta")
+                        .is_some()
+                        && meta.is_none()
+                    {
+                        meta = Some(f.clone());
+                        return (meta, all);
+                    }
+                }
+                (meta, all)
+            });
+        FieldDefaults {
+            kind: self.kind,
+            meta: meta.map(|i| i.into()),
+            fields,
+        }
+    }
+}
+
+struct FieldDefaults {
+    kind: FieldsKind,
+    meta: Option<syn::Member>,
+    fields: Vec<syn::Member>,
+}
+impl FieldDefaults {
+    fn self_pattern(&self, variant_name: &syn::Ident) -> syn::Pat {
+        let field = &self.all_idents();
+        match self.kind {
+            FieldsKind::None => syn::parse_quote! { Self::#variant_name},
+            FieldsKind::Named => syn::parse_quote! { Self::#variant_name {#(#field),*} },
+            FieldsKind::Unnamed => syn::parse_quote! { Self::#variant_name (#(#field),*) },
+        }
+    }
+    fn all_idents(&self) -> Vec<syn::Ident> {
+        self.fields
+            .iter()
+            .map(|mem| match mem {
+                syn::Member::Named(i) => i.clone(),
+                syn::Member::Unnamed(i) => format_ident!("field_{}", i),
+            })
+            .collect()
+    }
+    fn meta_ident(&self) -> Option<syn::Ident> {
+        self.meta.as_ref().map(|mem| match mem {
+            syn::Member::Named(i) => i.clone(),
+            syn::Member::Unnamed(i) => format_ident!("field_{}", i),
+        })
+    }
+    fn items(&self) -> RenJsonItems<syn::Member> {
+        if let Some(meta) = &self.meta {
+            self.fields.iter().filter(|i| i != &meta).cloned().collect()
+        } else {
+            self.fields.iter().cloned().collect()
+        }
+    }
+    fn item_idents(&self) -> RenJsonItems<syn::Ident> {
+        if let Some(meta) = &self.meta {
+            self.fields
+                .iter()
+                .filter(|i| i != &meta)
+                .map(as_ident)
+                .collect()
+        } else {
+            self.fields.iter().map(as_ident).collect()
+        }
+    }
+}
+
+impl From<&FieldDefaults> for VariantConstructor {
+    fn from(fields: &FieldDefaults) -> Self {
+        let mut ctor = match fields.kind {
+            FieldsKind::None => Self::None,
+            FieldsKind::Named => Self::Named(
+                fields
+                    .all_idents()
+                    .iter()
+                    .map(|name| (name.clone(), None))
+                    .collect(),
+            ),
+            FieldsKind::Unnamed => Self::Unnamed(
+                fields.fields.len(),
+                fields
+                    .fields
+                    .iter()
+                    .map(|mem| match mem {
+                        syn::Member::Named(name) => (
+                            (&name.to_string()[6..])
+                                .parse()
+                                .expect("Error converting field_{i} name into u32"),
+                            name.clone(),
+                        ),
+                        syn::Member::Unnamed(i) => (i.index, format_ident!("field_{}", i)),
+                    })
+                    .collect(),
+            ),
+        };
+        if let Some(meta) = &fields.meta {
+            ctor.set_meta(meta);
+        }
+        ctor
+    }
+}
+
+#[derive(Debug, Clone)]
+enum VariantConstructor {
+    None,
+    Named(HashMap<syn::Ident, Option<syn::Ident>>),
+    Unnamed(usize, HashMap<u32, syn::Ident>),
+}
+impl VariantConstructor {
+    fn new(fields: &syn::Fields) -> Self {
+        match fields {
+            syn::Fields::Named(syn::FieldsNamed { named, .. }) => Self::Named(
+                named
+                    .iter()
+                    .map(|syn::Field { ident, .. }| (ident.as_ref().unwrap().clone(), None))
+                    .collect(),
+            ),
+            syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }) => {
+                Self::Unnamed(unnamed.len(), HashMap::new())
+            }
+            syn::Fields::Unit => Self::None,
+        }
+    }
+    fn set_meta_name(&mut self, meta: syn::Ident) {
+        let ident = format_ident!("meta");
+        match self {
+            Self::None => (),
+            Self::Named(ref mut map) => {
+                map.insert(meta, Some(ident));
+            }
+            Self::Unnamed(_, ref mut map) => {
+                map.insert(
+                    (&meta.to_string()[6..])
+                        .parse()
+                        .expect("Error converting field_{i} name into u32"),
+                    ident,
+                );
+            }
+        }
+    }
+    fn set_meta_index(&mut self, meta: &syn::Index) {
+        match self {
+            Self::None => (),
+            Self::Named(_) => {
+                panic!("cannot set meta index of named fields"); //map.insert(format_ident!("field_{}", meta.index))
+            }
+            Self::Unnamed(_, ref mut map) => {
+                map.insert(meta.index, format_ident!("meta"));
+            }
+        }
+    }
+    fn set_meta(&mut self, meta: &syn::Member) {
+        match meta {
+            syn::Member::Named(m) => self.set_meta_name(m.clone()),
+            syn::Member::Unnamed(m) => self.set_meta_index(m),
+        }
+    }
+    // fn items_pattern(&self) -> syn::Pat {
+    //     match self {
+    //         VariantConstructor::None => panic!("Should not call 'items_pattern' on VariantConstructor::None"),
+    //         VariantConstructor::Named(names) => {
+    //             let fields: Vec<_> = names.values().filter_map(|opt| opt.as_ref()).collect();
+    //             syn::parse_quote!{ {#(#names),*} }
+    //         },
+    //         VariantConstructor::Unnamed(len, names) => todo!(),
+    //     }
+    // }
+    fn with_items(&self, items: &RenJsonItems<syn::Member>) -> Self {
+        match (self, items) {
+            (Self::None, _) => Self::None,
+            (_, RenJsonItems::None) => self.clone(),
+            // (Self::Named(map), RenJsonItems::SingleValue(v)) | (Self::Named(map), RenJsonItems::SingleList(v)) => {
+            //     let mut map = map.clone();
+            //     map.insert(v, Some(v))
+            // },
+            (Self::Named(_), _ /*map), RenJsonItems::Multiple(v)*/) => todo!(),
+            (Self::Unnamed(len, map), RenJsonItems::SingleValue(v))
+            | (Self::Unnamed(len, map), RenJsonItems::SingleList(v)) => {
+                let mut map = map.clone();
+                match v {
+                    syn::Member::Named(i) => map.insert(
+                        i.to_string()[6..]
+                            .parse()
+                            .expect("parsing field index from ident"),
+                        i.clone(),
+                    ),
+                    syn::Member::Unnamed(i) => {
+                        map.insert(i.index, format_ident!("field_{}", i.index))
+                    }
+                };
+                Self::Unnamed(*len, map)
+            }
+            (Self::Unnamed(len, map), RenJsonItems::Multiple(items)) => {
+                let mut map = map.clone();
+                for member in items {
+                    match member {
+                        syn::Member::Named(i) => map.insert(
+                            i.to_string()[6..]
+                                .parse()
+                                .expect("parsing field index from ident"),
+                            i.clone(),
+                        ),
+                        syn::Member::Unnamed(i) => {
+                            map.insert(i.index, format_ident!("field_{}", i.index))
+                        }
+                    };
+                }
+                Self::Unnamed(*len, map)
+            }
+        }
+    }
+    // fn push_meta(&mut self, meta: &syn::Member) {
+    //     *self = match (self, meta) {
+    //         (Self::None, syn::Member::Named(m)) => Self::named_meta(m.clone()),
+    //         (Self::None, syn::Member::Unnamed(m)) => Self::unnamed_meta(m),
+    //         (Self::Named(map), syn::Member::Named(m)) => todo!(),
+    //         (Self::Named(map), syn::Member::Unnamed(m)) => todo!(),
+    //         (Self::Unnamed(map), syn::Member::Named(m)) => todo!(),
+    //         (Self::Unnamed(map), syn::Member::Unnamed(m)) => todo!(),
+    //     }
+    // }
+}
+impl ToTokens for VariantConstructor {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let default_val = quote! { Default::default() };
+        match self {
+            Self::None => (),
+            Self::Named(names) => syn::token::Brace::default().surround(tokens, |tokens| {
+                let field = names
+                    .iter()
+                    .map(|(k, v)| quote! { #k: #v })
+                    .collect::<Vec<_>>();
+                tokens.extend(quote! { #(#field),* });
+            }),
+            Self::Unnamed(len, values) => syn::token::Paren::default().surround(tokens, |tokens| {
+                for i in 0..u32::try_from(*len).unwrap() {
+                    if let Some(name) = values.get(&i) {
+                        name.to_tokens(tokens);
+                    } else {
+                        tokens.extend(default_val.clone());
+                    }
+                    <syn::Token![,]>::default().to_tokens(tokens);
+                }
+            }),
+        }
+    }
 }
 
 pub(crate) struct VariantData<'a> {
     enum_name: &'a syn::Ident,
     name: syn::Ident,
-    #[allow(dead_code)] //XXX
     generics: &'a syn::Generics,
     fields: VariantFields,
     filtered_fields: Option<VariantFields>,
+    constructor: VariantConstructor,
     tag: Option<String>,
     meta: Option<(syn::Member, syn::Type)>,
     items: RenJsonItems<syn::Ident>,
     arm_ser: Option<VariantArmSer>,
-    arm_de: Option<VariantArmDe>,
+    // arm_de: Option<VariantArmDe>,
 }
 impl<'a> VariantData<'a> {
     pub fn new(
@@ -330,11 +686,12 @@ impl<'a> VariantData<'a> {
             generics,
             fields: VariantFields::new(&fields),
             filtered_fields: None,
+            constructor: VariantConstructor::new(&fields),
             tag: None,
             meta: None,
             items: RenJsonItems::None,
             arm_ser: None,
-            arm_de: None,
+            // arm_de: None,
         }
     }
     pub fn apply_attribute(&mut self, attr: RenJsonAttribute) {
@@ -342,6 +699,7 @@ impl<'a> VariantData<'a> {
             self.tag = attr.tag;
         }
         if let Some(meta) = attr.meta {
+            self.constructor.set_meta(&meta);
             self.meta = match &meta {
                 syn::Member::Named(i) => self.fields.fields.get(i),
                 syn::Member::Unnamed(idx) => self
@@ -358,6 +716,7 @@ impl<'a> VariantData<'a> {
                 Some(pat.with_variant_data(self.name.clone(), self.tag.as_ref(), &self.fields));
         }
         if let Some(items) = attr.items {
+            self.constructor = self.constructor.with_items(&items);
             self.items = items
                 .into_iter()
                 .map(as_ident)
@@ -366,23 +725,32 @@ impl<'a> VariantData<'a> {
             self.filtered_fields = Some(self.fields.filtered_items(&self.items));
         }
     }
-    pub fn split_arms(self) -> syn::Result<(VariantArmSer, VariantArmDe)> {
+    pub fn split_arms(self) -> syn::Result<(VariantArmSer, VariantArmDe<'a>)> {
+        let fields = self.fields.defaults();
         Ok((
             match self.arm_ser {
                 Some(arm) => arm,
-                None => VariantArmSer::from_fields(
+                None => VariantArmSer::from_field_defaults(
                     &self.name,
-                    self.filtered_fields.as_ref().unwrap_or(&self.fields),
+                    &fields,
+                    // self.filtered_fields.as_ref().unwrap_or(&self.fields),
                 )?
                 .with_data(self.tag.as_ref(), self.meta.as_ref().map(|(i, _)| i)),
             },
-            match self.arm_de {
-                Some(def) => def,
-                None => VariantArmDe::from_fields(
-                    &self.name,
-                    self.filtered_fields.as_ref().unwrap_or(&self.fields),
-                )?, // .with_data(self.tag, self.meta.map(|(_, t)| t)),
-            },
+            VariantArmDe::new(
+                self.enum_name,
+                self.tag,
+                &self.name,
+                VariantConstructor::from(&fields),
+                &fields,
+            )?,
+            // match self.arm_de {
+            //     Some(def) => def,
+            //     None => VariantArmDe::from_fields(
+            //         &self.name,
+            //         &self.fields,
+            //     )?, // .with_data(self.tag, self.meta.map(|(_, t)| t)),
+            // },
         ))
     }
 }

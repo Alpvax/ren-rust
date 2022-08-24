@@ -33,7 +33,7 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
             ),
         }
     }
-    let (v_ser_arm, _v_de_arm) = std::mem::take(&mut variants).into_iter().fold(
+    let (v_ser_arm, v_de_arm) = std::mem::take(&mut variants).into_iter().fold(
         (Vec::new(), Vec::new()),
         |(mut ser_arms, mut de_arms),
          syn::Variant {
@@ -138,7 +138,8 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
                         if let Some(mut meta) = meta_el {
                             let tag_val = meta.remove("$").ok_or(S::Error::missing_field("$"))?;
                             if let ::serde_json::Value::String(tag) = tag_val {
-                                match tag {
+                                match tag.as_str() {
+                                    #(#v_de_arm,)*
                                     _ => Err(S::Error::custom(format!("Unable to deserialize {} variant from unsupported tag: \"{}\"", stringify!(#enum_ident), tag))),
                                 }
                             } else {

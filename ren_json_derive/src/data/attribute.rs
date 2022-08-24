@@ -142,7 +142,7 @@ where
 }
 impl<T> RenJsonItems<T>
 where
-    T: quote::ToTokens,
+    T: ToTokens,
 {
     pub fn map<U, F>(self, mut f: F) -> RenJsonItems<U>
     where
@@ -201,6 +201,14 @@ where
                 Self::SingleList(v) => RenJsonItems::SingleList(v.clone()),
                 Self::Multiple(vec) => vec.iter().cloned().take(n).collect(),
             }
+        }
+    }
+    pub fn de_pattern(&self) -> Option<syn::Pat> {
+        match self {
+            RenJsonItems::None => None,
+            RenJsonItems::SingleValue(v) => Some(syn::parse_quote! { #v }),
+            RenJsonItems::SingleList(v) => Some(syn::parse_quote! { [#v] }),
+            RenJsonItems::Multiple(items) => Some(syn::parse_quote! { (#(#items),*) }),
         }
     }
 }

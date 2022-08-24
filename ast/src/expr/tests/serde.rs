@@ -49,7 +49,11 @@ mod literal {
               },
               143.0
             ]"#,
-            expect![[r""]],
+            expect![[r"
+            Number(
+                143.0,
+            )
+            "]],
         );
     }
 
