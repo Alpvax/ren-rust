@@ -50,7 +50,7 @@ impl<T> From<&str> for StringPart<T> {
 }
 impl<T> From<T> for StringPart<T>
 where
-    T: crate::ASTType,
+    T: crate::ASTLiteralType,
 {
     fn from(v: T) -> Self {
         Self::Value(v)
@@ -82,10 +82,7 @@ pub trait StringParts<T> {
     fn is_simple(&self) -> bool;
     fn as_simple(&self) -> Option<String>;
 }
-impl<T> StringParts<T> for Vec<StringPart<T>>
-where
-    T: crate::ASTType,
-{
+impl<T> StringParts<T> for Vec<StringPart<T>> {
     fn is_simple(&self) -> bool {
         self.len() == 1 && self[0].is_text()
     }
@@ -141,6 +138,16 @@ impl<T> From<Vec<T>> for Literal<T> {
         Self::Array(items)
     }
 }
+impl<T> From<Vec<(String, T)>> for Literal<T> {
+    fn from(items: Vec<(String, T)>) -> Self {
+        items.into_iter().collect()
+    }
+}
+impl<'s, T> From<Vec<(&'s str, T)>> for Literal<T> {
+    fn from(items: Vec<(&'s str, T)>) -> Self {
+        items.into_iter().collect()
+    }
+}
 impl<T> FromIterator<T> for Literal<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         Self::Array(iter.into_iter().collect())
@@ -149,6 +156,11 @@ impl<T> FromIterator<T> for Literal<T> {
 impl<T> FromIterator<(String, T)> for Literal<T> {
     fn from_iter<I: IntoIterator<Item = (String, T)>>(iter: I) -> Self {
         Self::Record(iter.into_iter().collect())
+    }
+}
+impl<'s, T> FromIterator<(&'s str, T)> for Literal<T> {
+    fn from_iter<I: IntoIterator<Item = (&'s str, T)>>(iter: I) -> Self {
+        Self::Record(iter.into_iter().map(|(s, v)| (s.to_string(), v)).collect())
     }
 }
 impl<T> FromIterator<StringPart<T>> for Literal<T> {

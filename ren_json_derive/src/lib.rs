@@ -42,7 +42,7 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
              fields,
              ..
          }| {
-            let mut data = VariantData::new(&enum_ident, &generics, &var_ident, fields);
+            let mut data = VariantData::new(&enum_ident, &var_ident, fields);
             if let Some(syn::Attribute { tokens, .. }) =
                 attrs.into_iter().find(|syn::Attribute { path, .. }| {
                     path.segments

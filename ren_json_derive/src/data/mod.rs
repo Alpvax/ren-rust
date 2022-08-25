@@ -663,7 +663,6 @@ impl ToTokens for VariantConstructor {
 pub(crate) struct VariantData<'a> {
     enum_name: &'a syn::Ident,
     name: syn::Ident,
-    generics: &'a syn::Generics,
     fields: VariantFields,
     filtered_fields: Option<VariantFields>,
     constructor: VariantConstructor,
@@ -674,16 +673,10 @@ pub(crate) struct VariantData<'a> {
     // arm_de: Option<VariantArmDe>,
 }
 impl<'a> VariantData<'a> {
-    pub fn new(
-        enum_name: &'a syn::Ident,
-        generics: &'a syn::Generics,
-        name: &syn::Ident,
-        fields: syn::Fields,
-    ) -> Self {
+    pub fn new(enum_name: &'a syn::Ident, name: &syn::Ident, fields: syn::Fields) -> Self {
         Self {
             enum_name,
             name: name.clone(),
-            generics,
             fields: VariantFields::new(&fields),
             filtered_fields: None,
             constructor: VariantConstructor::new(&fields),

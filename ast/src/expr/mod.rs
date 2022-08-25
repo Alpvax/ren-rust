@@ -59,7 +59,7 @@ impl Default for Expr {
         Self::literal(())
     }
 }
-impl crate::ASTType for Expr {}
+impl crate::ASTLiteralType for Expr {}
 
 impl Expr {
     // fn meta(&self) -> Meta {

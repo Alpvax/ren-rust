@@ -1,66 +1,67 @@
-use ::expect_test::{expect, Expect};
+use ::expect_test::expect;
 
 use crate::expr::{Expr, Pattern};
 
-fn check_serialise<T>(to_ser: T, expected: Expect)
-where
-    T: ::serde::Serialize + std::fmt::Debug,
-{
-    expected.assert_eq(
-        &serde_json::to_string_pretty(&to_ser)
-            .expect(&format!("Error serialising {:?} to JSON", to_ser)),
-    );
-}
-fn check_deserialise<T>(input: &'static str, expected: Expect)
-where
-    T: ::serde::Deserialize<'static> + std::fmt::Debug,
-{
-    expected.assert_debug_eq(
-        &serde_json::from_str::<'static, T>(&input)
-            .expect(&format!("Error deserialising {:?} from JSON", input)),
-    );
+macro_rules! check_serde {
+    ($name:ident: $typ:ty = $val:expr => $expect_ser:expr, $expect_de:expr $(,)?) => {
+        mod $name {
+            use super::*;
+            #[test]
+            fn ser() {
+                let value = <$typ>::from($val);
+                $expect_ser.assert_eq(
+                    &serde_json::to_string_pretty(&value)
+                        .expect(&format!("Error serialising {:?} to JSON", value)),
+                );
+            }
+            #[test]
+            fn de() {
+                let input = $expect_ser.data();
+                $expect_de.assert_debug_eq(
+                    &serde_json::from_str::<'static, $typ>(&input)
+                        .expect(&format!("Error deserialising {:?} from JSON", input)),
+                );
+            }
+        }
+    };
 }
 
 mod literal {
-    use crate::expr::Literal;
-
     use super::*;
+    use crate::expr::Literal;
+    /// Implement for unit to allow testing literals with neither patterns nor expressions
+    impl crate::ASTLiteralType for () {}
 
-    #[test]
-    fn number_ser() {
-        check_serialise(
-            Literal::<Expr>::from(143),
-            expect![[r#"
+    macro_rules! check_serde_literal {
+        ($name:ident: $typ:ty = $val:expr => $expect_ser:expr, $expect_de:expr $(,)?) => {
+            check_serde! {$name: Literal<$typ> = $val => $expect_ser, $expect_de}
+        };
+        ($name:ident = $val:expr => $expect_ser:expr, $expect_de:expr $(,)?) => {
+            check_serde_literal! {$name: Literal<()> = $val => $expect_ser, $expect_de}
+        };
+    }
+
+    check_serde_literal! {
+        number = 143 =>
+        expect![[r#"
             [
               {
                 "$": "Number"
               },
               143.0
             ]"#]],
-        );
-    }
-    #[test]
-    fn number_de() {
-        check_deserialise::<Literal<Pattern>>(
-            r#"
-            [
-              {
-                "$": "Number"
-              },
-              143.0
-            ]"#,
-            expect![[r"
+        expect![[r"
             Number(
                 143.0,
             )
-            "]],
-        );
+        "]]
     }
 
-    #[test]
-    fn simple_string() {
-        check_serialise(
-            Literal::<Expr>::from("Hello World"),
+    mod string {
+        use super::*;
+
+        check_serde_literal! {
+            simple: Literal<()> = "Hello World" =>
             expect![[r#"
                 [
                   {
@@ -75,13 +76,19 @@ mod literal {
                     ]
                   ]
                 ]"#]],
-        )
-    }
+            expect![[r#"
+                LStr(
+                    [
+                        Text(
+                            "Hello World",
+                        ),
+                    ],
+                )
+            "#]],
+        }
 
-    #[test]
-    fn string_with_escapes() {
-        check_serialise(
-            Literal::<Expr>::from("Hello\n\tWorld"),
+        check_serde_literal! {
+            with_escapes = "Hello\n\tWorld" =>
             expect![[r#"
                 [
                   {
@@ -96,16 +103,23 @@ mod literal {
                     ]
                   ]
                 ]"#]],
-        )
-    }
+            expect![[r#"
+                LStr(
+                    [
+                        Text(
+                            "Hello\n\tWorld",
+                        ),
+                    ],
+                )
+            "#]],
+        }
 
-    #[test]
-    fn nested_string() {
-        check_serialise(
-            Literal::<Expr>::LStr(vec![
-                "Hello\n".into(),
-                Expr::literal("\tworld \\${text}").into(),
-            ]),
+        check_serde_literal! {
+            nested: Expr =
+                Literal::<Expr>::LStr(vec![
+                    "Hello\n".into(),
+                    Expr::literal("\tworld \\${text}").into(),
+                ]) =>
             expect![[r#"
                 [
                   {
@@ -150,14 +164,42 @@ mod literal {
                     ]
                   ]
                 ]"#]],
-        )
+            expect![[r#"
+                LStr(
+                    [
+                        Text(
+                            "Hello\n",
+                        ),
+                        Value(
+                            Literal(
+                                Meta {
+                                    typ: Hole,
+                                    span: (),
+                                    comment: [],
+                                },
+                                LStr(
+                                    [
+                                        Text(
+                                            "\tworld \\${text}",
+                                        ),
+                                    ],
+                                ),
+                            ),
+                        ),
+                    ],
+                )
+            "#]],
+        }
     }
 
-    #[test]
-    fn array() {
-        check_serialise(
-            Expr::literal(vec![Expr::literal(3), Expr::literal(13)]),
-            expect![[r#"
+    check_serde_literal! {
+        array: Expr = vec![Expr::literal(3), Expr::literal(13)] =>
+        expect![[r#"
+            [
+              {
+                "$": "Array"
+              },
+              [
                 [
                   {
                     "$": "Lit",
@@ -171,69 +213,101 @@ mod literal {
                   },
                   [
                     {
-                      "$": "Array"
+                      "$": "Number"
                     },
-                    [
-                      [
-                        {
-                          "$": "Lit",
-                          "type": [
-                            {
-                              "$": "Hole"
-                            }
-                          ],
-                          "span": null,
-                          "comment": []
-                        },
-                        [
-                          {
-                            "$": "Number"
-                          },
-                          3.0
-                        ]
-                      ],
-                      [
-                        {
-                          "$": "Lit",
-                          "type": [
-                            {
-                              "$": "Hole"
-                            }
-                          ],
-                          "span": null,
-                          "comment": []
-                        },
-                        [
-                          {
-                            "$": "Number"
-                          },
-                          13.0
-                        ]
-                      ]
-                    ]
+                    3.0
                   ]
-                ]"#]],
-        )
+                ],
+                [
+                  {
+                    "$": "Lit",
+                    "type": [
+                      {
+                        "$": "Hole"
+                      }
+                    ],
+                    "span": null,
+                    "comment": []
+                  },
+                  [
+                    {
+                      "$": "Number"
+                    },
+                    13.0
+                  ]
+                ]
+              ]
+            ]"#]],
+        expect![[r#"
+            Array(
+                [
+                    Literal(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
+                        Number(
+                            3.0,
+                        ),
+                    ),
+                    Literal(
+                        Meta {
+                            typ: Hole,
+                            span: (),
+                            comment: [],
+                        },
+                        Number(
+                            13.0,
+                        ),
+                    ),
+                ],
+            )
+        "#]],
     }
 
-    // #[test]
-    // fn record() {
-    //     check_serialise(
-    //         Literal::<()>::from({foo, bar: baz}),
-    //         expect![[r#"
-    //             Context(Pattern)@0..15
-    //               Context(Record)@0..15
-    //                 Token(CurlyOpen)@0..1 "{"
-    //                 Context(Field)@1..5
-    //                   Token(VarName)@1..4 "foo"
-    //                   Token(Comma)@4..5 ","
-    //                 Context(Field)@5..14
-    //                   Token(Whitespace)@5..6 " "
-    //                   Token(VarName)@6..9 "bar"
-    //                   Token(Colon)@9..10 ":"
-    //                   Token(Whitespace)@10..11 " "
-    //                   Token(VarName)@11..14 "baz"
-    //                 Token(CurlyClose)@14..15 "}""#]],
-    //     )
-    //}
+    check_serde_literal! {
+        record: Pattern = vec![("foo", Pattern::Any), ("bar", Pattern::Var("baz".to_string()))] =>
+        expect![[r#"
+            [
+              {
+                "$": "Record"
+              },
+              [
+                [
+                  "foo",
+                  [
+                    {
+                      "$": "Any"
+                    }
+                  ]
+                ],
+                [
+                  "bar",
+                  [
+                    {
+                      "$": "Var"
+                    },
+                    "baz"
+                  ]
+                ]
+              ]
+            ]"#]],
+        expect![[r#"
+            Record(
+                [
+                    (
+                        "foo",
+                        Any,
+                    ),
+                    (
+                        "bar",
+                        Var(
+                            "baz",
+                        ),
+                    ),
+                ],
+            )
+        "#]],
+    }
 }

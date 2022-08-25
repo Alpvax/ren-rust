@@ -11,7 +11,7 @@ mod ren_type;
 // pub mod expression;
 // pub mod pattern;
 
-pub trait ASTType: ::serde::Serialize {}
+pub trait ASTLiteralType {}
 
 //TODO:
 // pub type Ident = String;
