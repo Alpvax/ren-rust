@@ -3,6 +3,7 @@ use ren_json_derive::RenJson;
 use serde::{Deserialize, Serialize};
 
 use crate::ren_type::Type;
+use crate::span::Span;
 
 pub mod literal;
 pub mod operator;
@@ -21,15 +22,18 @@ pub use pattern::Pattern;
 pub struct Meta {
     #[serde(rename = "type")]
     typ: Type,
-    span: (),
+    span: Span,
     comment: Vec<String>,
 }
 impl Meta {
     pub fn push_comment(&mut self, comment: String) {
         self.comment.push(comment);
     }
-    pub fn set_span(&mut self, span: ()) {
-        self.span = span;
+    pub fn set_span<S>(&mut self, span: S)
+    where
+        S: Into<Span>,
+    {
+        self.span = span.into();
     }
 }
 
