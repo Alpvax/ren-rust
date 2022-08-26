@@ -1,4 +1,4 @@
-use higher_ast::expr::Operator;
+use higher_ast::Operator;
 use smol_str::SmolStr;
 
 use crate::syntax::{Context, Token};
@@ -11,7 +11,7 @@ use super::{
     FromSyntaxElement, SyntaxNode, SyntaxToken, ToHIR,
 };
 
-type HigherExpr = higher_ast::expr::Expr;
+type HigherExpr = higher_ast::Expr;
 
 create_ast_enum! {
     Expr = Context::Expr => <HigherExpr, ()> {

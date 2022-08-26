@@ -10,7 +10,7 @@ use super::{
     FromSyntaxElement, HigherASTWithVar, SyntaxNode, SyntaxToken, ToHIR,
 };
 
-type HigherLiteral<T> = higher_ast::expr::Literal<T>;
+type HigherLiteral<T> = higher_ast::Literal<T>;
 
 pub(crate) enum Literal<T> {
     //where T: ToHIR {

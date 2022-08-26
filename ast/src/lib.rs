@@ -5,6 +5,11 @@ mod ren_type;
 mod span;
 use span::Span;
 
+pub use decl::Decl;
+pub use expr::{Expr, Literal, Operator, Pattern};
+pub use module::{import::Import, Module};
+pub use ren_type::Type;
+
 pub trait ASTLiteralType {}
 
 //TODO:

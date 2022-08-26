@@ -6,7 +6,7 @@ use crate::{
 mod expression;
 mod module;
 mod pattern;
-use higher_ast::expr::Operator;
+use higher_ast::Operator;
 use pattern::parse_pattern;
 
 pub fn parse_module(input: &str) -> Parsed {

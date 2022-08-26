@@ -9,7 +9,7 @@ use super::{
     FromSyntaxElement, SyntaxToken, ToHIR,
 };
 
-type HigherPattern = higher_ast::expr::Pattern;
+type HigherPattern = higher_ast::Pattern;
 
 create_ast_enum! {
     Pattern = Context::Pattern => <HigherPattern, ()> {

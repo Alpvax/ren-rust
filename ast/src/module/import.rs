@@ -17,56 +17,58 @@ pub enum Source {
     External,
 }
 
-// CONSTRUCTORS ----------------------------------------------------------------
+impl Import {
+    // CONSTRUCTORS ----------------------------------------------------------------
+    pub fn local(path: String, name: Vec<String>, unqualified: Vec<String>) -> Self {
+        Self {
+            path,
+            source: Source::Local,
+            name,
+            unqualified,
+        }
+    }
 
-// local : String -> List String -> List String -> Import
-// local path name unqualified =
-//     { path = path
-//     , source = Local
-//     , name = name
-//     , unqualified = unqualified
-//     }
+    pub fn package(path: String, name: Vec<String>, unqualified: Vec<String>) -> Self {
+        Self {
+            path,
+            source: Source::Package,
+            name,
+            unqualified,
+        }
+    }
 
-// package : String -> List String -> List String -> Import
-// package path name unqualified =
-//     { path = path
-//     , source = Package
-//     , name = name
-//     , unqualified = unqualified
-//     }
+    pub fn external(path: String, name: Vec<String>, unqualified: Vec<String>) -> Self {
+        Self {
+            path,
+            source: Source::External,
+            name,
+            unqualified,
+        }
+    }
 
-// external : String -> List String -> List String -> Import
-// external path name unqualified =
-//     { path = path
-//     , source = External
-//     , name = name
-//     , unqualified = unqualified
-//     }
+    // QUERIES ---------------------------------------------------------------------
 
-// QUERIES ---------------------------------------------------------------------
+    pub fn is_local(&self) -> bool {
+        self.source == Source::Local
+    }
+    pub fn is_package(&self) -> bool {
+        self.source == Source::Package
+    }
+    pub fn is_external(&self) -> bool {
+        self.source == Source::External
+    }
 
-// isLocal : Import -> Bool
-// isLocal =
-//     .source >> (==) Local
+    // pub fn alike(&self, other: &Self) -> bool {
+    //     self.path == other.path && self.source == other.source && self.name == other.name
+    // }
 
-// isPackage : Import -> Bool
-// isPackage =
-//     .source >> (==) Package
+    // MANIPULATIONS ---------------------------------------------------------------
 
-// isExternal : Import -> Bool
-// isExternal =
-//     .source >> (==) External
+    // merge : Import -> Import -> Import
+    // merge a b =
+    //     if alike a b then
+    //         { a | unqualified = List.uniques <| a.unqualified ++ b.unqualified }
 
-// alike : Import -> Import -> Bool
-// alike a b =
-//     a.path == b.path && a.source == b.source && a.name == b.name
-
-// MANIPULATIONS ---------------------------------------------------------------
-
-// merge : Import -> Import -> Import
-// merge a b =
-//     if alike a b then
-//         { a | unqualified = List.uniques <| a.unqualified ++ b.unqualified }
-
-//     else
-//         a
+    //     else
+    //         a
+}

@@ -1,4 +1,4 @@
-use higher_ast::expr::Operator;
+use higher_ast::Operator;
 
 use crate::{
     syntax::{Context, Token, TokenType},

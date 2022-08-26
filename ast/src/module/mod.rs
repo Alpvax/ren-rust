@@ -41,15 +41,19 @@ impl Module {
     pub fn imports(&self, name: &str) -> bool {
         self.1.iter().any(|imp| imp.path == name)
     }
-    // pub fn imports_local(&self, name: &str) -> bool {
-    //     self.1.iter().any(|imp| imp.is_local() && imp.path == name)
-    // }
-    // pub fn imports_package(&self, name: &str) -> bool {
-    //     self.1.iter().any(|imp| imp.is_package() && imp.path == name)
-    // }
-    // pub fn imports_external(&self, name: &str) -> bool {
-    //     self.1.iter().any(|imp| imp.is_external() && imp.path == name)
-    // }
+    pub fn imports_local(&self, name: &str) -> bool {
+        self.1.iter().any(|imp| imp.is_local() && imp.path == name)
+    }
+    pub fn imports_package(&self, name: &str) -> bool {
+        self.1
+            .iter()
+            .any(|imp| imp.is_package() && imp.path == name)
+    }
+    pub fn imports_external(&self, name: &str) -> bool {
+        self.1
+            .iter()
+            .any(|imp| imp.is_external() && imp.path == name)
+    }
 
     pub fn declares(&self, name: &str) -> bool {
         self.2.iter().any(|decl| decl.name() == name)
