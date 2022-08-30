@@ -94,7 +94,9 @@ fn parse_declaration(p: &mut Parser) {
         } else {
             todo!("ERROR");
         }
-    } else if !p.bump_matching(Token::KWExt) || !p.bump_matching(Token::VarName) {
+    } else if p.bump_matching(Token::KWExt) && p.bump_matching(Token::VarName) {
+        todo!("match '= \"external_name\"'")
+    } else {
         todo!("ERROR");
     }
     dec_m.complete(p, Context::Declaration);

@@ -30,6 +30,13 @@ pub struct Module(Meta, Vec<Import>, Vec<Decl>);
 //TODO: Module serialise
 
 impl Module {
+    pub fn new<I, D>(meta: Meta, imports: I, declarations: D) -> Self
+    where
+        I: Iterator<Item = Import>,
+        D: Iterator<Item = Decl>,
+    {
+        Self(meta, imports.collect(), declarations.collect())
+    }
     // QUERIES ---------------------------------------------------------------------
     pub fn meta(&self) -> &Meta {
         &self.0

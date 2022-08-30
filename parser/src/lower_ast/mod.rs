@@ -1,14 +1,14 @@
-// mod into_elm_ast;
-
-// pub(crate) use into_elm_ast::to_ast_expr;
-
+mod decl;
 pub(crate) mod expr;
 mod extensions;
+mod import;
 mod literal;
 mod macro_impl;
+mod module;
 pub(crate) mod pattern;
 #[cfg(test)]
 mod tests;
+
 use crate::syntax::{Context, RenLang, SyntaxNode, SyntaxPart, Token};
 
 // use expr::Expr;
@@ -43,8 +43,22 @@ pub trait FromSyntaxElement {
     }
 }
 
-pub(crate) fn expr_ast(node: SyntaxNode) -> Option<expr::Expr> {
-    expr::Expr::from_node(Context::Expr, node)
+macro_rules! ast_funcs {
+    ($($fn_name:ident: $ctx:expr => $typ:ty),+ $(,)?) => {
+        $(
+            #[allow(dead_code)]
+            pub(crate) fn $fn_name(node: SyntaxNode) -> Option<$typ> {
+                <$typ>::from_node($ctx, node)
+            }
+        )+
+    };
+}
+
+ast_funcs! {
+    expr_ast: Context::Expr => expr::Expr,
+    decl_ast: Context::Declaration => decl::Decl,
+    import_ast: Context::Import => import::Import,
+    module_ast: Context::Module => module::Module,
 }
 
 pub trait ToHIR {
@@ -72,6 +86,40 @@ where
 
 trait HigherASTWithVar {
     fn var_value(var: String) -> Self;
+}
+
+fn simple_str(node: SyntaxNode) -> Option<::smol_str::SmolStr> {
+    use crate::syntax::StringToken;
+    use ::smol_str::SmolStr;
+    if node.kind() == Context::String.into() {
+        let s = node
+            .children_with_tokens()
+            .filter_map(|e| match e.kind() {
+                SyntaxPart::StringToken(StringToken::Text) => {
+                    e.into_token().map(|t| SmolStr::new(t.text()))
+                }
+                SyntaxPart::StringToken(StringToken::Escape) => e.into_token().map(|t| {
+                    SmolStr::new(match t.text().chars().last().unwrap() {
+                        '$' => "$",
+                        '\\' => "\\",
+                        'n' => "\n",
+                        'r' => "\r",
+                        't' => "\t",
+                        c => unreachable!("String escape {} should not be possible", c),
+                    })
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join("");
+        if s.len() > 0 {
+            Some(SmolStr::new(s))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
 }
 // pub enum ASTRoot {
 //     Module(/*Module*/),
