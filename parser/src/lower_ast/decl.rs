@@ -3,7 +3,7 @@ use smol_str::SmolStr;
 use super::{expr::Expr, extensions::SyntaxNodeExtension, FromSyntaxElement, SyntaxToken, ToHIR};
 use crate::syntax::{Context, SyntaxNode, Token};
 
-pub(crate) struct Decl(SyntaxNode);
+pub struct Decl(SyntaxNode);
 
 impl FromSyntaxElement for Decl {
     fn from_token(_token_type: Token, _token: SyntaxToken) -> Option<Self> {

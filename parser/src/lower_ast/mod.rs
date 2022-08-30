@@ -1,11 +1,16 @@
 mod decl;
-pub(crate) mod expr;
+mod expr;
 mod extensions;
 mod import;
 mod literal;
 mod macro_impl;
 mod module;
-pub(crate) mod pattern;
+mod pattern;
+
+pub(crate) use decl::Decl;
+pub(crate) use expr::Expr;
+pub(crate) use import::Import;
+pub(crate) use module::Module;
 #[cfg(test)]
 mod tests;
 

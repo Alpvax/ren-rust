@@ -13,7 +13,7 @@ pub fn parse_module(input: &str) -> Parsed {
     let mut p = Parser::new(input);
     let root = p.start("module");
     module::module(&mut p);
-    root.complete(&mut p, crate::syntax::Context::Module);
+    root.complete(&mut p, Context::Module);
     p.parse()
 }
 
@@ -21,8 +21,31 @@ pub fn parse_expression(input: &str) -> Parsed {
     let mut p = Parser::new(input);
     let root = p.start("expr_root");
     expression::expr(&mut p);
-    root.complete(&mut p, crate::syntax::Context::Expr);
+    root.complete(&mut p, Context::Expr);
     p.parse()
+}
+
+pub fn parse_repl_stmt(input: &str) -> super::REPLStmt<Parsed, Parsed, Parsed> {
+    let mut p = Parser::new(input);
+    let root = p.start("repl_stmt_root");
+    let stmt = match p.peek() {
+        TokenType::Token(Token::KWImport) => {
+            module::parse_import(&mut p);
+            root.complete(&mut p, Context::Import);
+            super::REPLStmt::Import
+        }
+        TokenType::Token(Token::KWExt | Token::KWLet) => {
+            module::parse_declaration(&mut p);
+            root.complete(&mut p, Context::Declaration);
+            super::REPLStmt::Decl
+        }
+        _ => {
+            expression::expr(&mut p);
+            root.complete(&mut p, Context::Expr);
+            super::REPLStmt::Expr
+        }
+    };
+    stmt(p.parse())
 }
 
 type ExprOrPatFn = fn(&mut Parser);

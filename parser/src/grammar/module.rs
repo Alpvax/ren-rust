@@ -20,7 +20,7 @@ pub(super) fn module(p: &mut Parser) {
     }
 }
 
-fn parse_import(p: &mut Parser) {
+pub(super) fn parse_import(p: &mut Parser) {
     assert_eq!(p.peek(), TokenType::Token(Token::KWImport));
 
     let import = p.start("import");
@@ -83,7 +83,7 @@ fn parse_import(p: &mut Parser) {
     }
 }
 
-fn parse_declaration(p: &mut Parser) {
+pub(super) fn parse_declaration(p: &mut Parser) {
     let dec_m = p.start("declaration");
     p.bump_matching(Token::KWPub);
     if p.bump_matching(Token::KWLet) {

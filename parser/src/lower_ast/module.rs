@@ -4,7 +4,7 @@ use super::{
 };
 use crate::syntax::{Context, SyntaxNode, SyntaxPart, Token};
 
-pub(crate) struct Module(SyntaxNode);
+pub struct Module(SyntaxNode);
 
 impl FromSyntaxElement for Module {
     fn from_token(_token_type: Token, _token: SyntaxToken) -> Option<Self> {

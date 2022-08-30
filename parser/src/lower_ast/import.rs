@@ -7,7 +7,7 @@ use super::{
 };
 use crate::syntax::{Context, SyntaxNode, SyntaxPart, Token};
 
-pub(crate) struct Import(SyntaxNode);
+pub struct Import(SyntaxNode);
 
 impl FromSyntaxElement for Import {
     fn from_token(_token_type: Token, _token: SyntaxToken) -> Option<Self> {
