@@ -58,12 +58,11 @@ impl ToHIR for Decl {
                 self.expr().unwrap().to_higher_ast(),
             )
         } else {
-            let name = self.name().unwrap(); //TODO: add '= "ext_name"' parsing
             higher_ast::Decl::external(
                 Default::default(),
                 self.is_public(),
-                &name,
-                self.ext_name().as_ref().unwrap_or(&name),
+                self.name().unwrap(),
+                self.ext_name().unwrap(),
             )
         }
     }

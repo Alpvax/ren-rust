@@ -94,8 +94,24 @@ pub(super) fn parse_declaration(p: &mut Parser) {
         } else {
             todo!("ERROR");
         }
-    } else if p.bump_matching(Token::KWExt) && p.bump_matching(Token::VarName) {
-        todo!("match '= \"external_name\"'")
+    } else if p.bump_matching(Token::KWExt)
+        && p.bump_matching(Token::VarName)
+        && p.bump_matching(Token::OpAssign)
+        && p.peek().is(Token::DoubleQuote)
+    {
+        let str_m = p.start("ext_name");
+        p.bump();
+        loop {
+            match p.peek() {
+                TokenType::String(StringToken::Text | StringToken::Escape) => p.bump(),
+                TokenType::String(StringToken::Delimiter) => {
+                    p.bump();
+                    break;
+                }
+                _ => todo!("ERROR"),
+            }
+        }
+        str_m.complete(p, Context::String);
     } else {
         todo!("ERROR");
     }
