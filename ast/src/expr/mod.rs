@@ -1,19 +1,25 @@
 use array_init::array_init;
+use ren_json_derive::RenJson;
+use serde::{Deserialize, Serialize};
 
-use crate::{ren_type::Type, serde_utils::serialise_tagged};
+use crate::ren_type::Type;
 
 pub mod literal;
 pub mod operator;
 pub mod pattern;
+// mod pattern_expanded;
+// pub use pattern_expanded::pattern;
 #[cfg(test)]
 mod tests;
 
 pub use literal::Literal;
+pub use literal::StringPart;
 pub use operator::Operator;
 pub use pattern::Pattern;
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Meta {
+    #[serde(rename = "type")]
     typ: Type,
     span: (),
     comment: Vec<String>,
@@ -27,7 +33,7 @@ impl Meta {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Expr {
     Access(Meta, Box<Expr>, String),
     Annotated(Meta, Box<Expr>, Type),
@@ -36,6 +42,7 @@ pub enum Expr {
     If(Meta, Box<Expr>, Box<Expr>, Box<Expr>),
     Lambda(Meta, Vec<Pattern>, Box<Expr>),
     Let(Meta, Pattern, Box<Expr>, Box<Expr>),
+    #[ren_json(tag = "Lit")]
     Literal(Meta, Literal<Expr>),
     Placeholder(Meta),
     Scoped(Meta, Vec<String>, String),
@@ -52,6 +59,7 @@ impl Default for Expr {
         Self::literal(())
     }
 }
+impl crate::ASTLiteralType for Expr {}
 
 impl Expr {
     // fn meta(&self) -> Meta {
@@ -79,7 +87,7 @@ impl Expr {
             false
         }
     }
-    #[allow(dead_code)]//XXX
+    #[allow(dead_code)] //XXX
     fn replace_placeholders(self) -> Self {
         use Expr::*;
         /// Creates a valid JavaScript variable name from a placholder.
@@ -244,18 +252,5 @@ impl Expr {
     }
     pub fn var<S: ToString>(name: S) -> Self {
         Self::Var(Meta::default(), name.to_string())
-    }
-}
-
-impl serde::Serialize for Expr {
-    fn serialize<S>(&self, serialiser: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        if let Self::Literal(_meta, l) = self {
-            serialise_tagged!(serialiser, "Lit", [], [l])
-        } else {
-            todo!()
-        }
     }
 }

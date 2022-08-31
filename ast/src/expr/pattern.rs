@@ -1,8 +1,10 @@
 use std::collections::HashSet;
 
+use ren_json_derive::RenJson;
+
 use super::literal::Literal;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Pattern {
     Any,
     Literal(Literal<Pattern>),
@@ -54,3 +56,4 @@ impl From<Literal<Pattern>> for Pattern {
         Self::Literal(l)
     }
 }
+impl crate::ASTLiteralType for Pattern {}

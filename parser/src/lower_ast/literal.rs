@@ -145,8 +145,8 @@ where
             self.parts()
                 .into_iter()
                 .map(|part| {
-                    part.map_left(|text| text.to_string())
-                        .map_right(|t| t.to_higher_ast())
+                    higher_ast::expr::literal::StringPart::from(part)//.map_left(|text| text.to_string())
+                        .map/*_right*/(|t| t.to_higher_ast())
                 })
                 .collect(),
         )

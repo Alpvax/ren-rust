@@ -1,37 +1,110 @@
 use either::Either;
-use serde::{ser::SerializeSeq, Deserialize, Serialize};
+use ren_json_derive::RenJson;
 
-use crate::serde_utils::{serialise_tagged, serialise_tagged_seq};
+#[derive(Debug, Clone, PartialEq, RenJson)]
+#[ren_json(T)]
+pub enum StringPart<T> {
+    Text(String),
+    Value(T),
+}
 
-pub type StringPart<T> = Either<String, T>;
+impl<T> StringPart<T> {
+    pub fn is_text(&self) -> bool {
+        match self {
+            Self::Text(_) => true,
+            Self::Value(_) => false,
+        }
+    }
+    pub fn text(&self) -> Option<String> {
+        match self {
+            Self::Text(text) => Some(text.clone()),
+            Self::Value(_) => None,
+        }
+    }
+    pub fn map<U, F>(self, f: F) -> StringPart<U>
+    where
+        F: FnOnce(T) -> U,
+    {
+        match self {
+            Self::Text(s) => StringPart::Text(s),
+            Self::Value(v) => StringPart::Value(f(v)),
+        }
+    }
+}
+impl<T> std::str::FromStr for StringPart<T> {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::Text(s.to_string()))
+    }
+}
+impl<T> From<String> for StringPart<T> {
+    fn from(s: String) -> Self {
+        Self::Text(s)
+    }
+}
+impl<T> From<&str> for StringPart<T> {
+    fn from(s: &str) -> Self {
+        Self::Text(s.to_owned())
+    }
+}
+impl<T> From<T> for StringPart<T>
+where
+    T: crate::ASTLiteralType,
+{
+    fn from(v: T) -> Self {
+        Self::Value(v)
+    }
+}
+impl<S, T> From<Either<S, T>> for StringPart<T>
+where
+    S: Into<String>,
+{
+    fn from(e: Either<S, T>) -> Self {
+        match e {
+            Either::Left(s) => Self::Text(s.into()),
+            Either::Right(v) => Self::Value(v),
+        }
+    }
+}
+impl<T, S> From<StringPart<T>> for Either<S, T>
+where
+    S: From<String>,
+{
+    fn from(sp: StringPart<T>) -> Self {
+        match sp {
+            StringPart::Text(s) => Either::Left(s.into()),
+            StringPart::Value(v) => Either::Right(v),
+        }
+    }
+}
 pub trait StringParts<T> {
     fn is_simple(&self) -> bool;
-    fn as_simple_str(&self) -> Option<&String>;
+    fn as_simple(&self) -> Option<String>;
+}
+impl<T> StringParts<T> for Vec<StringPart<T>> {
+    fn is_simple(&self) -> bool {
+        self.len() == 1 && self[0].is_text()
+    }
     fn as_simple(&self) -> Option<String> {
-        self.as_simple_str().cloned()
+        if self.len() == 1 {
+            (&self[0]).text()
+        } else {
+            None
+        }
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, RenJson)]
+#[ren_json(T)]
 pub enum Literal<T> {
     Array(Vec<T>),
     Enum(String, Vec<T>),
     Number(f64),
     Record(Vec<(String, T)>),
+    #[ren_json(tag = "String")]
     LStr(Vec<StringPart<T>>),
     // LUnit,
-}
-impl<T> StringParts<T> for Vec<StringPart<T>> {
-    fn is_simple(&self) -> bool {
-        self.len() == 1 && self[0].is_left()
-    }
-    fn as_simple_str(&self) -> Option<&String> {
-        if self.len() == 1 {
-            (&self[0]).as_ref().left()
-        } else {
-            None
-        }
-    }
 }
 
 impl<T> From<f64> for Literal<T> {
@@ -47,12 +120,12 @@ impl<T> From<i32> for Literal<T> {
 }
 impl<T> From<String> for Literal<T> {
     fn from(s: String) -> Self {
-        Self::LStr(vec![StringPart::Left(s)])
+        Self::LStr(vec![StringPart::Text(s)])
     }
 }
 impl<T> From<&str> for Literal<T> {
     fn from(s: &str) -> Self {
-        Self::LStr(vec![StringPart::Left(s.to_owned())])
+        Self::LStr(vec![StringPart::Text(s.to_owned())])
     }
 }
 impl<T> From<()> for Literal<T> {
@@ -60,58 +133,38 @@ impl<T> From<()> for Literal<T> {
         Self::Enum("undefined".to_owned(), Vec::new())
     }
 }
-
-impl<T> Serialize for Literal<T>
-where
-    T: Serialize,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Literal::Array(items) => {
-                let mut seq = serializer.serialize_seq(Some(items.len()))?;
-                seq.serialize_element(&serde_json::json!({
-                    "$": "Array",
-                }))?;
-                for item in items {
-                    seq.serialize_element(item)?;
-                }
-                seq.end()
-            }
-            Literal::Enum(name, args) => serialise_tagged!(serializer, "Enum", [], [name, args]),
-            Literal::Number(num) => serialise_tagged!(serializer, "Number", [], [num]),
-            Literal::Record(fields) => {
-                let mut seq = serialise_tagged_seq(serializer, "Record", None, Some(fields.len()))?;
-                for (k, v) in fields {
-                    seq.serialize_element(&serde_json::json!([ { "$": "Field" }, k, v ]))?;
-                }
-                seq.end()
-            }
-            Literal::LStr(parts) => {
-                let mut seq = serialise_tagged_seq(serializer, "String", None, Some(parts.len()))?;
-                for p in parts {
-                    match p {
-                        StringPart::Left(s) => {
-                            seq.serialize_element(&serde_json::json!([ { "$": "Text" }, s]))?
-                        }
-                        StringPart::Right(t) => seq.serialize_element(t)?,
-                    }
-                }
-                seq.end()
-            }
-        }
+impl<T> From<Vec<T>> for Literal<T> {
+    fn from(items: Vec<T>) -> Self {
+        Self::Array(items)
     }
 }
-impl<'de, T> Deserialize<'de> for Literal<T>
-where
-    T: Deserialize<'de>,
-{
-    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        todo!()
+impl<T> From<Vec<(String, T)>> for Literal<T> {
+    fn from(items: Vec<(String, T)>) -> Self {
+        items.into_iter().collect()
+    }
+}
+impl<'s, T> From<Vec<(&'s str, T)>> for Literal<T> {
+    fn from(items: Vec<(&'s str, T)>) -> Self {
+        items.into_iter().collect()
+    }
+}
+impl<T> FromIterator<T> for Literal<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        Self::Array(iter.into_iter().collect())
+    }
+}
+impl<T> FromIterator<(String, T)> for Literal<T> {
+    fn from_iter<I: IntoIterator<Item = (String, T)>>(iter: I) -> Self {
+        Self::Record(iter.into_iter().collect())
+    }
+}
+impl<'s, T> FromIterator<(&'s str, T)> for Literal<T> {
+    fn from_iter<I: IntoIterator<Item = (&'s str, T)>>(iter: I) -> Self {
+        Self::Record(iter.into_iter().map(|(s, v)| (s.to_string(), v)).collect())
+    }
+}
+impl<T> FromIterator<StringPart<T>> for Literal<T> {
+    fn from_iter<I: IntoIterator<Item = StringPart<T>>>(iter: I) -> Self {
+        Self::LStr(iter.into_iter().collect())
     }
 }

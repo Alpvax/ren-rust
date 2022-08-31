@@ -6,10 +6,12 @@
 // pub mod core;
 pub mod expr;
 mod ren_type;
-mod serde_utils;
+// mod serde_utils;
 // pub mod declaration;
 // pub mod expression;
 // pub mod pattern;
+
+pub trait ASTLiteralType {}
 
 //TODO:
 // pub type Ident = String;
