@@ -71,4 +71,37 @@ impl Import {
 
     //     else
     //         a
+
+    // CONVERSION ------------------------------------------------------------------
+    pub fn to_json_str(&self, _pretty: bool) -> ::serde_json::Result<String> {
+        Ok("TODO: serialise Import to json".to_string())
+        /*
+        if pretty {
+            ::serde_json::to_string_pretty(self)
+        } else {
+            ::serde_json::to_string(self)
+        }*/
+    }
+    pub fn to_json_bytes(&self, _pretty: bool) -> ::serde_json::Result<Vec<u8>> {
+        Ok("TODO: serialise Import to json".bytes().collect())
+        /*
+        if pretty {
+            ::serde_json::to_string_pretty(self)
+        } else {
+            ::serde_json::to_string(self)
+        }*/
+    }
+    pub fn to_json_writer<W: std::io::Write>(
+        &self,
+        mut _w: W,
+        _pretty: bool,
+    ) -> ::serde_json::Result<()> {
+        Ok(())
+        /*TODO: serialise Import to json
+        if pretty {
+            ::serde_json::to_writer_pretty(&mut w, self)
+        } else {
+            ::serde_json::to_writer(&mut w, self)
+        }*/
+    }
 }

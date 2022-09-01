@@ -7,6 +7,7 @@ use super::{
 };
 use crate::syntax::{Context, SyntaxNode, SyntaxPart, Token};
 
+#[derive(Debug)]
 pub struct Import(SyntaxNode);
 
 impl FromSyntaxElement for Import {
@@ -80,3 +81,14 @@ impl ToHIR for Import {
         todo!("Import::validate")
     }
 }
+
+// impl core::fmt::Debug for Import {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_struct("Import")
+//             .field("source", &self.source())
+//             .field("path", &self.path())
+//             .field("name", &self.name())
+//             .field("exposing", &self.exposing())
+//             .finish()
+//     }
+// }

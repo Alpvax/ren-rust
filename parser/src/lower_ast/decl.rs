@@ -3,6 +3,7 @@ use smol_str::SmolStr;
 use super::{expr::Expr, extensions::SyntaxNodeExtension, FromSyntaxElement, SyntaxToken, ToHIR};
 use crate::syntax::{Context, SyntaxNode, Token};
 
+#[derive(Debug)]
 pub struct Decl(SyntaxNode);
 
 impl FromSyntaxElement for Decl {
@@ -70,3 +71,23 @@ impl ToHIR for Decl {
         todo!("Decl::validate")
     }
 }
+
+// impl core::fmt::Debug for Decl {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         if self.is_local() {
+//             f.debug_struct("Decl")
+//                 .field("name", &self.name())
+//                 .field("public", &self.is_public())
+//                 .field("type", &"local")
+//                 .field("expr", &self.expr())
+//                 .finish()
+//         } else {
+//             f.debug_struct("Decl")
+//                 .field("name", &self.name())
+//                 .field("public", &self.is_public())
+//                 .field("type", &"external")
+//                 .field("ext_name", &self.ext_name())
+//                 .finish()
+//         }
+//     }
+// }

@@ -113,7 +113,7 @@ pub(super) fn parse_declaration(p: &mut Parser) {
         }
         str_m.complete(p, Context::String);
     } else {
-        todo!("ERROR");
+        todo!("ERROR: recieved: {:?}", p.peek());
     }
     dec_m.complete(p, Context::Declaration);
 }

@@ -25,19 +25,30 @@ pub fn parse_expression(input: &str) -> Parsed {
     p.parse()
 }
 
-pub fn parse_repl_stmt(input: &str) -> super::REPLStmt<Parsed, Parsed, Parsed> {
+pub fn parse_repl_stmt(
+    input: &str,
+) -> Result<super::REPLStmt<Parsed, Parsed, Parsed>, &'static str> {
     let mut p = Parser::new(input);
     let root = p.start("repl_stmt_root");
     let stmt = match p.peek() {
         TokenType::Token(Token::KWImport) => {
             module::parse_import(&mut p);
-            root.complete(&mut p, Context::Import);
+            root.discard();
             super::REPLStmt::Import
         }
         TokenType::Token(Token::KWExt | Token::KWLet) => {
             module::parse_declaration(&mut p);
-            root.complete(&mut p, Context::Declaration);
+            root.discard();
             super::REPLStmt::Decl
+        }
+        TokenType::Token(Token::KWPub) => {
+            return Err("Cannot use public declarations inside the REPL");
+        }
+        TokenType::Token(Token::Comment) => {
+            return Err("COMMENT");
+        }
+        TokenType::None => {
+            return Err("");
         }
         _ => {
             expression::expr(&mut p);
@@ -45,7 +56,7 @@ pub fn parse_repl_stmt(input: &str) -> super::REPLStmt<Parsed, Parsed, Parsed> {
             super::REPLStmt::Expr
         }
     };
-    stmt(p.parse())
+    Ok(stmt(p.parse()))
 }
 
 type ExprOrPatFn = fn(&mut Parser);

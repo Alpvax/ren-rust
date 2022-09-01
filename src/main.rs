@@ -3,6 +3,8 @@
 #[allow(dead_code)]
 mod value;
 
+mod repl;
+
 #[cfg(test)]
 mod test;
 
@@ -32,6 +34,7 @@ fn parse_remote_file(url: &str) -> parser::Parsed {
 
 // let a = fun c => c * 1000"#;
 
-fn main() {
+fn main() -> Result<(), impl std::error::Error> {
+    repl::init_repl("./.repl_history")
     //println!("{:?}", parser::parse(SAMPLE));
 }

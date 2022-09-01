@@ -7,10 +7,10 @@ mod macro_impl;
 mod module;
 mod pattern;
 
-pub(crate) use decl::Decl;
-pub(crate) use expr::Expr;
-pub(crate) use import::Import;
-pub(crate) use module::Module;
+pub use decl::Decl;
+pub use expr::Expr;
+pub use import::Import;
+pub use module::Module;
 #[cfg(test)]
 mod tests;
 

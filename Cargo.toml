@@ -16,6 +16,7 @@ remote = ["reqwest"]
 ast = { path = "./ast" }
 parser = { path = "./parser" }
 reqwest = { version = "0.11", features = ["blocking"], optional = true }
+rustyline = "10.0.0"
 
 [dev-dependencies]
 expect-test = "1.3"

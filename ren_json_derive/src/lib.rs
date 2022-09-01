@@ -101,6 +101,29 @@ pub fn ren_enum_serialise(tokens: proc_macro::TokenStream) -> proc_macro::TokenS
                 }
             }
         }
+        impl #impl_generics #enum_ident #ty_generics #ser_where_clause {
+            pub fn to_json_str(&self, pretty: bool) -> ::serde_json::Result<String> {
+                if pretty {
+                    ::serde_json::to_string_pretty(self)
+                } else {
+                    ::serde_json::to_string(self)
+                }
+            }
+            pub fn to_json_bytes(&self, pretty: bool) -> ::serde_json::Result<Vec<u8>> {
+                if pretty {
+                    ::serde_json::to_vec_pretty(self)
+                } else {
+                    ::serde_json::to_vec(self)
+                }
+            }
+            pub fn to_json_writer<W: std::io::Write>(&self, w: W, pretty: bool) -> ::serde_json::Result<()> {
+                if pretty {
+                    ::serde_json::to_writer_pretty(w, self)
+                } else {
+                    ::serde_json::to_writer(w, self)
+                }
+            }
+        }
     };
     let mut de_generics = generics.clone();
     de_generics.params.push(syn::parse_quote! { 'de });
