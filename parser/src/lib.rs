@@ -22,6 +22,8 @@ pub enum REPLStmt<D, E, I> {
     Decl(D),
     Expr(E),
     Import(I),
+    Comment(String),
+    Empty,
 }
 
 /// Parse a single REPL statement (import, declaration or expression)
@@ -38,5 +40,7 @@ pub fn parse_stmt_ast(
         REPLStmt::Import(parsed) => lower_ast::import_ast(parsed.syntax())
             .map(REPLStmt::Import)
             .ok_or("error converting parsed to Import"),
+        REPLStmt::Comment(text) => Ok(REPLStmt::Comment(text)),
+        REPLStmt::Empty => Ok(REPLStmt::Empty),
     }
 }

@@ -29,28 +29,26 @@ pub fn parse_repl_stmt(
     input: &str,
 ) -> Result<super::REPLStmt<Parsed, Parsed, Parsed>, &'static str> {
     let mut p = Parser::new(input);
-    let root = p.start("repl_stmt_root");
     let stmt = match p.peek() {
         TokenType::Token(Token::KWImport) => {
             module::parse_import(&mut p);
-            root.discard();
             super::REPLStmt::Import
         }
         TokenType::Token(Token::KWExt | Token::KWLet) => {
             module::parse_declaration(&mut p);
-            root.discard();
             super::REPLStmt::Decl
         }
         TokenType::Token(Token::KWPub) => {
             return Err("Cannot use public declarations inside the REPL");
         }
         TokenType::Token(Token::Comment) => {
-            return Err("COMMENT");
+            return Ok(super::REPLStmt::Comment(input.to_string()));
         }
         TokenType::None => {
-            return Err("");
+            return Ok(super::REPLStmt::Empty);
         }
         _ => {
+            let root = p.start("repl_stmt_root");
             expression::expr(&mut p);
             root.complete(&mut p, Context::Expr);
             super::REPLStmt::Expr

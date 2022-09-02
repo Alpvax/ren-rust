@@ -88,6 +88,7 @@ macro_rules! make_modes {
                         REPLStmt::Decl($decl_id) => $decl_body,
                         REPLStmt::Expr($expr_id) => $expr_body,
                         REPLStmt::Import($imp_id) => $imp_body,
+                        _ => Ok(()),
                     }
                 }
             }
@@ -122,18 +123,21 @@ make_modes! {
                 if let Err(e) = decl.to_higher_ast().to_json_writer(std::io::stdout(), false) {
                     println!("{}", e);
                 }
+                print!("\n"); // Force flush
                 Ok(())
             },
             Expr(expr) => {
                 if let Err(e) = expr.to_higher_ast().to_json_writer(std::io::stdout(), false).map_err(|e| format!("{}", e)) {
                     println!("{}", e);
                 }
+                print!("\n"); // Force flush
                 Ok(())
             },
             Import(imp) => {
                 if let Err(e) = imp.to_higher_ast().to_json_writer(std::io::stdout(), false).map_err(|e| format!("{}", e)) {
                     println!("{}", e);
                 }
+                print!("\n"); // Force flush
                 Ok(())
             },
         }
@@ -146,18 +150,21 @@ make_modes! {
                 if let Err(e) = decl.to_higher_ast().to_json_writer(std::io::stdout(), true) {
                     println!("{}", e);
                 }
+                print!("\n"); // Force flush
                 Ok(())
             },
             Expr(expr) => {
                 if let Err(e) = expr.to_higher_ast().to_json_writer(std::io::stdout(), true).map_err(|e| format!("{}", e)) {
                     println!("{}", e);
                 }
+                print!("\n"); // Force flush
                 Ok(())
             },
             Import(imp) => {
                 if let Err(e) = imp.to_higher_ast().to_json_writer(std::io::stdout(), true).map_err(|e| format!("{}", e)) {
                     println!("{}", e);
                 }
+                print!("\n"); // Force flush
                 Ok(())
             },
         }
