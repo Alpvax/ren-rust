@@ -2,7 +2,16 @@
     Lambda(
         Meta {
             typ: Hole,
-            span: (),
+            span: Span {
+                start: Pos {
+                    line: 1,
+                    col: 1,
+                },
+                end: Pos {
+                    line: 1,
+                    col: 152,
+                },
+            },
             comment: [],
         },
         [
@@ -13,13 +22,31 @@
         Call(
             Meta {
                 typ: Hole,
-                span: (),
+                span: Span {
+                    start: Pos {
+                        line: 1,
+                        col: 12,
+                    },
+                    end: Pos {
+                        line: 1,
+                        col: 152,
+                    },
+                },
                 comment: [],
             },
             Scoped(
                 Meta {
                     typ: Hole,
-                    span: (),
+                    span: Span {
+                        start: Pos {
+                            line: 1,
+                            col: 13,
+                        },
+                        end: Pos {
+                            line: 1,
+                            col: 21,
+                        },
+                    },
                     comment: [],
                 },
                 [
@@ -31,12 +58,21 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 22,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 26,
+                            },
+                        },
                         comment: [],
                     },
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "\n",
                             ),
                         ],
@@ -45,7 +81,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 27,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 152,
+                            },
+                        },
                         comment: [],
                     },
                     Array(
@@ -53,13 +98,31 @@
                             Call(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 29,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 76,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 Var(
                                     Meta {
                                         typ: Hole,
-                                        span: (),
+                                        span: Span {
+                                            start: Pos {
+                                                line: 1,
+                                                col: 29,
+                                            },
+                                            end: Pos {
+                                                line: 1,
+                                                col: 33,
+                                            },
+                                        },
                                         comment: [],
                                     },
                                     "line",
@@ -68,13 +131,31 @@
                                     Binop(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 35,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 66,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         Var(
                                             Meta {
                                                 typ: Hole,
-                                                span: (),
+                                                span: Span {
+                                                    start: Pos {
+                                                        line: 1,
+                                                        col: 35,
+                                                    },
+                                                    end: Pos {
+                                                        line: 1,
+                                                        col: 39,
+                                                    },
+                                                },
                                                 comment: [],
                                             },
                                             "name",
@@ -83,18 +164,36 @@
                                         Binop(
                                             Meta {
                                                 typ: Hole,
-                                                span: (),
+                                                span: Span {
+                                                    start: Pos {
+                                                        line: 1,
+                                                        col: 42,
+                                                    },
+                                                    end: Pos {
+                                                        line: 1,
+                                                        col: 66,
+                                                    },
+                                                },
                                                 comment: [],
                                             },
                                             Literal(
                                                 Meta {
                                                     typ: Hole,
-                                                    span: (),
+                                                    span: Span {
+                                                        start: Pos {
+                                                            line: 1,
+                                                            col: 43,
+                                                        },
+                                                        end: Pos {
+                                                            line: 1,
+                                                            col: 47,
+                                                        },
+                                                    },
                                                     comment: [],
                                                 },
                                                 LStr(
                                                     [
-                                                        Left(
+                                                        Text(
                                                             ", ",
                                                         ),
                                                     ],
@@ -104,13 +203,31 @@
                                             Binop(
                                                 Meta {
                                                     typ: Hole,
-                                                    span: (),
+                                                    span: Span {
+                                                        start: Pos {
+                                                            line: 1,
+                                                            col: 50,
+                                                        },
+                                                        end: Pos {
+                                                            line: 1,
+                                                            col: 66,
+                                                        },
+                                                    },
                                                     comment: [],
                                                 },
                                                 Var(
                                                     Meta {
                                                         typ: Hole,
-                                                        span: (),
+                                                        span: Span {
+                                                            start: Pos {
+                                                                line: 1,
+                                                                col: 51,
+                                                            },
+                                                            end: Pos {
+                                                                line: 1,
+                                                                col: 55,
+                                                            },
+                                                        },
                                                         comment: [],
                                                     },
                                                     "name",
@@ -119,12 +236,21 @@
                                                 Literal(
                                                     Meta {
                                                         typ: Hole,
-                                                        span: (),
+                                                        span: Span {
+                                                            start: Pos {
+                                                                line: 1,
+                                                                col: 59,
+                                                            },
+                                                            end: Pos {
+                                                                line: 1,
+                                                                col: 66,
+                                                            },
+                                                        },
                                                         comment: [],
                                                     },
                                                     LStr(
                                                         [
-                                                            Left(
+                                                            Text(
                                                                 ", bo-",
                                                             ),
                                                         ],
@@ -136,12 +262,21 @@
                                     Literal(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 68,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 71,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         LStr(
                                             [
-                                                Left(
+                                                Text(
                                                     "b",
                                                 ),
                                             ],
@@ -150,7 +285,16 @@
                                     Var(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 72,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 76,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         "name",
@@ -160,13 +304,31 @@
                             Call(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 78,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 109,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 Var(
                                     Meta {
                                         typ: Hole,
-                                        span: (),
+                                        span: Span {
+                                            start: Pos {
+                                                line: 1,
+                                                col: 78,
+                                            },
+                                            end: Pos {
+                                                line: 1,
+                                                col: 82,
+                                            },
+                                        },
                                         comment: [],
                                     },
                                     "line",
@@ -175,12 +337,21 @@
                                     Literal(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 83,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 100,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         LStr(
                                             [
-                                                Left(
+                                                Text(
                                                     "banana-fana fo-",
                                                 ),
                                             ],
@@ -189,12 +360,21 @@
                                     Literal(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 101,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 104,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         LStr(
                                             [
-                                                Left(
+                                                Text(
                                                     "f",
                                                 ),
                                             ],
@@ -203,7 +383,16 @@
                                     Var(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 105,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 109,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         "name",
@@ -213,13 +402,31 @@
                             Call(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 111,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 137,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 Var(
                                     Meta {
                                         typ: Hole,
-                                        span: (),
+                                        span: Span {
+                                            start: Pos {
+                                                line: 1,
+                                                col: 111,
+                                            },
+                                            end: Pos {
+                                                line: 1,
+                                                col: 115,
+                                            },
+                                        },
                                         comment: [],
                                     },
                                     "line",
@@ -228,12 +435,21 @@
                                     Literal(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 116,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 128,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         LStr(
                                             [
-                                                Left(
+                                                Text(
                                                     "fee-fi-mo-",
                                                 ),
                                             ],
@@ -242,12 +458,21 @@
                                     Literal(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 129,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 132,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         LStr(
                                             [
-                                                Left(
+                                                Text(
                                                     "m",
                                                 ),
                                             ],
@@ -256,7 +481,16 @@
                                     Var(
                                         Meta {
                                             typ: Hole,
-                                            span: (),
+                                            span: Span {
+                                                start: Pos {
+                                                    line: 1,
+                                                    col: 133,
+                                                },
+                                                end: Pos {
+                                                    line: 1,
+                                                    col: 137,
+                                                },
+                                            },
                                             comment: [],
                                         },
                                         "name",
@@ -266,13 +500,31 @@
                             Binop(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 139,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 151,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 Var(
                                     Meta {
                                         typ: Hole,
-                                        span: (),
+                                        span: Span {
+                                            start: Pos {
+                                                line: 1,
+                                                col: 139,
+                                            },
+                                            end: Pos {
+                                                line: 1,
+                                                col: 143,
+                                            },
+                                        },
                                         comment: [],
                                     },
                                     "name",
@@ -281,12 +533,21 @@
                                 Literal(
                                     Meta {
                                         typ: Hole,
-                                        span: (),
+                                        span: Span {
+                                            start: Pos {
+                                                line: 1,
+                                                col: 147,
+                                            },
+                                            end: Pos {
+                                                line: 1,
+                                                col: 150,
+                                            },
+                                        },
                                         comment: [],
                                     },
                                     LStr(
                                         [
-                                            Left(
+                                            Text(
                                                 "!",
                                             ),
                                         ],
@@ -302,13 +563,31 @@
     Switch(
         Meta {
             typ: Hole,
-            span: (),
+            span: Span {
+                start: Pos {
+                    line: 1,
+                    col: 1,
+                },
+                end: Pos {
+                    line: 1,
+                    col: 105,
+                },
+            },
             comment: [],
         },
         Placeholder(
             Meta {
                 typ: Hole,
-                span: (),
+                span: Span {
+                    start: Pos {
+                        line: 1,
+                        col: 7,
+                    },
+                    end: Pos {
+                        line: 1,
+                        col: 8,
+                    },
+                },
                 comment: [],
             },
         ),
@@ -317,7 +596,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "a",
                             ),
                         ],
@@ -327,7 +606,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 19,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 25,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -340,7 +628,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "e",
                             ),
                         ],
@@ -350,7 +638,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 35,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 41,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -363,7 +660,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "i",
                             ),
                         ],
@@ -373,7 +670,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 51,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 57,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -386,7 +692,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "o",
                             ),
                         ],
@@ -396,7 +702,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 67,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 73,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -409,7 +724,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "u",
                             ),
                         ],
@@ -419,7 +734,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 83,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 89,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -434,7 +758,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 99,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 105,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -448,13 +781,31 @@
     Switch(
         Meta {
             typ: Hole,
-            span: (),
+            span: Span {
+                start: Pos {
+                    line: 1,
+                    col: 1,
+                },
+                end: Pos {
+                    line: 1,
+                    col: 73,
+                },
+            },
             comment: [],
         },
         Placeholder(
             Meta {
                 typ: Hole,
-                span: (),
+                span: Span {
+                    start: Pos {
+                        line: 1,
+                        col: 7,
+                    },
+                    end: Pos {
+                        line: 1,
+                        col: 8,
+                    },
+                },
                 comment: [],
             },
         ),
@@ -463,7 +814,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "b",
                             ),
                         ],
@@ -473,7 +824,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 19,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 25,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -486,7 +846,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "f",
                             ),
                         ],
@@ -496,7 +856,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 35,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 41,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -509,7 +878,7 @@
                 Literal(
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "m",
                             ),
                         ],
@@ -519,7 +888,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 51,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 57,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -534,7 +912,16 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 67,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 73,
+                            },
+                        },
                         comment: [],
                     },
                     Enum(
@@ -548,7 +935,16 @@
     Lambda(
         Meta {
             typ: Hole,
-            span: (),
+            span: Span {
+                start: Pos {
+                    line: 1,
+                    col: 1,
+                },
+                end: Pos {
+                    line: 1,
+                    col: 73,
+                },
+            },
             comment: [],
         },
         [
@@ -559,19 +955,46 @@
         If(
             Meta {
                 typ: Hole,
-                span: (),
+                span: Span {
+                    start: Pos {
+                        line: 1,
+                        col: 13,
+                    },
+                    end: Pos {
+                        line: 1,
+                        col: 73,
+                    },
+                },
                 comment: [],
             },
             Call(
                 Meta {
                     typ: Hole,
-                    span: (),
+                    span: Span {
+                        start: Pos {
+                            line: 1,
+                            col: 15,
+                        },
+                        end: Pos {
+                            line: 1,
+                            col: 42,
+                        },
+                    },
                     comment: [],
                 },
                 Var(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 16,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 24,
+                            },
+                        },
                         comment: [],
                     },
                     "is_vowel",
@@ -580,13 +1003,31 @@
                     Call(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 26,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 41,
+                                },
+                            },
                             comment: [],
                         },
                         Scoped(
                             Meta {
                                 typ: Hole,
-                                span: (),
+                                span: Span {
+                                    start: Pos {
+                                        line: 1,
+                                        col: 26,
+                                    },
+                                    end: Pos {
+                                        line: 1,
+                                        col: 34,
+                                    },
+                                },
                                 comment: [],
                             },
                             [
@@ -598,7 +1039,16 @@
                             Literal(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 35,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 36,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 Number(
@@ -608,7 +1058,16 @@
                             Var(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 37,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 41,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 "name",
@@ -620,7 +1079,16 @@
             Var(
                 Meta {
                     typ: Hole,
-                    span: (),
+                    span: Span {
+                        start: Pos {
+                            line: 1,
+                            col: 48,
+                        },
+                        end: Pos {
+                            line: 1,
+                            col: 52,
+                        },
+                    },
                     comment: [],
                 },
                 "name",
@@ -628,13 +1096,31 @@
             Call(
                 Meta {
                     typ: Hole,
-                    span: (),
+                    span: Span {
+                        start: Pos {
+                            line: 1,
+                            col: 57,
+                        },
+                        end: Pos {
+                            line: 1,
+                            col: 73,
+                        },
+                    },
                     comment: [],
                 },
                 Scoped(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 58,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 66,
+                            },
+                        },
                         comment: [],
                     },
                     [
@@ -646,7 +1132,16 @@
                     Literal(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 67,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 68,
+                                },
+                            },
                             comment: [],
                         },
                         Number(
@@ -656,7 +1151,16 @@
                     Var(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 69,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 73,
+                                },
+                            },
                             comment: [],
                         },
                         "name",
@@ -668,7 +1172,16 @@
     Lambda(
         Meta {
             typ: Hole,
-            span: (),
+            span: Span {
+                start: Pos {
+                    line: 1,
+                    col: 1,
+                },
+                end: Pos {
+                    line: 1,
+                    col: 137,
+                },
+            },
             comment: [],
         },
         [
@@ -685,19 +1198,46 @@
         If(
             Meta {
                 typ: Hole,
-                span: (),
+                span: Span {
+                    start: Pos {
+                        line: 1,
+                        col: 27,
+                    },
+                    end: Pos {
+                        line: 1,
+                        col: 137,
+                    },
+                },
                 comment: [],
             },
             Binop(
                 Meta {
                     typ: Hole,
-                    span: (),
+                    span: Span {
+                        start: Pos {
+                            line: 1,
+                            col: 29,
+                        },
+                        end: Pos {
+                            line: 1,
+                            col: 56,
+                        },
+                    },
                     comment: [],
                 },
                 Var(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 30,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 36,
+                            },
+                        },
                         comment: [],
                     },
                     "letter",
@@ -706,13 +1246,31 @@
                 Call(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 39,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 55,
+                            },
+                        },
                         comment: [],
                     },
                     Scoped(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 40,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 48,
+                                },
+                            },
                             comment: [],
                         },
                         [
@@ -724,7 +1282,16 @@
                         Literal(
                             Meta {
                                 typ: Hole,
-                                span: (),
+                                span: Span {
+                                    start: Pos {
+                                        line: 1,
+                                        col: 49,
+                                    },
+                                    end: Pos {
+                                        line: 1,
+                                        col: 50,
+                                    },
+                                },
                                 comment: [],
                             },
                             Number(
@@ -734,7 +1301,16 @@
                         Var(
                             Meta {
                                 typ: Hole,
-                                span: (),
+                                span: Span {
+                                    start: Pos {
+                                        line: 1,
+                                        col: 51,
+                                    },
+                                    end: Pos {
+                                        line: 1,
+                                        col: 55,
+                                    },
+                                },
                                 comment: [],
                             },
                             "name",
@@ -745,19 +1321,46 @@
             Binop(
                 Meta {
                     typ: Hole,
-                    span: (),
+                    span: Span {
+                        start: Pos {
+                            line: 1,
+                            col: 60,
+                        },
+                        end: Pos {
+                            line: 1,
+                            col: 92,
+                        },
+                    },
                     comment: [],
                 },
                 Binop(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 60,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 84,
+                            },
+                        },
                         comment: [],
                     },
                     Var(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 61,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 67,
+                                },
+                            },
                             comment: [],
                         },
                         "prefix",
@@ -766,13 +1369,31 @@
                     Call(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 70,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 83,
+                                },
+                            },
                             comment: [],
                         },
                         Var(
                             Meta {
                                 typ: Hole,
-                                span: (),
+                                span: Span {
+                                    start: Pos {
+                                        line: 1,
+                                        col: 71,
+                                    },
+                                    end: Pos {
+                                        line: 1,
+                                        col: 78,
+                                    },
+                                },
                                 comment: [],
                             },
                             "shorten",
@@ -781,7 +1402,16 @@
                             Var(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 79,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 83,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 "name",
@@ -793,12 +1423,21 @@
                 Literal(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 87,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 91,
+                            },
+                        },
                         comment: [],
                     },
                     LStr(
                         [
-                            Left(
+                            Text(
                                 "\n",
                             ),
                         ],
@@ -808,13 +1447,31 @@
             Binop(
                 Meta {
                     typ: Hole,
-                    span: (),
+                    span: Span {
+                        start: Pos {
+                            line: 1,
+                            col: 96,
+                        },
+                        end: Pos {
+                            line: 1,
+                            col: 137,
+                        },
+                    },
                     comment: [],
                 },
                 Var(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 97,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 103,
+                            },
+                        },
                         comment: [],
                     },
                     "prefix",
@@ -823,19 +1480,46 @@
                 Binop(
                     Meta {
                         typ: Hole,
-                        span: (),
+                        span: Span {
+                            start: Pos {
+                                line: 1,
+                                col: 106,
+                            },
+                            end: Pos {
+                                line: 1,
+                                col: 137,
+                            },
+                        },
                         comment: [],
                     },
                     Binop(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 106,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 130,
+                                },
+                            },
                             comment: [],
                         },
                         Var(
                             Meta {
                                 typ: Hole,
-                                span: (),
+                                span: Span {
+                                    start: Pos {
+                                        line: 1,
+                                        col: 107,
+                                    },
+                                    end: Pos {
+                                        line: 1,
+                                        col: 113,
+                                    },
+                                },
                                 comment: [],
                             },
                             "letter",
@@ -844,13 +1528,31 @@
                         Call(
                             Meta {
                                 typ: Hole,
-                                span: (),
+                                span: Span {
+                                    start: Pos {
+                                        line: 1,
+                                        col: 116,
+                                    },
+                                    end: Pos {
+                                        line: 1,
+                                        col: 129,
+                                    },
+                                },
                                 comment: [],
                             },
                             Var(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 117,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 124,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 "shorten",
@@ -859,7 +1561,16 @@
                                 Var(
                                     Meta {
                                         typ: Hole,
-                                        span: (),
+                                        span: Span {
+                                            start: Pos {
+                                                line: 1,
+                                                col: 125,
+                                            },
+                                            end: Pos {
+                                                line: 1,
+                                                col: 129,
+                                            },
+                                        },
                                         comment: [],
                                     },
                                     "name",
@@ -871,12 +1582,21 @@
                     Literal(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 133,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 137,
+                                },
+                            },
                             comment: [],
                         },
                         LStr(
                             [
-                                Left(
+                                Text(
                                     "\n",
                                 ),
                             ],
@@ -889,24 +1609,42 @@
     Literal(
         Meta {
             typ: Hole,
-            span: (),
+            span: Span {
+                start: Pos {
+                    line: 1,
+                    col: 1,
+                },
+                end: Pos {
+                    line: 1,
+                    col: 41,
+                },
+            },
             comment: [],
         },
         LStr(
             [
-                Left(
+                Text(
                     "string with ",
                 ),
-                Right(
+                Value(
                     Literal(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 16,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 39,
+                                },
+                            },
                             comment: [],
                         },
                         LStr(
                             [
-                                Left(
+                                Text(
                                     "template ${sections}",
                                 ),
                             ],

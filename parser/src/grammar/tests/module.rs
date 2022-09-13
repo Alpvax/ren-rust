@@ -207,30 +207,44 @@ mod declaration {
     #[test]
     fn ext() {
         check(
-            "ext var",
+            r#"ext var = "name""#,
             expect![[r#"
-                Context(Module)@0..7
-                  Context(Declarations)@0..7
-                    Context(Declaration)@0..7
+                Context(Module)@0..16
+                  Context(Declarations)@0..16
+                    Context(Declaration)@0..16
                       Token(KWExt)@0..3 "ext"
                       Token(Whitespace)@3..4 " "
-                      Token(VarName)@4..7 "var""#]],
+                      Token(VarName)@4..7 "var"
+                      Token(Whitespace)@7..8 " "
+                      Token(OpAssign)@8..9 "="
+                      Token(Whitespace)@9..10 " "
+                      Context(String)@10..16
+                        Token(DoubleQuote)@10..11 "\""
+                        StringToken(Text)@11..15 "name"
+                        StringToken(Delimiter)@15..16 "\"""#]],
         );
     }
 
     #[test]
     fn public_ext() {
         check(
-            "pub ext var",
+            r#"pub ext var = "name""#,
             expect![[r#"
-                Context(Module)@0..11
-                  Context(Declarations)@0..11
-                    Context(Declaration)@0..11
+                Context(Module)@0..20
+                  Context(Declarations)@0..20
+                    Context(Declaration)@0..20
                       Token(KWPub)@0..3 "pub"
                       Token(Whitespace)@3..4 " "
                       Token(KWExt)@4..7 "ext"
                       Token(Whitespace)@7..8 " "
-                      Token(VarName)@8..11 "var""#]],
+                      Token(VarName)@8..11 "var"
+                      Token(Whitespace)@11..12 " "
+                      Token(OpAssign)@12..13 "="
+                      Token(Whitespace)@13..14 " "
+                      Context(String)@14..20
+                        Token(DoubleQuote)@14..15 "\""
+                        StringToken(Text)@15..19 "name"
+                        StringToken(Delimiter)@19..20 "\"""#]],
         );
     }
 

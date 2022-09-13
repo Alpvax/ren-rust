@@ -144,7 +144,16 @@ mod literal {
                               "$": "Hole"
                             }
                           ],
-                          "span": null,
+                          "span": [
+                            [
+                              1,
+                              1
+                            ],
+                            [
+                              1,
+                              1
+                            ]
+                          ],
                           "comment": []
                         },
                         [
@@ -174,7 +183,16 @@ mod literal {
                             Literal(
                                 Meta {
                                     typ: Hole,
-                                    span: (),
+                                    span: Span {
+                                        start: Pos {
+                                            line: 1,
+                                            col: 1,
+                                        },
+                                        end: Pos {
+                                            line: 1,
+                                            col: 1,
+                                        },
+                                    },
                                     comment: [],
                                 },
                                 LStr(
@@ -208,7 +226,16 @@ mod literal {
                         "$": "Hole"
                       }
                     ],
-                    "span": null,
+                    "span": [
+                      [
+                        1,
+                        1
+                      ],
+                      [
+                        1,
+                        1
+                      ]
+                    ],
                     "comment": []
                   },
                   [
@@ -226,7 +253,16 @@ mod literal {
                         "$": "Hole"
                       }
                     ],
-                    "span": null,
+                    "span": [
+                      [
+                        1,
+                        1
+                      ],
+                      [
+                        1,
+                        1
+                      ]
+                    ],
                     "comment": []
                   },
                   [
@@ -244,7 +280,16 @@ mod literal {
                     Literal(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 1,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 1,
+                                },
+                            },
                             comment: [],
                         },
                         Number(
@@ -254,7 +299,16 @@ mod literal {
                     Literal(
                         Meta {
                             typ: Hole,
-                            span: (),
+                            span: Span {
+                                start: Pos {
+                                    line: 1,
+                                    col: 1,
+                                },
+                                end: Pos {
+                                    line: 1,
+                                    col: 1,
+                                },
+                            },
                             comment: [],
                         },
                         Number(
