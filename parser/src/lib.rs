@@ -25,22 +25,73 @@ pub enum REPLStmt<D, E, I> {
     Comment(String),
     Empty,
 }
+impl<T> REPLStmt<T, T, T> {
+    fn map_all<F, U>(self, f: F) -> REPLStmt<U, U, U>
+    where
+        F: Fn(T) -> U,
+    {
+        match self {
+            REPLStmt::Decl(d) => REPLStmt::Decl(f(d)),
+            REPLStmt::Expr(e) => REPLStmt::Expr(f(e)),
+            REPLStmt::Import(i) => REPLStmt::Import(f(i)),
+            REPLStmt::Comment(c) => REPLStmt::Comment(c),
+            REPLStmt::Empty => REPLStmt::Empty,
+        }
+    }
+}
+impl<D, E, I> REPLStmt<D, E, I> {
+    pub fn map_each<DF, DR, EF, ER, IF, IR>(self, d_f: DF, e_f: EF, i_f: IF) -> REPLStmt<DR, ER, IR>
+    where
+        DF: Fn(D) -> DR,
+        EF: Fn(E) -> ER,
+        IF: Fn(I) -> IR,
+    {
+        match self {
+            REPLStmt::Decl(d) => REPLStmt::Decl(d_f(d)),
+            REPLStmt::Expr(e) => REPLStmt::Expr(e_f(e)),
+            REPLStmt::Import(i) => REPLStmt::Import(i_f(i)),
+            REPLStmt::Comment(c) => REPLStmt::Comment(c),
+            REPLStmt::Empty => REPLStmt::Empty,
+        }
+    }
+    pub fn map_ok<DF, DR, EF, ER, IF, IR, Err>(
+        self,
+        d_f: DF,
+        e_f: EF,
+        i_f: IF,
+    ) -> Result<REPLStmt<DR, ER, IR>, Err>
+    where
+        DF: Fn(D) -> Result<DR, Err>,
+        EF: Fn(E) -> Result<ER, Err>,
+        IF: Fn(I) -> Result<IR, Err>,
+    {
+        Ok(match self {
+            REPLStmt::Decl(d) => REPLStmt::Decl(d_f(d)?),
+            REPLStmt::Expr(e) => REPLStmt::Expr(e_f(e)?),
+            REPLStmt::Import(i) => REPLStmt::Import(i_f(i)?),
+            REPLStmt::Comment(c) => REPLStmt::Comment(c),
+            REPLStmt::Empty => REPLStmt::Empty,
+        })
+    }
+}
 
 /// Parse a single REPL statement (import, declaration or expression)
-pub fn parse_stmt_ast(
-    input: &str,
-) -> Result<REPLStmt<lower_ast::Decl, lower_ast::Expr, lower_ast::Import>, &'static str> {
-    match parse_repl_stmt(input)? {
-        REPLStmt::Decl(parsed) => lower_ast::decl_ast(parsed.syntax())
-            .map(REPLStmt::Decl)
-            .ok_or("error converting parsed to Decl"),
-        REPLStmt::Expr(parsed) => lower_ast::expr_ast(parsed.syntax())
-            .map(REPLStmt::Expr)
-            .ok_or("error converting parsed to Expr"),
-        REPLStmt::Import(parsed) => lower_ast::import_ast(parsed.syntax())
-            .map(REPLStmt::Import)
-            .ok_or("error converting parsed to Import"),
-        REPLStmt::Comment(text) => Ok(REPLStmt::Comment(text)),
-        REPLStmt::Empty => Ok(REPLStmt::Empty),
-    }
+pub fn parse_stmt_ast<'source>(
+    input: &'source str,
+) -> Result<
+    (
+        REPLStmt<lower_ast::Decl, lower_ast::Expr, lower_ast::Import>,
+        ::line_col::LineColLookup<'source>,
+    ),
+    &'static str,
+> {
+    let line_lookup = ::line_col::LineColLookup::new(input);
+    parse_repl_stmt(input)?
+        .map_all(|parsed| parsed.syntax())
+        .map_ok(
+            |syntax| lower_ast::decl_ast(syntax).ok_or("error convertirng parsed to Decl"),
+            |syntax| lower_ast::expr_ast(syntax).ok_or("error convertirng parsed to Expr"),
+            |syntax| lower_ast::import_ast(syntax).ok_or("error convertirng parsed to Import"),
+        )
+        .map(|stmt| (stmt, line_lookup))
 }

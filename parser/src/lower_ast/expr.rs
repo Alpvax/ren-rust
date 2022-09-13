@@ -8,13 +8,21 @@ use super::{
     literal,
     macro_impl::create_ast_enum,
     pattern::Pattern,
-    FromSyntaxElement, SyntaxNode, SyntaxToken, ToHIR,
+    FromSyntaxElement, RangeLookup, SyntaxNode, SyntaxToken, ToHIR,
 };
 
 type HigherExpr = higher_ast::Expr;
 
+fn make_spanned(
+    expr: HigherExpr,
+    text_range: ::rowan::TextRange,
+    line_lookup: &::line_col::LineColLookup,
+) -> HigherExpr {
+    expr.with_span(RangeLookup(line_lookup, text_range))
+}
+
 create_ast_enum! {
-    Expr = Context::Expr => <HigherExpr, ()> {
+    Expr = Context::Expr => <HigherExpr, ()>: make_spanned; {
         // Literal contexts
         Context::Array => LArray(literal::LArray<Self>),
         Context::Constructor => LConstructor(literal::LConstructor<Self>),
@@ -68,7 +76,7 @@ impl ToHIR for ScopedExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, _line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::scoped(
             self.namespace()
                 .into_iter()
@@ -92,7 +100,7 @@ impl ToHIR for VarExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, _line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::var(self.name().to_string())
     }
 
@@ -106,7 +114,7 @@ impl ToHIR for PlaceholderExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, _line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::placeholder()
     }
 
@@ -131,9 +139,9 @@ impl ToHIR for AccessExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::access(
-            self.obj().to_higher_ast().unwrap(),
+            self.obj().to_higher_ast(line_lookup).unwrap(),
             self.key().unwrap().to_string(),
         )
     }
@@ -165,11 +173,11 @@ impl ToHIR for BindingExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::binding(
-            self.pattern().to_higher_ast().unwrap(),
-            self.binding_expr().to_higher_ast().unwrap(),
-            self.result_expr().to_higher_ast().unwrap(),
+            self.pattern().to_higher_ast(line_lookup).unwrap(),
+            self.binding_expr().to_higher_ast(line_lookup).unwrap(),
+            self.result_expr().to_higher_ast(line_lookup).unwrap(),
         )
     }
 
@@ -205,11 +213,11 @@ impl ToHIR for BinOpExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::binop(
-            self.lhs().to_higher_ast().unwrap(),
+            self.lhs().to_higher_ast(line_lookup).unwrap(),
             self.op().unwrap(),
-            self.rhs().to_higher_ast().unwrap(),
+            self.rhs().to_higher_ast(line_lookup).unwrap(),
         )
     }
 
@@ -238,7 +246,7 @@ impl ToHIR for CallExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         let mut func = self.func().unwrap();
         let mut r_args = vec![self.arg()];
         while let Expr::ECall(call) = func {
@@ -247,8 +255,10 @@ impl ToHIR for CallExpr {
         }
         r_args.reverse();
         HigherExpr::apply_many(
-            func.to_higher_ast(),
-            r_args.into_iter().filter_map(|arg| arg.to_higher_ast()),
+            func.to_higher_ast(line_lookup),
+            r_args
+                .into_iter()
+                .filter_map(|arg| arg.to_higher_ast(line_lookup)),
         )
     }
 
@@ -278,11 +288,11 @@ impl ToHIR for ConditionalExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::conditional(
-            self.condition().to_higher_ast().unwrap(),
-            self.true_expr().to_higher_ast().unwrap(),
-            self.false_expr().to_higher_ast().unwrap(),
+            self.condition().to_higher_ast(line_lookup).unwrap(),
+            self.true_expr().to_higher_ast(line_lookup).unwrap(),
+            self.false_expr().to_higher_ast(line_lookup).unwrap(),
         )
     }
 
@@ -319,13 +329,13 @@ impl ToHIR for LambdaExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::lambda(
             self.params()
                 .into_iter()
-                .map(|p| p.to_higher_ast())
+                .map(|p| p.to_higher_ast(line_lookup))
                 .collect(),
-            self.body().to_higher_ast().unwrap(),
+            self.body().to_higher_ast(line_lookup).unwrap(),
         )
     }
 
@@ -354,11 +364,11 @@ impl ToHIR for PrefixOpExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::binop(
             HigherExpr::literal(0),
             self.op().unwrap(),
-            self.operand().to_higher_ast().unwrap(),
+            self.operand().to_higher_ast(line_lookup).unwrap(),
         )
     }
 
@@ -415,16 +425,16 @@ impl ToHIR for WhereExpr {
     type HIRType = HigherExpr;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherExpr::switch(
-            self.expr().to_higher_ast().unwrap(),
+            self.expr().to_higher_ast(line_lookup).unwrap(),
             self.branches()
                 .into_iter()
                 .map(|(p, g, e)| {
                     (
-                        p.to_higher_ast(),
-                        g.map(|ge| ge.to_higher_ast()),
-                        e.to_higher_ast(),
+                        p.to_higher_ast(line_lookup),
+                        g.map(|ge| ge.to_higher_ast(line_lookup)),
+                        e.to_higher_ast(line_lookup),
                     )
                 })
                 .collect(),

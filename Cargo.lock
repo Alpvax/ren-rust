@@ -481,6 +481,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "505e71a4706fa491e9b1b55f51b95d4037d0821ee40131190475f692b35b009b"
 
 [[package]]
+name = "line-col"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e69cdf6b85b5c8dce514f694089a2cf8b1a702f6cd28607bcb3cf296c9778db"
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.0.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -684,6 +690,7 @@ dependencies = [
  "drop_bomb",
  "either",
  "expect-test",
+ "line-col",
  "logos",
  "num-derive",
  "num-traits",
@@ -697,6 +704,7 @@ version = "0.1.0"
 dependencies = [
  "ast",
  "expect-test",
+ "line-col",
  "parser",
  "reqwest",
  "rustyline",

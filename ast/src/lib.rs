@@ -3,12 +3,12 @@ pub mod expr;
 pub mod module;
 mod ren_type;
 mod span;
-use span::Span;
 
 pub use decl::Decl;
 pub use expr::{Expr, Literal, Operator, Pattern};
 pub use module::{import::Import, Module};
 pub use ren_type::Type;
+pub use span::Span;
 
 pub trait ASTLiteralType {}
 

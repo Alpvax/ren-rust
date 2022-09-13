@@ -1,6 +1,6 @@
 use crate::parse_expression;
 
-use super::{expr::Expr, FromSyntaxElement, ToHIR};
+use super::expr::Expr;
 
 // #[test]
 // #[ignore = "module unimplemented"]
@@ -18,7 +18,7 @@ fn parse_sample_exprs() {
     let exprs = include_str!("./sample_expressions.ren")
         .split_terminator("\n\n")
         .filter_map(|line| {
-            Expr::from_root_node(parse_expression(line).syntax()).map(|e| e.to_higher_ast())
+            parse_expression(line).to_higher_ast::<Expr>()
             //.map(|expr| (line, expr))
         })
         .collect::<Vec<_>>();

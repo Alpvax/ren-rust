@@ -34,6 +34,9 @@ macro_rules! make_enum_objects {
                 pub(crate) fn new(node: $typ) -> Self {
                     Self(node, PhantomData)
                 }
+                pub(crate) fn text_range(&self) -> ::rowan::TextRange {
+                    self.0.text_range()
+                }
             }
         )+
     };
@@ -53,8 +56,11 @@ make_enum_objects! {
 }
 
 impl<T> LNumber<T> {
-    pub fn new(token: SyntaxToken) -> Self {
+    pub(crate) fn new(token: SyntaxToken) -> Self {
         Self(token, PhantomData)
+    }
+    pub(crate) fn text_range(&self) -> ::rowan::TextRange {
+        self.0.text_range()
     }
     pub fn value(&self) -> f64 {
         self.0
@@ -71,7 +77,7 @@ where
     type HIRType = HigherLiteral<T::HIRType>;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, _line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherLiteral::Number(self.value())
     }
 
@@ -140,13 +146,13 @@ where
     type HIRType = HigherLiteral<T::HIRType>;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherLiteral::LStr(
             self.parts()
                 .into_iter()
                 .map(|part| {
                     higher_ast::expr::literal::StringPart::from(part)//.map_left(|text| text.to_string())
-                        .map/*_right*/(|t| t.to_higher_ast())
+                        .map/*_right*/(|t| t.to_higher_ast(line_lookup))
                 })
                 .collect(),
         )
@@ -181,13 +187,13 @@ where
     type HIRType = HigherLiteral<T::HIRType>;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherLiteral::Record(
             self.fields()
                 .into_iter()
                 .map(|(name, val)| {
                     let val = val
-                        .map(|v| v.to_higher_ast())
+                        .map(|v| v.to_higher_ast(line_lookup))
                         .unwrap_or(T::HIRType::var_value(name.clone()));
                     (name, val)
                 })
@@ -224,11 +230,11 @@ where
     type HIRType = HigherLiteral<T::HIRType>;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherLiteral::Array(
             self.items()
                 .into_iter()
-                .map(|item| item.to_higher_ast())
+                .map(|item| item.to_higher_ast(line_lookup))
                 .collect(),
         )
     }
@@ -264,14 +270,14 @@ where
     type HIRType = HigherLiteral<T::HIRType>;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         self.tag()
             .map(|tag| {
                 HigherLiteral::Enum(
                     tag.to_string(),
                     self.args()
                         .into_iter()
-                        .map(|arg| arg.to_higher_ast())
+                        .map(|arg| arg.to_higher_ast(line_lookup))
                         .collect(),
                 )
             })

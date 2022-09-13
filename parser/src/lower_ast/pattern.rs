@@ -33,7 +33,7 @@ impl ToHIR for PAny {
     type HIRType = HigherPattern;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, _line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherPattern::Any
     }
 
@@ -60,10 +60,10 @@ impl ToHIR for PType {
     type HIRType = HigherPattern;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherPattern::Type(
             self.type_name().unwrap().to_string(),
-            Box::new(self.binding().to_higher_ast().unwrap()),
+            Box::new(self.binding().to_higher_ast(line_lookup).unwrap()),
         )
     }
 
@@ -82,7 +82,7 @@ impl ToHIR for PVar {
     type HIRType = HigherPattern;
     type ValidationError = ();
 
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, _line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         HigherPattern::Var(self.name().to_string())
     }
 

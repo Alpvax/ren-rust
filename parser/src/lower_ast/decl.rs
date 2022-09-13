@@ -19,6 +19,9 @@ impl FromSyntaxElement for Decl {
     fn from_root_node(node: SyntaxNode) -> Option<Self> {
         Self::from_node(Context::Declaration, node)
     }
+    fn get_range(&self) -> rowan::TextRange {
+        self.0.text_range()
+    }
 }
 impl Decl {
     fn is_public(&self) -> bool {
@@ -50,13 +53,13 @@ impl Decl {
 impl ToHIR for Decl {
     type HIRType = higher_ast::Decl;
     type ValidationError = ();
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         if self.is_local() {
             higher_ast::Decl::local(
                 Default::default(),
                 self.is_public(),
                 self.name().unwrap(),
-                self.expr().unwrap().to_higher_ast(),
+                self.expr().unwrap().to_higher_ast(line_lookup),
             )
         } else {
             higher_ast::Decl::external(

@@ -11,6 +11,7 @@ pub(crate) use marker::Marker;
 pub(crate) struct Parser<'source> {
     lexer: Lexer<'source>,
     builder: GreenNodeBuilder<'static>,
+    line_lookup: line_col::LineColLookup<'source>,
     whitespace_token: Option<Lexeme<'source>>,
 }
 
@@ -19,6 +20,7 @@ impl<'source> Parser<'source> {
         Self {
             lexer: Lexer::new(input),
             builder: GreenNodeBuilder::new(),
+            line_lookup: line_col::LineColLookup::new(input),
             whitespace_token: None,
         }
     }
@@ -38,7 +40,7 @@ impl<'source> Parser<'source> {
             false
         }
     }
-    pub fn parse(self) -> Parsed {
+    pub fn parse(self) -> Parsed<'source> {
         let remaining = self.lexer.collect::<Vec<_>>();
         assert!(
             remaining.len() < 1,
@@ -47,6 +49,7 @@ impl<'source> Parser<'source> {
         );
         Parsed {
             green_node: self.builder.finish(),
+            line_lookup: self.line_lookup,
         }
     }
     pub fn bump_whitespace(&mut self) -> bool {
@@ -85,10 +88,11 @@ impl<'source> Parser<'source> {
     }
 }
 
-pub struct Parsed {
+pub struct Parsed<'source> {
     green_node: GreenNode,
+    line_lookup: line_col::LineColLookup<'source>,
 }
-impl Parsed {
+impl<'source> Parsed<'source> {
     pub fn debug_tree(&self) -> String {
         let syntax_node = SyntaxNode::new_root(self.green_node.clone());
         let formatted = format!("{:#?}", syntax_node);
@@ -98,5 +102,11 @@ impl Parsed {
     }
     pub(crate) fn syntax(&self) -> SyntaxNode {
         SyntaxNode::new_root(self.green_node.clone())
+    }
+    pub fn map<'p, F, T>(&self, f: F) -> T
+    where
+        F: Fn(SyntaxNode, &line_col::LineColLookup<'source>) -> T,
+    {
+        f(self.syntax(), &self.line_lookup)
     }
 }

@@ -23,6 +23,9 @@ impl FromSyntaxElement for Import {
     fn from_root_node(node: SyntaxNode) -> Option<Self> {
         Self::from_node(Context::Import, node)
     }
+    fn get_range(&self) -> rowan::TextRange {
+        self.0.text_range()
+    }
 }
 impl Import {
     fn source(&self) -> Option<Source> {
@@ -69,7 +72,7 @@ impl Import {
 impl ToHIR for Import {
     type HIRType = higher_ast::Import;
     type ValidationError = ();
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, _line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         higher_ast::Import {
             path: self.path().map(|s| s.to_string()).unwrap(),
             source: self.source().unwrap(),

@@ -19,6 +19,9 @@ impl FromSyntaxElement for Module {
     fn from_root_node(node: SyntaxNode) -> Option<Self> {
         Self::from_node(Context::Module, node)
     }
+    fn get_range(&self) -> rowan::TextRange {
+        self.0.text_range()
+    }
 }
 impl Module {
     fn imports(&self) -> Vec<Import> {
@@ -53,11 +56,15 @@ impl Module {
 impl ToHIR for Module {
     type HIRType = higher_ast::Module;
     type ValidationError = ();
-    fn to_higher_ast(&self) -> Self::HIRType {
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         higher_ast::Module::new(
             Default::default(),
-            self.imports().into_iter().map(|i| i.to_higher_ast()),
-            self.decls().into_iter().map(|d| d.to_higher_ast()),
+            self.imports()
+                .into_iter()
+                .map(|i| i.to_higher_ast(line_lookup)),
+            self.decls()
+                .into_iter()
+                .map(|d| d.to_higher_ast(line_lookup)),
         )
     }
     fn validate(&self) -> Option<Self::ValidationError> {

@@ -82,6 +82,43 @@ impl Expr {
     //         Expr::Var(meta, _) => meta.clone(),
     //     }
     // }
+    fn meta_mut(&mut self) -> &mut Meta {
+        match self {
+            Expr::Access(meta, _, _) => meta,
+            Expr::Annotated(meta, _, _) => meta,
+            Expr::Binop(meta, _, _, _) => meta,
+            Expr::Call(meta, _, _) => meta,
+            Expr::If(meta, _, _, _) => meta,
+            Expr::Lambda(meta, _, _) => meta,
+            Expr::Let(meta, _, _, _) => meta,
+            Expr::Literal(meta, _) => meta,
+            Expr::Placeholder(meta) => meta,
+            Expr::Scoped(meta, _, _) => meta,
+            Expr::Switch(meta, _, _) => meta,
+            Expr::Var(meta, _) => meta,
+        }
+    }
+    // #[must_use]
+    // pub fn with_meta_values<T, S, C>(mut self, typ: Option<T>, span: Option<S>, comments: C) -> Self where T: Into<Type>, S: Into<Span>, C: IntoIterator, C::Item: ToString {
+    //     let meta = self.meta_mut();
+    //     if let Some(t) = typ {
+    //         meta.typ = t.into();
+    //     }
+    //     if let Some(s) = span {
+    //         meta.span = s.into();
+    //     }
+    //     meta.comment.extend(comments.into_iter().map(|s| s.to_string()));
+    //     self
+    // }
+    #[must_use]
+    pub fn with_span<S>(mut self, span: S) -> Self
+    where
+        S: Into<Span>,
+    {
+        let meta = self.meta_mut();
+        meta.span = span.into();
+        self
+    }
     //TODO fn references(&self) -> ...
     //TODO fn shadows(&self) -> ...
     fn is_placeholder(&self) -> bool {

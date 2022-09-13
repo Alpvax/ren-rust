@@ -6,7 +6,10 @@ use parser::{
 pub(super) trait ReplMode {
     fn name() -> &'static str;
     fn handle_command<'c, 'r>(cmd: &'c str, mode: &'r mut Modes) -> Result<(), &'c str>;
-    fn handle_stmt(stmt: REPLStmt<Decl, Expr, Import>) -> Result<(), &'static str>;
+    fn handle_stmt(
+        stmt: REPLStmt<Decl, Expr, Import>,
+        line_lookup: &::line_col::LineColLookup,
+    ) -> Result<(), &'static str>;
 }
 
 macro_rules! make_modes {
@@ -16,9 +19,9 @@ macro_rules! make_modes {
             $($cmd:ty),* $(,)?
         }$(,)?
         $(handle_stmt: )? $(stmt =>)? {
-            $(REPLStmt::)?Decl($decl_id:ident) => $decl_body:expr,
-            $(REPLStmt::)?Expr($expr_id:ident) => $expr_body:expr,
-            $(REPLStmt::)?Import($imp_id:ident) => $imp_body:expr,
+            $(REPLStmt::)?Decl($decl_id:ident $(,$d_l_lookup:ident)?) => $decl_body:expr,
+            $(REPLStmt::)?Expr($expr_id:ident $(,$e_l_lookup:ident)?) => $expr_body:expr,
+            $(REPLStmt::)?Import($imp_id:ident $(,$i_l_lookup:ident)?) => $imp_body:expr,
         }
     }$(,)?)+) => {
         #[derive(Clone, Copy, Debug)]
@@ -38,9 +41,9 @@ macro_rules! make_modes {
                     $(Self::$name => $name::handle_command(cmd, self),)+
                 }
             }
-            pub fn handle_stmt(&self, stmt: REPLStmt<Decl, Expr, Import>) -> Result<(), &'static str> {
+            pub fn handle_stmt(&self, stmt: REPLStmt<Decl, Expr, Import>, line_lookup: &::line_col::LineColLookup) -> Result<(), &'static str> {
                 match &self {
-                    $(Self::$name => $name::handle_stmt(stmt),)+
+                    $(Self::$name => $name::handle_stmt(stmt, line_lookup),)+
                 }
             }
         }
@@ -83,11 +86,11 @@ macro_rules! make_modes {
 
                     Err("Unknown command")
                 }
-                fn handle_stmt(stmt: REPLStmt<Decl, Expr, Import>) -> Result<(), &'static str> {
-                    match stmt {
-                        REPLStmt::Decl($decl_id) => $decl_body,
-                        REPLStmt::Expr($expr_id) => $expr_body,
-                        REPLStmt::Import($imp_id) => $imp_body,
+                fn handle_stmt(stmt: REPLStmt<Decl, Expr, Import>, line_lookup: &::line_col::LineColLookup) -> Result<(), &'static str> {
+                    match (stmt, line_lookup, ()) {
+                        (REPLStmt::Decl($decl_id), $($d_l_lookup,)? ..) => $decl_body,
+                        (REPLStmt::Expr($expr_id), $($e_l_lookup,)? ..) => $expr_body,
+                        (REPLStmt::Import($imp_id), $($i_l_lookup,)? ..) => $imp_body,
                         _ => Ok(()),
                     }
                 }
@@ -110,31 +113,31 @@ make_modes! {
         "higher AST",
         commands: {},
         {
-            Decl(decl) => Ok(println!("{:?}", decl.to_higher_ast())),
-            Expr(expr) => Ok(println!("{:?}", expr.to_higher_ast())),
-            Import(imp) => Ok(println!("{:?}", imp.to_higher_ast())),
+            Decl(decl, line_lookup) => Ok(println!("{:?}", decl.to_higher_ast(line_lookup))),
+            Expr(expr, line_lookup) => Ok(println!("{:?}", expr.to_higher_ast(line_lookup))),
+            Import(imp, line_lookup) => Ok(println!("{:?}", imp.to_higher_ast(line_lookup))),
         }
     }
     Json {
         "json",
         commands: {},
         {
-            Decl(decl) => {
-                if let Err(e) = decl.to_higher_ast().to_json_writer(std::io::stdout(), false) {
+            Decl(decl, line_lookup) => {
+                if let Err(e) = decl.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
                     println!("{}", e);
                 }
                 print!("\n"); // Force flush
                 Ok(())
             },
-            Expr(expr) => {
-                if let Err(e) = expr.to_higher_ast().to_json_writer(std::io::stdout(), false).map_err(|e| format!("{}", e)) {
+            Expr(expr, line_lookup) => {
+                if let Err(e) = expr.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
                     println!("{}", e);
                 }
                 print!("\n"); // Force flush
                 Ok(())
             },
-            Import(imp) => {
-                if let Err(e) = imp.to_higher_ast().to_json_writer(std::io::stdout(), false).map_err(|e| format!("{}", e)) {
+            Import(imp, line_lookup) => {
+                if let Err(e) = imp.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
                     println!("{}", e);
                 }
                 print!("\n"); // Force flush
@@ -146,22 +149,22 @@ make_modes! {
         "json (pretty)",
         commands: {},
         {
-            Decl(decl) => {
-                if let Err(e) = decl.to_higher_ast().to_json_writer(std::io::stdout(), true) {
+            Decl(decl, line_lookup) => {
+                if let Err(e) = decl.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
                     println!("{}", e);
                 }
                 print!("\n"); // Force flush
                 Ok(())
             },
-            Expr(expr) => {
-                if let Err(e) = expr.to_higher_ast().to_json_writer(std::io::stdout(), true).map_err(|e| format!("{}", e)) {
+            Expr(expr, line_lookup) => {
+                if let Err(e) = expr.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
                     println!("{}", e);
                 }
                 print!("\n"); // Force flush
                 Ok(())
             },
-            Import(imp) => {
-                if let Err(e) = imp.to_higher_ast().to_json_writer(std::io::stdout(), true).map_err(|e| format!("{}", e)) {
+            Import(imp, line_lookup) => {
+                if let Err(e) = imp.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
                     println!("{}", e);
                 }
                 print!("\n"); // Force flush

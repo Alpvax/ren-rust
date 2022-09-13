@@ -46,6 +46,7 @@ pub trait FromSyntaxElement {
             _ => None,
         }
     }
+    fn get_range(&self) -> ::rowan::TextRange;
 }
 
 macro_rules! ast_funcs {
@@ -69,7 +70,7 @@ ast_funcs! {
 pub trait ToHIR {
     type HIRType;
     type ValidationError;
-    fn to_higher_ast(&self) -> Self::HIRType;
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType;
     fn validate(&self) -> Option<Self::ValidationError>;
 }
 impl<T> ToHIR for Option<T>
@@ -80,8 +81,8 @@ where
 
     type ValidationError = T::ValidationError;
 
-    fn to_higher_ast(&self) -> Self::HIRType {
-        self.as_ref().map(|val| val.to_higher_ast())
+    fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
+        self.as_ref().map(|val| val.to_higher_ast(line_lookup))
     }
 
     fn validate(&self) -> Option<Self::ValidationError> {
@@ -124,6 +125,35 @@ fn simple_str(node: SyntaxNode) -> Option<::smol_str::SmolStr> {
         }
     } else {
         None
+    }
+}
+
+struct RangeLookup<'source>(&'source line_col::LineColLookup<'source>, rowan::TextRange);
+
+impl From<RangeLookup<'_>> for ((usize, usize), (usize, usize)) {
+    fn from(rl: RangeLookup) -> Self {
+        (rl.0.get(rl.1.start().into()), rl.0.get(rl.1.end().into()))
+    }
+}
+impl From<RangeLookup<'_>> for higher_ast::Span {
+    fn from(rl: RangeLookup) -> Self {
+        (rl.0.get(rl.1.start().into()), rl.0.get(rl.1.end().into())).into()
+    }
+}
+
+impl crate::Parsed<'_> {
+    pub fn map_to_higher_ast<F, T, U>(&self, f: F) -> U
+    where
+        F: Fn(SyntaxNode) -> T,
+        T: ToHIR<HIRType = U>,
+    {
+        self.map(|syntax, line_lookup| f(syntax).to_higher_ast(line_lookup))
+    }
+    pub fn to_higher_ast<L>(&self) -> Option<L::HIRType>
+    where
+        L: FromSyntaxElement + ToHIR,
+    {
+        self.map(|syntax, line_lookup| L::from_root_node(syntax).to_higher_ast(line_lookup))
     }
 }
 // pub enum ASTRoot {
