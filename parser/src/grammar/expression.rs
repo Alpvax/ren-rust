@@ -7,6 +7,12 @@ use crate::{
 
 use super::{parse_literal, pattern::parse_pattern};
 
+const NESTED_EXPR: super::NestedParser = super::NestedParser {
+    func: expr,
+    record_value_required: false,
+    record_allow_empty: true,
+};
+
 pub(super) fn expr(p: &mut Parser) {
     if !parse_subexpression(p, 0) {
         parse_term(p);
@@ -26,7 +32,7 @@ fn parse_single_term(p: &mut Parser) -> bool {
                 | Token::DoubleQuote
                 | Token::CurlyOpen
                 | Token::SquareOpen
-                | Token::ParenOpen => parse_literal(p, expr),
+                | Token::ParenOpen => parse_literal(p, NESTED_EXPR),
                 Token::Namespace => parse_scoped(p),
                 //TODO: single-term constructors (uncommenting conflicts with Application)
                 // Token::Hash => {
@@ -61,7 +67,7 @@ fn parse_term(p: &mut Parser) {
             | Token::DoubleQuote
             | Token::CurlyOpen
             | Token::SquareOpen
-            | Token::ParenOpen => parse_literal(p, expr),
+            | Token::ParenOpen => parse_literal(p, NESTED_EXPR),
             Token::Namespace => parse_scoped(p),
             Token::Hash => {
                 let m = p.start("constructor");

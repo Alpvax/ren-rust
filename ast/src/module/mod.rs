@@ -30,12 +30,14 @@ pub struct Module(Meta, Vec<Import>, Vec<Decl>);
 //TODO: Module serialise
 
 impl Module {
-    pub fn new<I, D>(meta: Meta, imports: I, declarations: D) -> Self
+    pub fn new<I, D>(mut meta: Meta, imports: I, declarations: D) -> Self
     where
         I: Iterator<Item = Import>,
         D: Iterator<Item = Decl>,
     {
-        Self(meta, imports.collect(), declarations.collect())
+        let decls = declarations.collect::<Vec<_>>();
+        meta.uses_ffi = decls.iter().any(|decl| decl.is_external());
+        Self(meta, imports.collect(), decls)
     }
     // QUERIES ---------------------------------------------------------------------
     pub fn meta(&self) -> &Meta {

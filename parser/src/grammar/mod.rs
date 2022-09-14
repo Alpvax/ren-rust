@@ -6,8 +6,10 @@ use crate::{
 mod expression;
 mod module;
 mod pattern;
+mod ren_type;
 use higher_ast::Operator;
 use pattern::parse_pattern;
+use ren_type::parse_type;
 
 pub fn parse_module(input: &str) -> Parsed {
     let mut p = Parser::new(input);
@@ -57,8 +59,20 @@ pub fn parse_repl_stmt(
     Ok(stmt(p.parse()))
 }
 
-type ExprOrPatFn = fn(&mut Parser);
-pub(crate) fn parse_literal(p: &mut Parser, nested: ExprOrPatFn) {
+pub(crate) struct NestedParser {
+    func: fn(&mut Parser),
+    /// Whether the value part of a record literal is required
+    record_value_required: bool,
+    /// Whether {} is a valid record
+    record_allow_empty: bool,
+}
+impl NestedParser {
+    pub fn call(&self, p: &mut Parser) {
+        (self.func)(p)
+    }
+}
+
+pub(crate) fn parse_literal(p: &mut Parser, nested: NestedParser) {
     match p.peek() {
         TokenType::Token(tok) => match tok {
             Token::Number | /*Token::Bool |*/ Token::Placeholder | Token::VarName => p.bump(),
@@ -74,7 +88,7 @@ pub(crate) fn parse_literal(p: &mut Parser, nested: ExprOrPatFn) {
     }
 }
 
-fn parse_string(p: &mut Parser, nested: ExprOrPatFn) {
+fn parse_string(p: &mut Parser, nested: NestedParser) {
     assert_eq!(p.peek(), TokenType::Token(Token::DoubleQuote));
     let str_m = p.start("string");
     p.bump();
@@ -84,7 +98,7 @@ fn parse_string(p: &mut Parser, nested: ExprOrPatFn) {
         }
         if p.bump_matching(StringToken::ExprStart) {
             let nested_m = p.start("string_nested");
-            nested(p);
+            nested.call(p);
             nested_m.complete(p, Context::Expr);
             if !p.bump_matching(Token::CurlyClose) {
                 todo!("ERROR");
@@ -100,42 +114,49 @@ fn parse_string(p: &mut Parser, nested: ExprOrPatFn) {
     }
 }
 
-fn parse_parenthesised(p: &mut Parser, nested: ExprOrPatFn) {
+fn parse_parenthesised(p: &mut Parser, nested: NestedParser) {
     let m = p.start("paren");
     p.bump();
-    nested(p);
+    nested.call(p);
     if p.peek() == TokenType::Token(Token::ParenClose) {
         p.bump();
-        m.complete(p, Context::Expr);
+        m.complete(p, Context::Parenthesised);
     } //else error
 }
 
-fn parse_record(p: &mut Parser, nested: ExprOrPatFn) {
+fn parse_record(p: &mut Parser, nested: NestedParser) {
     assert!(p.peek().is(Token::CurlyOpen));
     let rec_m = p.start("record");
     p.bump();
-    loop {
-        let field = p.start("field");
-        p.bump_matching(Token::VarName);
-        if p.bump_matching(Token::Colon) {
-            nested(p)
-        }
-        if p.bump_matching(Token::Comma) {
-            field.complete(p, Context::Field);
-            continue; // No dangling comma
-        }
-        if p.peek().is(Token::CurlyClose) {
-            field.complete(p, Context::Field);
-            p.bump();
-            rec_m.complete(p, Context::Record);
-            break;
-        } else {
-            todo!("ERROR");
+    if nested.record_allow_empty && p.peek().is(Token::CurlyClose) {
+        p.bump();
+        rec_m.complete(p, Context::Record);
+    } else {
+        loop {
+            let field = p.start("field");
+            p.bump_matching(Token::VarName);
+            if p.bump_matching(Token::Colon) {
+                nested.call(p)
+            } else if nested.record_value_required {
+                todo!("Error! required `: value` part of record")
+            }
+            if p.bump_matching(Token::Comma) {
+                field.complete(p, Context::Field);
+                continue; // No dangling comma
+            }
+            if p.peek().is(Token::CurlyClose) {
+                field.complete(p, Context::Field);
+                p.bump();
+                rec_m.complete(p, Context::Record);
+                break;
+            } else {
+                todo!("ERROR");
+            }
         }
     }
 }
 
-fn parse_array(p: &mut Parser, nested: ExprOrPatFn) {
+fn parse_array(p: &mut Parser, nested: NestedParser) {
     let m = p.start("array");
     p.bump();
     loop {
@@ -144,7 +165,7 @@ fn parse_array(p: &mut Parser, nested: ExprOrPatFn) {
             break;
         }
         let item_m = p.start("array_item");
-        nested(p);
+        nested.call(p);
         item_m.complete(p, Context::Item);
         if p.bump_matching(Token::Comma) {
             continue; // No dangling comma

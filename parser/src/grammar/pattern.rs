@@ -5,6 +5,14 @@ use crate::{
 
 use super::parse_literal;
 
+const NESTED_PATTERN: super::NestedParser = super::NestedParser {
+    func: |p| {
+        pattern(p);
+    },
+    record_value_required: false,
+    record_allow_empty: false,
+};
+
 pub(super) fn parse_pattern(p: &mut Parser) -> bool {
     let m = p.start("pattern");
     if pattern(p) {
@@ -27,9 +35,7 @@ fn pattern(p: &mut Parser) -> bool {
             | Token::DoubleQuote
             | Token::CurlyOpen
             | Token::SquareOpen
-            | Token::ParenOpen => parse_literal(p, |p| {
-                pattern(p);
-            }),
+            | Token::ParenOpen => parse_literal(p, NESTED_PATTERN),
             Token::At => {
                 let typ_m = p.start("type_match");
                 p.bump();

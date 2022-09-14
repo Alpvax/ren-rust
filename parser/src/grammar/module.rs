@@ -86,32 +86,38 @@ pub(super) fn parse_import(p: &mut Parser) {
 pub(super) fn parse_declaration(p: &mut Parser) {
     let dec_m = p.start("declaration");
     p.bump_matching(Token::KWPub);
-    if p.bump_matching(Token::KWLet) {
-        if p.bump_matching(Token::VarName) && p.bump_matching(Token::OpAssign) {
+    if p.bump_matching(Token::KWLet) && p.bump_matching(Token::VarName) {
+        if p.bump_matching(Token::Colon) {
+            super::parse_type(p);
+        }
+        if p.bump_matching(Token::OpAssign) {
             let expr_m = p.start("declaration_body");
             super::expression::expr(p);
             expr_m.complete(p, Context::Expr);
         } else {
-            todo!("ERROR");
+            todo!("ERROR: Missing expression");
         }
-    } else if p.bump_matching(Token::KWExt)
-        && p.bump_matching(Token::VarName)
-        && p.bump_matching(Token::OpAssign)
-        && p.peek().is(Token::DoubleQuote)
-    {
-        let str_m = p.start("ext_name");
-        p.bump();
-        loop {
-            match p.peek() {
-                TokenType::String(StringToken::Text | StringToken::Escape) => p.bump(),
-                TokenType::String(StringToken::Delimiter) => {
-                    p.bump();
-                    break;
+    } else if p.bump_matching(Token::KWExt) && p.bump_matching(Token::VarName) {
+        if p.bump_matching(Token::Colon) {
+            super::parse_type(p);
+        }
+        if p.bump_matching(Token::OpAssign) && p.peek().is(Token::DoubleQuote) {
+            let str_m = p.start("ext_name");
+            p.bump();
+            loop {
+                match p.peek() {
+                    TokenType::String(StringToken::Text | StringToken::Escape) => p.bump(),
+                    TokenType::String(StringToken::Delimiter) => {
+                        p.bump();
+                        break;
+                    }
+                    _ => todo!("ERROR"),
                 }
-                _ => todo!("ERROR"),
             }
+            str_m.complete(p, Context::String);
+        } else {
+            todo!("ERROR: Missing external name");
         }
-        str_m.complete(p, Context::String);
     } else {
         todo!("ERROR: recieved: {:?}", p.peek());
     }

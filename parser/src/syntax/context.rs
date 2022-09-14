@@ -13,6 +13,8 @@ pub enum Context {
     Declaration,
 
     Expr,
+    Parenthesised,
+    Type,
 
     String,
     Scoped,
