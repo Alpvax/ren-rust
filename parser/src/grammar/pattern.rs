@@ -55,7 +55,7 @@ fn pattern(p: &mut Parser) -> bool {
                         let args = p.start("args");
                         loop {
                             pattern(p); //TODO: better parsing for constructor
-                            if !p.bump_whitespace() || p.peek().is(Token::OpArrow) {
+                            if !p.bump_whitespace() || p.peek().is(Token::OpFatArrow) {
                                 break;
                             }
                         }

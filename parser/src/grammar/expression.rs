@@ -220,7 +220,7 @@ fn parse_lambda(p: &mut Parser) {
     let params = p.start("lambda_params");
     loop {
         super::parse_pattern(p);
-        if p.bump_matching(Token::OpArrow) {
+        if p.bump_matching(Token::OpFatArrow) {
             params.complete(p, Context::Params);
             expr(p);
             lambda.complete(p, Context::Lambda);
@@ -246,7 +246,7 @@ fn parse_where(p: &mut Parser) {
                 expr(p);
                 guard_m.complete(p, Context::Guard);
             }
-            if !p.bump_matching(Token::OpArrow) {
+            if !p.bump_matching(Token::OpFatArrow) {
                 todo!("ERROR");
             }
             expr_m = p.start("branch_expr");

@@ -53,7 +53,7 @@ impl Into<u16> for SyntaxPart {
             Self::Error | Self::Token(Token::Error) | Self::StringToken(StringToken::Error) => 0,
             Self::EOF => 1,
             Self::StringToken(t) => u16::from(t.to_u8().unwrap()) + 1u16, // StringToken::Error = 0 so no conflict
-            Self::Token(t) => u16::from(t.to_u8().unwrap()) + 7u16, // Token = 8..255 allowed (actually only currently 57 non-error tokens)
+            Self::Token(t) => u16::from(t.to_u8().unwrap()) + 7u16, // Token = 8..255 allowed (actually only currently 60 non-error tokens)
             Self::Context(c) => u16::from(c.to_u8().unwrap()) + 256u16, // Context = 256..
         }
     }

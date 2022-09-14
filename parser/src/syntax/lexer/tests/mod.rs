@@ -15,7 +15,7 @@ fn lambda() {
         (Token::Whitespace.into(), " "),
         (Token::VarName.into(), "name"),
         (Token::Whitespace.into(), " "),
-        (Token::OpArrow.into(), "=>"),
+        (Token::OpFatArrow.into(), "=>"),
         (Token::Whitespace.into(), " "),
         (Token::KWIf.into(), "if"),
         (Token::Whitespace.into(), " "),

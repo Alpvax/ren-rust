@@ -52,24 +52,12 @@ pub enum Token {
     #[regex(r"//[^\r\n]*\r?\n?")]
     Comment,
 
-    /*#[regex(r#""(?:\\"|[^"])*""#, trim_quotes)] // Double quoted
-    #[regex(r#"'(?:\\'|[^'])*'"#, trim_quotes)] // Single quoted*/
-    // #[regex(r#"('(?:\\'|[^'])*')|"(?:\\"|[^"])*""#, trim_quotes)] //Combined
-    //StringLit(String),
     #[regex(r"((?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?)|(0|[1-9][0-9]*)|(0[xX][0-9a-fA-F]+)|(0[oO][0-7]+)|(0[bB][01]+)")]
     Number,
 
-    // #[regex("true|false")]
-    // Bool,
 
-    // #[regex(r"\(\)|undefined")]
-    // Undefined,
     #[token("\"")]
     DoubleQuote,
-    // #[token("'")]
-    // SingleQuote,
-    // #[token("`")]
-    // Backtick,
     #[token(".")]
     Period,
     #[token(",")]
@@ -98,7 +86,7 @@ pub enum Token {
     #[token("=")]
     OpAssign,
     #[token("=>")]
-    OpArrow,
+    OpFatArrow,
 
     #[token("|>")]
     OpPipe, //infixLeft 1
@@ -138,6 +126,13 @@ pub enum Token {
     OpPow, //infixRight 8
     #[token("%")]
     OpMod, //infixRight 8
+
+    #[token("->")]
+    TypeArrow,
+    #[token("|")]
+    TypeBar,
+    #[token("?")]
+    TypeQuestion,
 
     /*#[regex(r"[\r\n]+", priority=2)]
     NewLine,*/
