@@ -201,7 +201,7 @@ mod operator {
                         Token(Whitespace)@9..10 " "
                       Token(OpDiv)@10..11 "/"
                       Token(Whitespace)@11..12 " "
-                      Context(Expr)@12..19
+                      Context(Parenthesised)@12..19
                         Token(ParenOpen)@12..13 "("
                         Context(BinOp)@13..18
                           Token(Number)@13..14 "5"
@@ -241,7 +241,7 @@ mod operator {
                         Token(Whitespace)@61..73 "            "
                       Token(OpDiv)@73..74 "/"
                       Token(Whitespace)@74..87 "\n            "
-                      Context(Expr)@87..95
+                      Context(Parenthesised)@87..95
                         Token(ParenOpen)@87..88 "("
                         Context(BinOp)@88..94
                           Token(Number)@88..89 "5"
@@ -361,7 +361,7 @@ fn parse_application() {
                   Token(Whitespace)@3..4 " "
                   Token(VarName)@4..7 "bar"
                 Token(Whitespace)@7..8 " "
-                Context(Expr)@8..14
+                Context(Parenthesised)@8..14
                   Token(ParenOpen)@8..9 "("
                   Context(BinOp)@9..13
                     Token(Number)@9..10 "3"
@@ -385,7 +385,7 @@ fn parse_constructor() {
                 Context(Args)@5..15
                   Token(VarName)@5..8 "bar"
                   Token(Whitespace)@8..9 " "
-                  Context(Expr)@9..15
+                  Context(Parenthesised)@9..15
                     Token(ParenOpen)@9..10 "("
                     Context(BinOp)@10..14
                       Token(Number)@10..11 "3"
@@ -525,7 +525,7 @@ fn parse_where() {
                     Token(Whitespace)@12..13 " "
                     Token(Number)@13..14 "1"
                   Token(Whitespace)@14..15 " "
-                  Token(OpArrow)@15..17 "=>"
+                  Token(OpFatArrow)@15..17 "=>"
                   Context(Expr)@17..26
                     Token(Whitespace)@17..18 " "
                     Context(String)@18..25
@@ -549,7 +549,7 @@ fn parse_where() {
                       Token(Whitespace)@39..40 " "
                       Token(VarName)@40..43 "foo"
                       Token(Whitespace)@43..44 " "
-                  Token(OpArrow)@44..46 "=>"
+                  Token(OpFatArrow)@44..46 "=>"
                   Context(Expr)@46..55
                     Token(Whitespace)@46..47 " "
                     Context(String)@47..54
@@ -568,7 +568,7 @@ fn parse_where() {
                         Token(Whitespace)@63..64 " "
                         Token(VarName)@64..67 "baz"
                         Token(Whitespace)@67..68 " "
-                  Token(OpArrow)@68..70 "=>"
+                  Token(OpFatArrow)@68..70 "=>"
                   Context(Expr)@70..77
                     Token(Whitespace)@70..71 " "
                     Context(String)@71..76
@@ -582,7 +582,7 @@ fn parse_where() {
                     Token(Whitespace)@79..80 " "
                     Token(Placeholder)@80..81 "_"
                   Token(Whitespace)@81..82 " "
-                  Token(OpArrow)@82..84 "=>"
+                  Token(OpFatArrow)@82..84 "=>"
                   Context(Expr)@84..88
                     Token(Whitespace)@84..85 " "
                     Context(String)@85..88
@@ -612,7 +612,7 @@ fn parse_where_sample() {
                       StringToken(Text)@12..13 "a"
                       StringToken(Delimiter)@13..14 "\""
                   Token(Whitespace)@14..15 " "
-                  Token(OpArrow)@15..17 "=>"
+                  Token(OpFatArrow)@15..17 "=>"
                   Context(Expr)@17..24
                     Token(Whitespace)@17..18 " "
                     Context(Constructor)@18..24
@@ -629,7 +629,7 @@ fn parse_where_sample() {
                       StringToken(Text)@28..29 "e"
                       StringToken(Delimiter)@29..30 "\""
                   Token(Whitespace)@30..31 " "
-                  Token(OpArrow)@31..33 "=>"
+                  Token(OpFatArrow)@31..33 "=>"
                   Context(Expr)@33..40
                     Token(Whitespace)@33..34 " "
                     Context(Constructor)@34..40
@@ -646,7 +646,7 @@ fn parse_where_sample() {
                       StringToken(Text)@44..45 "i"
                       StringToken(Delimiter)@45..46 "\""
                   Token(Whitespace)@46..47 " "
-                  Token(OpArrow)@47..49 "=>"
+                  Token(OpFatArrow)@47..49 "=>"
                   Context(Expr)@49..56
                     Token(Whitespace)@49..50 " "
                     Context(Constructor)@50..56
@@ -663,7 +663,7 @@ fn parse_where_sample() {
                       StringToken(Text)@60..61 "o"
                       StringToken(Delimiter)@61..62 "\""
                   Token(Whitespace)@62..63 " "
-                  Token(OpArrow)@63..65 "=>"
+                  Token(OpFatArrow)@63..65 "=>"
                   Context(Expr)@65..72
                     Token(Whitespace)@65..66 " "
                     Context(Constructor)@66..72
@@ -680,7 +680,7 @@ fn parse_where_sample() {
                       StringToken(Text)@76..77 "u"
                       StringToken(Delimiter)@77..78 "\""
                   Token(Whitespace)@78..79 " "
-                  Token(OpArrow)@79..81 "=>"
+                  Token(OpFatArrow)@79..81 "=>"
                   Context(Expr)@81..88
                     Token(Whitespace)@81..82 " "
                     Context(Constructor)@82..88
@@ -694,7 +694,7 @@ fn parse_where_sample() {
                     Token(Whitespace)@90..91 " "
                     Token(Placeholder)@91..92 "_"
                   Token(Whitespace)@92..95 "   "
-                  Token(OpArrow)@95..97 "=>"
+                  Token(OpFatArrow)@95..97 "=>"
                   Context(Expr)@97..104
                     Token(Whitespace)@97..98 " "
                     Context(Constructor)@98..104
@@ -720,14 +720,14 @@ fn parse_lambda() {
                   Context(Pattern)@6..7
                     Token(VarName)@6..7 "b"
                   Token(Whitespace)@7..8 " "
-                  Token(OpArrow)@8..10 "=>"
+                  Token(OpFatArrow)@8..10 "=>"
                 Context(BinOp)@10..22
                   Token(Whitespace)@10..11 " "
                   Token(VarName)@11..12 "a"
                   Token(Whitespace)@12..13 " "
                   Token(OpMul)@13..14 "*"
                   Token(Whitespace)@14..15 " "
-                  Context(Expr)@15..22
+                  Context(Parenthesised)@15..22
                     Token(ParenOpen)@15..16 "("
                     Context(BinOp)@16..21
                       Token(Number)@16..17 "3"

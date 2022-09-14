@@ -48,7 +48,7 @@ macro_rules! create_enum {
                         $(Context::$ctx => Some(Self::$ctx_variant($ctx_struct_name(node))),)?
                         $(Context::$ctx => Some(Self::$ctx_variant(<$ctx_typ_name>::new(node))),)?
                     )*
-                    Context::$ctx_root => node.children_with_tokens().skip_trivia().next().and_then(Self::from_element),
+                    Context::$ctx_root | Context::Parenthesised => node.children_with_tokens().skip_trivia().next().and_then(Self::from_element),
                     _ => None
                 }
             }
