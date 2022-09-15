@@ -140,8 +140,9 @@ fn parse_record(p: &mut Parser, nested: NestedParser) {
             } else if nested.record_value_required {
                 todo!("Error! required `: value` part of record")
             }
-            if p.bump_matching(Token::Comma) {
+            if p.peek().is(Token::Comma) {
                 field.complete(p, Context::Field);
+                p.bump();
                 continue; // No dangling comma
             }
             if p.peek().is(Token::CurlyClose) {

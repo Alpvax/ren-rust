@@ -14,7 +14,6 @@ pub enum Context {
 
     Expr,
     Parenthesised,
-    Type,
 
     String,
     Scoped,
@@ -46,4 +45,9 @@ pub enum Context {
 
     Pattern,
     TypeMatch,
+
+    Type,
+    Variant,
+    SumType,
+    FunType,
 }

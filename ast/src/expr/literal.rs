@@ -101,6 +101,7 @@ pub enum Literal<T> {
     Array(Vec<T>),
     Enum(String, Vec<T>),
     Number(f64),
+    //TODO: Add Field object wrappers to json,
     Record(Vec<(String, T)>),
     #[ren_json(tag = "String")]
     LStr(Vec<StringPart<T>>),

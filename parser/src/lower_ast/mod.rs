@@ -6,6 +6,7 @@ mod literal;
 mod macro_impl;
 mod module;
 mod pattern;
+mod ren_type;
 
 pub use decl::Decl;
 pub use expr::Expr;

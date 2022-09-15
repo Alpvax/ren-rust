@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{expr::Expr, ren_type::Type, Span};
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Meta {
     #[serde(rename = "type")]
     typ: Type,
@@ -12,6 +12,18 @@ pub struct Meta {
     comment: Vec<String>,
 }
 impl Meta {
+    pub fn new<S>(type_annotation: Option<Type>, span: S) -> Self
+    where
+        S: Into<Span>,
+    {
+        let inferred = type_annotation.is_none();
+        Self {
+            typ: type_annotation.unwrap_or_default(),
+            inferred,
+            span: span.into(),
+            comment: Default::default(),
+        }
+    }
     pub fn push_comment(&mut self, comment: String) {
         self.comment.push(comment);
     }
@@ -22,6 +34,16 @@ impl Meta {
         self.span = span.into();
     }
 }
+impl Default for Meta {
+    fn default() -> Self {
+        Self {
+            typ: Default::default(),
+            inferred: true,
+            span: Default::default(),
+            comment: Default::default(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, RenJson)]
 pub enum Decl {
@@ -30,18 +52,42 @@ pub enum Decl {
 }
 impl Decl {
     // CONSTRUCTORS ============================================================
-    pub fn local<N>(meta: Meta, public: bool, name: N, expr: Expr) -> Self
+    pub fn local<N, S>(
+        type_annotation: Option<Type>,
+        span: S,
+        public: bool,
+        name: N,
+        expr: Expr,
+    ) -> Self
     where
         N: ToString,
+        S: Into<Span>,
     {
-        Self::Let(meta, public, name.to_string(), expr)
+        Self::Let(
+            Meta::new(type_annotation, span),
+            public,
+            name.to_string(),
+            expr,
+        )
     }
-    pub fn external<N, E>(meta: Meta, public: bool, name: N, ext_name: E) -> Self
+    pub fn external<N, E, S>(
+        type_annotation: Option<Type>,
+        span: S,
+        public: bool,
+        name: N,
+        ext_name: E,
+    ) -> Self
     where
         N: ToString,
         E: ToString,
+        S: Into<Span>,
     {
-        Self::Ext(meta, public, name.to_string(), ext_name.to_string())
+        Self::Ext(
+            Meta::new(type_annotation, span),
+            public,
+            name.to_string(),
+            ext_name.to_string(),
+        )
     }
 
     // QUERIES ============================================================

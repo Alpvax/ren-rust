@@ -1,6 +1,9 @@
 use smol_str::SmolStr;
 
-use super::{expr::Expr, extensions::SyntaxNodeExtension, FromSyntaxElement, SyntaxToken, ToHIR};
+use super::{
+    expr::Expr, extensions::SyntaxNodeExtension, ren_type::Type, FromSyntaxElement, RangeLookup,
+    SyntaxToken, ToHIR,
+};
 use crate::syntax::{Context, SyntaxNode, Token};
 
 #[derive(Debug)]
@@ -49,6 +52,11 @@ impl Decl {
                 .and_then(super::simple_str)
         }
     }
+    fn type_annotation(&self) -> Option<Type> {
+        self.0
+            .find_node(Context::Type)
+            .and_then(Type::from_root_node)
+    }
 }
 impl ToHIR for Decl {
     type HIRType = higher_ast::Decl;
@@ -56,14 +64,16 @@ impl ToHIR for Decl {
     fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
         if self.is_local() {
             higher_ast::Decl::local(
-                Default::default(),
+                self.type_annotation().map(|t| t.to_higher_ast(line_lookup)),
+                RangeLookup(line_lookup, self.0.text_range()),
                 self.is_public(),
                 self.name().unwrap(),
                 self.expr().unwrap().to_higher_ast(line_lookup),
             )
         } else {
             higher_ast::Decl::external(
-                Default::default(),
+                self.type_annotation().map(|t| t.to_higher_ast(line_lookup)),
+                RangeLookup(line_lookup, self.0.text_range()),
                 self.is_public(),
                 self.name().unwrap(),
                 self.ext_name().unwrap(),

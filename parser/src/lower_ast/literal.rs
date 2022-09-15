@@ -173,8 +173,7 @@ where
             .filter_map(|field_node| {
                 let mut iter = field_node.children_with_tokens().skip_trivia();
                 iter.find(|n| n.kind() == Token::VarName.into())
-                    .map(|n| n.into_token().unwrap().text().to_string())
-                    .and_then(|name| Some((name.clone(), iter.last().and_then(T::from_element))))
+                    .map(|n| (n.into_token().unwrap().text().to_string(), iter.last().and_then(T::from_element)))
             })
             .collect()
     }
