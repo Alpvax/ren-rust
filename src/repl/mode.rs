@@ -6,7 +6,8 @@ use parser::{
 pub(super) trait ReplMode {
     fn name() -> &'static str;
     fn handle_command<'c, 'r>(cmd: &'c str, mode: &'r mut Modes) -> Result<(), &'c str>;
-    fn handle_stmt(
+    fn handle_stmt<W: std::io::Write>(
+        w: W,
         stmt: REPLStmt<Decl, Expr, Import>,
         line_lookup: &::line_col::LineColLookup,
     ) -> Result<(), &'static str>;
@@ -25,8 +26,27 @@ macro_rules! make_modes {
         }
     }$(,)?)+) => {
         #[derive(Clone, Copy, Debug)]
-        pub(super) enum Modes {
+        pub enum Modes {
             $($name,)+
+        }
+        #[cfg(feature = "cli")]
+        impl ::clap::ValueEnum for Modes {
+            fn value_variants<'a>() -> &'a [Self] {
+                &[$(Self::$name),+]
+            }
+        
+            fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
+                Some(match self {
+                    $(Self::$name => clap::builder::PossibleValue::new(stringify!($name)).alias($display).help($display),)+
+                })
+            }
+        }
+        impl core::fmt::Display for Modes {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", match self {
+                    $(Self::$name => $display,)+
+                })
+            }
         }
         impl Modes {
             fn switch_mode(&mut self, mode_name: &str) -> bool {
@@ -41,9 +61,9 @@ macro_rules! make_modes {
                     $(Self::$name => $name::handle_command(cmd, self),)+
                 }
             }
-            pub fn handle_stmt(&self, stmt: REPLStmt<Decl, Expr, Import>, line_lookup: &::line_col::LineColLookup) -> Result<(), &'static str> {
+            pub fn handle_stmt<W: std::io::Write>(&self, w: W, stmt: REPLStmt<Decl, Expr, Import>, line_lookup: &::line_col::LineColLookup) -> Result<(), &'static str> {
                 match &self {
-                    $(Self::$name => $name::handle_stmt(stmt, line_lookup),)+
+                    $(Self::$name => $name::handle_stmt(w, stmt, line_lookup),)+
                 }
             }
         }
@@ -86,7 +106,7 @@ macro_rules! make_modes {
 
                     Err("Unknown command")
                 }
-                fn handle_stmt(stmt: REPLStmt<Decl, Expr, Import>, line_lookup: &::line_col::LineColLookup) -> Result<(), &'static str> {
+                fn handle_stmt<W: std::io::Write>(#[allow(unused_variables)]w: W, stmt: REPLStmt<Decl, Expr, Import>, line_lookup: &::line_col::LineColLookup) -> Result<(), &'static str> {
                     match (stmt, line_lookup, ()) {
                         (REPLStmt::Decl($decl_id), $($d_l_lookup,)? ..) => $decl_body,
                         (REPLStmt::Expr($expr_id), $($e_l_lookup,)? ..) => $expr_body,

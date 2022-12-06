@@ -7,6 +7,9 @@ mod repl;
 
 #[cfg(test)]
 mod test;
+mod cli;
+
+use repl::Modes as ReplModes;
 
 #[cfg(feature = "reqwest")]
 fn parse_remote_file(url: &str) -> parser::Parsed {
@@ -34,7 +37,25 @@ fn parse_remote_file(url: &str) -> parser::Parsed {
 
 // let a = fun c => c * 1000"#;
 
-fn main() -> Result<(), impl std::error::Error> {
-    repl::init_repl("./.repl_history")
+fn main() -> Result<(), String> {//impl std::error::Error> {
+    let cli = cli::parse();
+    match cli.cmd {
+        cli::Cmd::Repl { mode, histfile } => repl::init_repl(&histfile, mode).map_err(|e| e.to_string()),
+        cli::Cmd::Parse { infile, ofile, format, stdinput } => {
+            let input = if let Some(ipath) = infile {
+                std::fs::read_to_string(ipath).map_err(|e| e.to_string())?
+            } else if let Some(stdin) = stdinput {
+                stdin
+            } else {
+                return Err("No source to parse".to_owned());
+            };
+            let mut output = Vec::new();
+            parser::parse_stmt_ast(&input).and_then(|(s, ll)| format.handle_stmt(&mut output, s, &ll))?;
+            if let Some(opath) = ofile {
+                std::fs::write(opath, output).map_err(|e| e.to_string())?
+            }
+            Ok(())
+        },
+    }
     //println!("{:?}", parser::parse(SAMPLE));
 }
