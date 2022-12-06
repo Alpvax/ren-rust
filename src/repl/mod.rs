@@ -38,9 +38,9 @@ where
                         println!("{}", e);
                     }
                 } else {
-                    if let Err(e) = parse_stmt_ast(line.as_str())
-                        .and_then(|(stmt, line_lookup)| mode.handle_stmt(&mut out, stmt, &line_lookup))
-                    {
+                    if let Err(e) = parse_stmt_ast(line.as_str()).and_then(|(stmt, line_lookup)| {
+                        mode.handle_stmt(&mut out, stmt, &line_lookup)
+                    }) {
                         println!("Error parsing line: {:?}", e);
                     }
                 }

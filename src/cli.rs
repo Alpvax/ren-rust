@@ -23,8 +23,12 @@ pub(crate) enum Cmd {
         /// The location of the file to use for saving/loading the REPL history
         histfile: PathBuf,
     },
+    #[clap(group(
+        ::clap::ArgGroup::new("src_in")
+            .required(true),
+    ))]
     Parse {
-        #[clap(short, long)]
+        #[clap(short, long, group = "src_in")]
         /// The file to convert. If missing, will read from STDIN
         infile: Option<PathBuf>,
         #[clap(short, long)]
@@ -33,9 +37,9 @@ pub(crate) enum Cmd {
         #[clap(short, long, default_value_t)]
         /// The format of the output
         format: crate::ReplModes, //TODO: Better output format options, seperate from repl modes
-        #[clap(hide = true)]
+        #[clap(hide = true, group = "src_in")]
         stdinput: Option<String>,
-    }
+    },
 }
 
 pub(crate) fn parse() -> Cli {

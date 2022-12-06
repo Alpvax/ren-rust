@@ -34,7 +34,7 @@ macro_rules! make_modes {
             fn value_variants<'a>() -> &'a [Self] {
                 &[$(Self::$name),+]
             }
-        
+
             fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
                 Some(match self {
                     $(Self::$name => clap::builder::PossibleValue::new(stringify!($name)).alias($display).help($display),)+
