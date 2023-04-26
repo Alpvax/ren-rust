@@ -118,6 +118,11 @@ pub(super) fn parse_declaration(p: &mut Parser) {
         } else {
             todo!("ERROR: Missing external name");
         }
+    } else if p.bump_matching(Token::KWType)
+        && p.bump_matching(Token::Namespace)
+        && p.bump_matching(Token::OpAssign)
+    {
+        super::parse_type(p);
     } else {
         todo!("ERROR: recieved: {:?}", p.peek());
     }

@@ -5,7 +5,7 @@ use rustyline::{error::ReadlineError, Editor};
 
 mod command;
 // mod config;
-// mod env;
+mod env;
 mod mode;
 pub use mode::Modes;
 impl Default for Modes {

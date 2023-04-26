@@ -36,7 +36,7 @@ pub fn parse_repl_stmt(
             module::parse_import(&mut p);
             super::REPLStmt::Import
         }
-        TokenType::Token(Token::KWExt | Token::KWLet) => {
+        TokenType::Token(Token::KWExt | Token::KWLet | Token::KWType) => {
             module::parse_declaration(&mut p);
             super::REPLStmt::Decl
         }

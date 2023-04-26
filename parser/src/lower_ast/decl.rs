@@ -33,6 +33,9 @@ impl Decl {
     fn is_local(&self) -> bool {
         self.0.find_token(Token::KWLet).is_some()
     }
+    pub fn is_type(&self) -> bool {
+        self.0.find_token(Token::KWType).is_some()
+    }
     fn name(&self) -> Option<SmolStr> {
         self.0
             .find_token(Token::VarName)
@@ -62,7 +65,19 @@ impl ToHIR for Decl {
     type HIRType = higher_ast::Decl;
     type ValidationError = ();
     fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
-        if self.is_local() {
+        if self.is_type() {
+            higher_ast::Decl::typ(
+                self.type_annotation()
+                    .map(|t| t.to_higher_ast(line_lookup))
+                    .unwrap_or_default(),
+                RangeLookup(line_lookup, self.0.text_range()),
+                self.is_public(),
+                self.0
+                    .find_token(Token::Namespace)
+                    .map(|tok| SmolStr::new(tok.text()))
+                    .unwrap(),
+            )
+        } else if self.is_local() {
             higher_ast::Decl::local(
                 self.type_annotation().map(|t| t.to_higher_ast(line_lookup)),
                 RangeLookup(line_lookup, self.0.text_range()),

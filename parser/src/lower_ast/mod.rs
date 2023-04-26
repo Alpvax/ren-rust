@@ -12,6 +12,7 @@ pub use decl::Decl;
 pub use expr::Expr;
 pub use import::Import;
 pub use module::Module;
+pub use ren_type::Type;
 #[cfg(test)]
 mod tests;
 
@@ -66,6 +67,7 @@ ast_funcs! {
     decl_ast: Context::Declaration => decl::Decl,
     import_ast: Context::Import => import::Import,
     module_ast: Context::Module => module::Module,
+    type_ast: Context::Type => ren_type::Type,
 }
 
 pub trait ToHIR {
