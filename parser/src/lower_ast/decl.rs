@@ -38,7 +38,7 @@ impl Decl {
     }
     fn name(&self) -> Option<SmolStr> {
         self.0
-            .find_token(Token::VarName)
+            .find_token(Token::IdLower)
             .map(|tok| SmolStr::new(tok.text()))
     }
     fn expr(&self) -> Option<Expr> {
@@ -73,7 +73,7 @@ impl ToHIR for Decl {
                 RangeLookup(line_lookup, self.0.text_range()),
                 self.is_public(),
                 self.0
-                    .find_token(Token::Namespace)
+                    .find_token(Token::IdUpper)
                     .map(|tok| SmolStr::new(tok.text()))
                     .unwrap(),
             )

@@ -19,7 +19,7 @@ macro_rules! make_operator {
 make_operator![
     (Add, "add", "+"),
     (And, "and", "and"),
-    (Concat, "concat", "++"),
+    (Concat, "concat", "<>"),
     (Cons, "cons", "::"),
     (Div, "div", "/"),
     (Eq, "eq", "=="),

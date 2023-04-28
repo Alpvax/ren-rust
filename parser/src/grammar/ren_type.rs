@@ -17,7 +17,7 @@ pub(super) fn parse_type(p: &mut Parser) {
 
 fn typ(p: &mut Parser) {
     match p.peek() {
-        TokenType::Token(Token::CurlyOpen) => super::parse_record(p, NESTED_TYPE), // Rec
+        TokenType::Token(Token::SymLBrace) => super::parse_record(p, NESTED_TYPE), // Rec
         TokenType::Token(Token::OpMul) => p.bump(),                                // Any
         _ => {
             parse_subtype(p, 0);
@@ -27,20 +27,20 @@ fn typ(p: &mut Parser) {
 
 fn parse_single_term(p: &mut Parser) -> bool {
     match p.peek() {
-        TokenType::Token(Token::Hash) => {
+        TokenType::Token(Token::SymHash) => {
             // Variant
             let var_m = p.start("variant");
             p.bump();
-            if p.bump_matching(Token::VarName) {
+            if p.bump_matching(Token::IdLower) {
                 var_m.complete(p, Context::Variant);
             } else {
-                todo!("ERROR! variant name must be varname");
+                todo!("ERROR! variant name must be IdLower");
             }
         }
-        TokenType::Token(Token::Namespace) => p.bump(), // Con
-        TokenType::Token(Token::ParenOpen) => super::parse_parenthesised(p, NESTED_TYPE), // Parenthesised
-        TokenType::Token(Token::TypeQuestion) => p.bump(),                                // Hole
-        TokenType::Token(Token::VarName) => p.bump(),                                     // Var
+        TokenType::Token(Token::IdUpper) => p.bump(), // Con
+        TokenType::Token(Token::SymLParen) => super::parse_parenthesised(p, NESTED_TYPE), // Parenthesised
+        TokenType::Token(Token::SymQuestion) => p.bump(),                                 // Hole
+        TokenType::Token(Token::IdLower) => p.bump(),                                     // Var
         _ => return false,
     }
     true
@@ -51,8 +51,8 @@ fn parse_subtype(p: &mut Parser, minimum_binding_power: u8) -> bool {
     if parse_single_term(p) {
         if loop {
             let (left_binding_power, right_binding_power, ctx) = match p.peek() {
-                TokenType::Token(Token::TypeBar) => (2, 3, Context::SumType),
-                TokenType::Token(Token::TypeArrow) => (2, 1, Context::FunType),
+                TokenType::Token(Token::OpOr) => (2, 3, Context::SumType),
+                TokenType::Token(Token::SymArrow) => (2, 1, Context::FunType),
                 TokenType::None => break true,
                 _ => break true, // we’ll handle errors later.
             };

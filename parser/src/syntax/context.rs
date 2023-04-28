@@ -6,9 +6,8 @@ pub enum Context {
 
     Imports,
     Import, // After import keyword
-    NameSpace,
-    ExposingBlock, // Inside exposing block
-
+    IdUpper,
+    // ExposingBlock, // Inside exposing block
     Declarations,
     Declaration,
 
@@ -28,7 +27,7 @@ pub enum Context {
     Then,
     Else,
 
-    Where,
+    Switch,
     Branch,
     Guard,
 

@@ -32,7 +32,7 @@ impl Import {
         match self.0.child_tokens().skip_trivia().nth(1).unwrap().kind() {
             crate::syntax::SyntaxPart::Token(Token::KWPkg) => Some(Source::Package),
             crate::syntax::SyntaxPart::Token(Token::KWExt) => Some(Source::External),
-            crate::syntax::SyntaxPart::Context(Context::String) => Some(Source::Local),
+            crate::syntax::SyntaxPart::Context(Context::String) => Some(Source::Project),
             _ => None,
         }
     }
@@ -43,30 +43,30 @@ impl Import {
     }
     fn name(&self) -> Vec<SmolStr> {
         self.0
-            .find_node(Context::NameSpace)
+            .find_node(Context::IdUpper)
             .map(|node| {
                 node.child_tokens()
                     .filter_map(|tok| match tok.kind() {
-                        SyntaxPart::Token(Token::Namespace) => Some(SmolStr::new(tok.text())),
+                        SyntaxPart::Token(Token::IdUpper) => Some(SmolStr::new(tok.text())),
                         _ => None,
                     })
                     .collect()
             })
             .unwrap_or_default()
     }
-    fn exposing(&self) -> Vec<SmolStr> {
-        self.0
-            .find_node(Context::ExposingBlock)
-            .map(|node| {
-                node.child_tokens()
-                    .filter_map(|tok| match tok.kind() {
-                        SyntaxPart::Token(Token::VarName) => Some(SmolStr::new(tok.text())),
-                        _ => None,
-                    })
-                    .collect()
-            })
-            .unwrap_or_default()
-    }
+    // fn exposing(&self) -> Vec<SmolStr> {
+    //     self.0
+    //         .find_node(Context::ExposingBlock)
+    //         .map(|node| {
+    //             node.child_tokens()
+    //                 .filter_map(|tok| match tok.kind() {
+    //                     SyntaxPart::Token(Token::IdLower) => Some(SmolStr::new(tok.text())),
+    //                     _ => None,
+    //                 })
+    //                 .collect()
+    //         })
+    //         .unwrap_or_default()
+    // }
 }
 
 impl ToHIR for Import {
@@ -76,8 +76,8 @@ impl ToHIR for Import {
         higher_ast::Import {
             path: self.path().map(|s| s.to_string()).unwrap(),
             source: self.source().unwrap(),
-            name: self.name().into_iter().map(|s| s.to_string()).collect(),
-            unqualified: self.exposing().into_iter().map(|s| s.to_string()).collect(),
+            alias: self.name().into_iter().map(|s| s.to_string()).collect(),
+            // unqualified: self.exposing().into_iter().map(|s| s.to_string()).collect(),
         }
     }
     fn validate(&self) -> Option<Self::ValidationError> {

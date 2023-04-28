@@ -29,17 +29,17 @@ fn pattern(p: &mut Parser) -> bool {
         TokenType::Token(tok) => match tok {
             Token::Number
             // | Token::Bool
-            | Token::Placeholder
-            | Token::VarName
+            | Token::SymUnderscore
+            | Token::IdLower
             | Token::OpSub
-            | Token::DoubleQuote
-            | Token::CurlyOpen
-            | Token::SquareOpen
-            | Token::ParenOpen => parse_literal(p, NESTED_PATTERN),
-            Token::At => {
+            | Token::SymDoubleQuote
+            | Token::SymLBrace
+            | Token::SymLBracket
+            | Token::SymLParen => parse_literal(p, NESTED_PATTERN),
+            Token::SymAt => {
                 let typ_m = p.start("type_match");
                 p.bump();
-                if p.bump_matching(Token::Namespace) {
+                if p.bump_matching(Token::IdUpper) {
                     if p.bump_whitespace() {
                         let arg_m = p.start("type_match_arg");
                         if pattern(p) {
@@ -53,15 +53,15 @@ fn pattern(p: &mut Parser) -> bool {
                     todo!("ERROR: invalid type name token")
                 }
             }
-            Token::Hash => {
+            Token::SymHash => {
                 let con_m = p.start("variant_pattern");
                 p.bump();
-                if p.bump_matching(Token::VarName) {
+                if p.bump_matching(Token::IdLower) {
                     if p.bump_whitespace() {
                         let args = p.start("args");
                         loop {
                             pattern(p); //TODO: better parsing for constructor
-                            if !p.bump_whitespace() || p.peek().is(Token::OpFatArrow) {
+                            if !p.bump_whitespace() || p.peek().is(Token::SymArrow) {
                                 break;
                             }
                         }

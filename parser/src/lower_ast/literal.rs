@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{fmt::Debug, marker::PhantomData};
 
 use either::Either;
 use smol_str::SmolStr;
@@ -23,11 +23,16 @@ pub(crate) enum Literal<T> {
 macro_rules! make_enum_objects {
     ($($variant:ident = $name:ident($typ:ty)),+ $(,)?) => {
         $(
-            #[derive(Debug, Clone, PartialEq, Eq)]
+            #[derive(Clone, PartialEq, Eq)]
             pub struct $name<T>($typ, PhantomData<T>);// where T: ToHIR;
             impl<T> From<$name<T>> for Literal<T> {
                 fn from(v: $name<T>) -> Self {
                     Self::$variant(v)
+                }
+            }
+            impl<T> Debug for $name<T> {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    f.debug_tuple(stringify!($name)).field(&self.0).finish()
                 }
             }
             impl<T> $name<T> {
@@ -41,14 +46,20 @@ macro_rules! make_enum_objects {
         )+
     };
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LNumber<T>(SyntaxToken, PhantomData<T>);
-impl<T> From<LNumber<T>> for Literal<T> {
-    fn from(v: LNumber<T>) -> Self {
-        Self::LNum(v)
-    }
-}
+// #[derive(Clone, PartialEq, Eq)]
+// pub struct LNumber<T>(SyntaxToken, PhantomData<T>);
+// impl<T> Debug for LNumber<T> {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_tuple("LNumber").field(&self.0).finish()
+//     }
+// }
+// impl<T> From<LNumber<T>> for Literal<T> {
+//     fn from(v: LNumber<T>) -> Self {
+//         Self::LNum(v)
+//     }
+// }
 make_enum_objects! {
+    LNum = LNumber(SyntaxToken),
     LStr = LString(SyntaxNode),
     LRec = LRecord(SyntaxNode),
     LArr = LArray(SyntaxNode),
@@ -56,12 +67,12 @@ make_enum_objects! {
 }
 
 impl<T> LNumber<T> {
-    pub(crate) fn new(token: SyntaxToken) -> Self {
-        Self(token, PhantomData)
-    }
-    pub(crate) fn text_range(&self) -> ::rowan::TextRange {
-        self.0.text_range()
-    }
+    // pub(crate) fn new(token: SyntaxToken) -> Self {
+    //     Self(token, PhantomData)
+    // }
+    // pub(crate) fn text_range(&self) -> ::rowan::TextRange {
+    //     self.0.text_range()
+    // }
     pub fn value(&self) -> f64 {
         self.0
             .text()
@@ -172,7 +183,7 @@ where
             .children()
             .filter_map(|field_node| {
                 let mut iter = field_node.children_with_tokens().skip_trivia();
-                iter.find(|n| n.kind() == Token::VarName.into()).map(|n| {
+                iter.find(|n| n.kind() == Token::IdLower.into()).map(|n| {
                     (
                         n.into_token().unwrap().text().to_string(),
                         iter.last().and_then(T::from_element),
@@ -253,7 +264,7 @@ where
 {
     pub fn tag(&self) -> Option<SmolStr> {
         self.0
-            .find_token(Token::VarName)
+            .find_token(Token::IdLower)
             .map(|t| SmolStr::new(t.text()))
     }
     pub fn args(&self) -> Vec<T> {

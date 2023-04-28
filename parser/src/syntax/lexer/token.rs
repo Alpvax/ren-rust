@@ -9,129 +9,151 @@ pub enum Token {
     #[error]
     Error = 0,
 
-    // #[token("ren")] // 'ren' keyword reserved for future use
-    // KWRen,
-    #[token("import")]
-    KWImport,
-    #[token("pkg")]
-    KWPkg,
-    #[token("ext")]
-    KWExt,
-    #[token("as")]
-    KWAs,
-    #[token("exposing")]
-    KWExposing,
-
-    #[token("type")]
-    KWType,
-    #[token("pub")]
-    KWPub,
-    #[token("let")]
-    KWLet,
-    #[token("fun")]
-    KWFun,
-
-    #[token("if")]
-    KWIf,
-    #[token("then")]
-    KWThen,
-    #[token("else")]
-    KWElse,
-    #[token("where")]
-    KWWhere,
-    #[token("is")]
-    KWIs,
-
-    #[regex(r"[A-Z][A-Za-z0-9]*")]
-    Namespace,
-    #[regex(r"([a-z][A-Za-z0-9_]*)")]
-    VarName,
-    #[regex(r"_")]
-    Placeholder,
-
     #[regex(r"//[^\r\n]*\r?\n?")]
     Comment,
 
-    #[regex(r"((?:0|[1-9][0-9]*)?(?:\.[0-9]+)(?:[eE][+-]?[0-9]+)?)|(0|[1-9][0-9]*)|(0[xX][0-9a-fA-F]+)|(0[oO][0-7]+)|(0[bB][01]+)")]
+    // Keywords
+    #[token("as")]
+    KWAs,
+    #[token("assert")]
+    KWAssert,
+    #[token("case")]
+    KWCase,
+    #[token("else")]
+    KWElse,
+    #[token("expect")]
+    KWExpect,
+    // #[token("exposing")]
+    // KWExposing,
+    #[token("ext")]
+    KWExt,
+    #[token("forall")]
+    KWForall,
+    #[token("fun")]
+    KWFun,
+    #[token("if")]
+    KWIf,
+    #[token("import")]
+    KWImport,
+    #[token("let")]
+    KWLet,
+    #[token("on")]
+    KWOn,
+    #[token("pkg")]
+    KWPkg,
+    #[token("pub")]
+    KWPub,
+    // #[token("ren")] // 'ren' keyword reserved for future use
+    // KWRen,
+    #[token("switch")]
+    KWSwitch,
+    #[token("then")]
+    KWThen,
+    #[token("type")]
+    KWType,
+
+    // Identifiers
+    #[regex(r"[A-Z][A-Za-z0-9]*")]
+    IdUpper,
+    #[regex(r"([a-z][A-Za-z0-9_]*)")]
+    IdLower,
+
+    // Literals
+    /// Supported number formats:
+    /// - int: zero or positive ints with an optional scientific postfix. (`[0-9]+([eE][+-]?[0-9]+)?`)
+    /// - float: positive floats with an optional scientific postfix. portion before `.` is optional. (`[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?`)
+    /// - hexadecimal:- `0x[0-9a-fA-F]+` always positive. e.g. 0xAE = 174
+    /// - binary:-      `0b[01]+`        always positive. e.g. 0b11 = 3
+    /// - octal:-       `0o[0-7]+`       always positive. e.g. 0o14 = 12
+    #[regex(r"[0-9]+(?:[eE][+-]?[0-9]+)?")] // Int
+    #[regex(r"[0-9]*\.[0-9]+(?:[eE][+-]?[0-9]+)?")] // Float
+    #[regex(r"(0[xX][0-9a-fA-F]+)|(0[oO][0-7]+)|(0[bB][01]+)")] // Hex/Oct/Bin
     Number,
 
-    #[token("\"")]
-    DoubleQuote,
-    #[token(".")]
-    Period,
-    #[token(",")]
-    Comma,
-    #[token(":")]
-    Colon,
-    #[token(";")]
-    SemiColon,
-    #[token("#")]
-    Hash,
-    #[token("@")]
-    At,
-    #[token("{")]
-    CurlyOpen,
-    #[token("}")]
-    CurlyClose,
-    #[token("[")]
-    SquareOpen,
-    #[token("]")]
-    SquareClose,
-    #[token("(")]
-    ParenOpen,
-    #[token(")")]
-    ParenClose,
-
-    #[token("=")]
-    OpAssign,
-    #[token("=>")]
-    OpFatArrow,
-
-    #[token("|>")]
-    OpPipe, //infixLeft 1
-    #[token(">>")]
-    OpCompose, //infixRight 9
-    #[token("==")]
-    OpEq, //infixLeft  4
-    #[token("!=")]
-    OpNotEq, //infixLeft  4
-    #[token("<=")]
-    OpLte, //infixLeft  4
-    #[token(">=")]
-    OpGte, //infixLeft  4
-    #[token("and")]
-    OpAnd, //infixRight 3
-    #[token("or")]
-    OpOr, //infixRight 2
-    #[token("::")]
-    OpCons, //infixRight 5
-    #[token("++")]
-    OpJoin, //infixRight 5
-
-    // SINGLE CHARACTER OPERATORS
-    #[token("<")]
-    OpLt, //infixLeft  4
-    #[token(">")]
-    OpGt, //infixLeft  4
+    // Operators
     #[token("+")]
     OpAdd, //infixLeft  6
-    #[token("-")]
-    OpSub, //infixLeft  6
-    #[token("*")]
-    OpMul, //infixLeft  7
+    #[token("&")]
+    OpAnd, //infixRight 3
+    #[token("<>")]
+    OpConcat, //infixRight 5
     #[token("/")]
     OpDiv, //infixLeft  7
-    #[token("^")]
-    OpPow, //infixRight 8
+    #[token("==")]
+    OpEq, //infixLeft  4
+    #[token(">")]
+    OpGt, //infixLeft  4
+    #[token(">=")]
+    OpGte, //infixLeft  4
+    #[token("<")]
+    OpLt, //infixLeft  4
+    #[token("<=")]
+    OpLte, //infixLeft  4
     #[token("%")]
     OpMod, //infixRight 8
-
-    #[token("->")]
-    TypeArrow,
+    #[token("*")]
+    OpMul, //infixLeft  7
+    #[token("!=")]
+    OpNeq, //infixLeft  4
     #[token("|")]
-    TypeBar,
+    OpOr, //infixRight 2
+    #[token("|>")]
+    OpPipe, //infixLeft 1
+    #[token("^")]
+    OpPow, //infixRight 8
+    #[token(";")]
+    OpSeq,
+    #[token("-")]
+    OpSub, //infixLeft  6
+
+    // Symbols
+    #[token("→")]
+    #[token("->")]
+    SymArrow,
+    #[token("@")]
+    SymAt,
+    #[token(":")]
+    SymColon,
+    #[token(",")]
+    SymComma,
+    #[token("\"")]
+    SymDoubleQuote,
+    #[token(".")]
+    SymDot,
+    #[token("..")]
+    SymDoubleDot,
+    // #[token("//")]
+    // SymDoubleSlash,
+    #[token("=")]
+    SymEquals,
+    #[token("#")]
+    SymHash,
+    #[token("{")]
+    SymLBrace,
+    #[token("[")]
+    SymLBracket,
+    #[token("(")]
+    SymLParen,
     #[token("?")]
-    TypeQuestion,
+    SymQuestion,
+    #[token("}")]
+    SymRBrace,
+    #[token("]")]
+    SymRBracket,
+    #[token(")")]
+    SymRParen,
+    #[token("_")]
+    SymUnderscore,
+
+    //////////////////////////////////////////////////////////////////
+
+    // #[token("=>")]
+    // OpFatArrow,
+
+    // #[token(">>")]
+    // OpCompose, //infixRight 9
+    // #[token("::")]
+    // OpCons, //infixRight 5
 
     /*#[regex(r"[\r\n]+", priority=2)]
     NewLine,*/

@@ -97,8 +97,8 @@ pub(crate) fn to_ast_expr(element: SyntaxElement) -> Result<Expr, ()> {
             if let SyntaxPart::Token(tok_type) = tok.kind() {
                 match tok_type {
                     Token::KWType => todo!("ren types"),
-                    Token::VarName => Ok(Expr::Var(tok.text().to_string())),
-                    Token::Placeholder => Ok(Expr::Placeholder),
+                    Token::IdLower => Ok(Expr::Var(tok.text().to_string())),
+                    Token::SymUnderscore => Ok(Expr::Placeholder),
                     Token::Number => Ok(Expr::Literal(Literal::LNum(
                         tok.text().to_string().parse().unwrap(),
                     ))),
@@ -136,8 +136,8 @@ pub(crate) fn to_ast_expr(element: SyntaxElement) -> Result<Expr, ()> {
                                 | SyntaxPart::StringToken(_)
                                 | SyntaxPart::EOF
                                 | SyntaxPart::Error => None,
-                                // Fix parentheses (first child is Token::ParenOpen)
-                                SyntaxPart::Token(Token::ParenOpen) => None,
+                                // Fix parentheses (first child is Token::SymLParen)
+                                SyntaxPart::Token(Token::SymLParen) => None,
                                 _ => Some(n),
                             })
                             .ok_or(())?,
@@ -148,7 +148,7 @@ pub(crate) fn to_ast_expr(element: SyntaxElement) -> Result<Expr, ()> {
                             .children_with_tokens()
                             .strip_trivia()
                             .filter_map(|n| match n.kind() {
-                                SyntaxPart::Token(Token::Namespace | Token::VarName) => {
+                                SyntaxPart::Token(Token::IdUpper | Token::IdLower) => {
                                     Some(n.as_token().unwrap().text().to_string())
                                 }
                                 _ => None,
@@ -171,7 +171,7 @@ pub(crate) fn to_ast_expr(element: SyntaxElement) -> Result<Expr, ()> {
                             let mut iter =
                                 f.as_node().unwrap().children_with_tokens().strip_trivia();
                             let name = iter
-                                .find_kind(Token::VarName)
+                                .find_kind(Token::IdLower)
                                 .unwrap()
                                 .as_token()
                                 .unwrap()

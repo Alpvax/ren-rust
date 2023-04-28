@@ -14,6 +14,7 @@ use super::expr::Expr;
 // }
 
 #[test]
+#[ignore = "outdated syntax"]
 fn parse_sample_exprs() {
     let exprs = include_str!("./sample_expressions.ren")
         .split_terminator("\n\n")

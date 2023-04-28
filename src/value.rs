@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::ops::Deref;
 
-//use ast::VarName;
-type VarName = String;
+//use ast::IdLower;
+type IdLower = String;
 
 type ParamCount = usize;
 
@@ -39,7 +39,7 @@ where
         ValueType::Array(self.iter().map(T::get_type_for).collect())
     }
 }
-impl ValueTypeMapper for HashMap<VarName, Value> {
+impl ValueTypeMapper for HashMap<IdLower, Value> {
     fn get_type_for(&self) -> ValueType {
         ValueType::Object(
             self.iter()
@@ -65,7 +65,7 @@ pub struct Value<T: ValueTypeMapper = ()> {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ValueType {
     Function(Box<ValueType>, Box<ValueType>),
-    Object(HashMap<VarName, ValueType>),
+    Object(HashMap<IdLower, ValueType>),
     Array(Vec<ValueType>),
     Number,
     String,

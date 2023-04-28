@@ -18,10 +18,10 @@ create_ast_enum! {
         Context::SumType => TSum(struct TSum),
         Context::Variant => TEnum(struct TEnum),
 
-        Token::Namespace => TCon(struct TCon),
+        Token::IdUpper => TCon(struct TCon),
         Token::OpMul => TAny(struct TAny),
-        Token::TypeQuestion => THole(struct THole),
-        Token::VarName => TVar(struct TVar),
+        Token::SymQuestion => THole(struct THole),
+        Token::IdLower => TVar(struct TVar),
     }
 }
 impl super::HigherASTWithVar for HigherType {
@@ -60,7 +60,7 @@ impl TRec {
     pub fn fields(&self) -> impl Iterator<Item = (String, Type)> {
         self.0.children().filter_map(|field_node| {
             let mut iter = field_node.children_with_tokens().skip_trivia();
-            iter.find(|n| n.kind() == Token::VarName.into()).map(|n| {
+            iter.find(|n| n.kind() == Token::IdLower.into()).map(|n| {
                 let name = n.into_token().unwrap().text().to_string();
                 let err = format!("missing type for field {}", name);
                 (name, iter.last().and_then(Type::from_element).expect(&err))
@@ -156,7 +156,7 @@ impl TEnum {
     fn name(&self) -> Option<SmolStr> {
         self.0
             .child_tokens()
-            .find(|t| t.kind_matches(Token::VarName))
+            .find(|t| t.kind_matches(Token::IdLower))
             .map(|t| SmolStr::new(t.text()))
     }
 }

@@ -19,8 +19,8 @@ create_ast_enum! {
         Context::Constructor => PCon(literal::LConstructor<Self>),
         Context::TypeMatch => PTyp(struct PType),
         Token::Number => PNum(literal::LNumber<Self>),
-        Token::VarName => PVar(struct PVar),
-        Token::Placeholder => PAny(struct PAny),
+        Token::IdLower => PVar(struct PVar),
+        Token::SymUnderscore => PAny(struct PAny),
     }
 }
 impl super::HigherASTWithVar for HigherPattern {
@@ -45,7 +45,7 @@ impl ToHIR for PAny {
 impl PType {
     pub fn type_name(&self) -> Option<SmolStr> {
         self.0.child_tokens().skip_trivia().find_map(|token| {
-            if token.kind() == Token::Namespace.into() {
+            if token.kind() == Token::IdUpper.into() {
                 Some(SmolStr::new(token.text()))
             } else {
                 None

@@ -31,7 +31,7 @@ macro_rules! create_enum {
         impl FromSyntaxElement for $enum_name {
             fn from_token(token_type: Token, token: SyntaxToken) -> Option<Self> {
                 match token_type {
-                    Token::Whitespace | Token::Comment | Token::ParenOpen | Token::Error => None,
+                    Token::Whitespace | Token::Comment | Token::SymLParen | Token::Error => None,
                     $(
                         $(Token::$tok => Some(Self::$tok_variant($tok_struct_name(token))),)?
                         $(Token::$tok => Some(Self::$tok_variant(<$tok_typ_name>::new(token))),)?

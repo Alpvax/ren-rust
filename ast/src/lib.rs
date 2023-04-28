@@ -103,7 +103,7 @@ pub trait ASTLiteralType {}
 //         pub fn get_bindings(&self) -> Option<&Vec<Ident>> {
 //             Some(&self.bindings)
 //         }
-//         // /// Get all the exposed namespaces and fields (last part of alias and all exposed fields)
+//         // /// Get all the exposed IdUppers and fields (last part of alias and all exposed fields)
 //         // pub fn get_all_exposed(&self) -> Vec<&String> {
 //         //     self.alias.last().into_iter().chain(self.bindings.iter()).collect()
 //         // }

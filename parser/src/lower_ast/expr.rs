@@ -40,14 +40,14 @@ create_ast_enum! {
         Context::Conditional => EConditional(struct ConditionalExpr),
         Context::Lambda => ELambda(struct LambdaExpr),
         Context::PrefixOp => EPrefixOp(struct PrefixOpExpr),
-        Context::Where => EWhere(struct WhereExpr),
+        Context::Switch => EWhere(struct WhereExpr),
 
         // Literal tokens
         Token::Number => LNum(literal::LNumber<Self>),
 
         // Variable tokens
-        Token::VarName => VName(struct VarExpr),
-        Token::Placeholder => VPlaceholder(struct PlaceholderExpr),
+        Token::IdLower => VName(struct VarExpr),
+        Token::SymUnderscore => VPlaceholder(struct PlaceholderExpr),
     }
 }
 impl super::HigherASTWithVar for HigherExpr {
@@ -62,13 +62,13 @@ impl ScopedExpr {
     pub fn namespace(&self) -> Vec<SmolStr> {
         self.0
             .child_tokens()
-            .filter(|t| t.kind() == Token::Namespace.into())
+            .filter(|t| t.kind() == Token::IdUpper.into())
             .map(|t| SmolStr::new(t.text()))
             .collect()
     }
-    pub fn varname(&self) -> Option<SmolStr> {
+    pub fn var_name(&self) -> Option<SmolStr> {
         self.0
-            .find_token(Token::VarName)
+            .find_token(Token::IdLower)
             .map(|t| SmolStr::new(t.text()))
     }
 }
@@ -82,7 +82,7 @@ impl ToHIR for ScopedExpr {
                 .into_iter()
                 .map(|s| s.to_string())
                 .collect(),
-            self.varname().unwrap().to_string(),
+            self.var_name().unwrap().to_string(),
         )
     }
 
@@ -365,11 +365,14 @@ impl ToHIR for PrefixOpExpr {
     type ValidationError = ();
 
     fn to_higher_ast(&self, line_lookup: &line_col::LineColLookup) -> Self::HIRType {
-        HigherExpr::binop(
-            HigherExpr::literal(0),
-            self.op().unwrap(),
-            self.operand().to_higher_ast(line_lookup).unwrap(),
-        )
+        match (self.op(), self.operand().to_higher_ast(line_lookup)) {
+            // Convert -num into a simple number
+            (Some(Operator::Sub), Some(HigherExpr::Literal(_, higher_ast::Literal::Number(n)))) => {
+                higher_ast::Literal::Number(-n).into()
+            }
+            (Some(op), Some(expr)) => HigherExpr::binop(HigherExpr::literal(0), op, expr),
+            _ => unimplemented!("Partial parsing"),
+        }
     }
 
     fn validate(&self) -> Option<Self::ValidationError> {

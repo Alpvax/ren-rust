@@ -26,19 +26,19 @@ fn parse_single_term(p: &mut Parser) -> bool {
                 // Token::Undefined => p.bump(),
                 Token::Number
                 // | Token::Bool
-                | Token::Placeholder
-                | Token::VarName
+                | Token::SymUnderscore
+                | Token::IdLower
                 | Token::OpSub
-                | Token::DoubleQuote
-                | Token::CurlyOpen
-                | Token::SquareOpen
-                | Token::ParenOpen => parse_literal(p, NESTED_EXPR),
-                Token::Namespace => parse_scoped(p),
+                | Token::SymDoubleQuote
+                | Token::SymLBrace
+                | Token::SymLBracket
+                | Token::SymLParen => parse_literal(p, NESTED_EXPR),
+                Token::IdUpper => parse_scoped(p),
                 //TODO: single-term constructors (uncommenting conflicts with Application)
                 // Token::Hash => {
                 //     let mark = p.start("single_constructor");
                 //     p.bump();
-                //     if p.bump_matching(Token::VarName) {
+                //     if p.bump_matching(Token::IdLower) {
                 //         mark.complete(p, Context::Constructor);
                 //     } else {
                 //         todo!("ERROR: ")
@@ -61,18 +61,18 @@ fn parse_term(p: &mut Parser) {
             // Token::Undefined => p.bump(),
             Token::Number
             // | Token::Bool
-            | Token::Placeholder
-            | Token::VarName
+            | Token::SymUnderscore
+            | Token::IdLower
             | Token::OpSub
-            | Token::DoubleQuote
-            | Token::CurlyOpen
-            | Token::SquareOpen
-            | Token::ParenOpen => parse_literal(p, NESTED_EXPR),
-            Token::Namespace => parse_scoped(p),
-            Token::Hash => {
+            | Token::SymDoubleQuote
+            | Token::SymLBrace
+            | Token::SymLBracket
+            | Token::SymLParen => parse_literal(p, NESTED_EXPR),
+            Token::IdUpper => parse_scoped(p),
+            Token::SymHash => {
                 let m = p.start("constructor");
                 p.bump();
-                if p.bump_matching(Token::VarName) {
+                if p.bump_matching(Token::IdLower) {
                     if p.bump_whitespace() {
                         let args = p.start("args");
                         loop {
@@ -106,7 +106,7 @@ fn parse_term(p: &mut Parser) {
                 conditional_m.complete(p, Context::Conditional);
             }
             Token::KWLet => parse_let(p),
-            Token::KWWhere => parse_where(p),
+            Token::KWSwitch => parse_switch(p),
             Token::KWFun => parse_lambda(p),
             _ => {}
         },
@@ -118,14 +118,14 @@ fn parse_term(p: &mut Parser) {
 fn parse_scoped(p: &mut Parser) {
     let m = p.start("scoped");
     loop {
-        if p.bump_matching(Token::Namespace) && p.bump_matching(Token::Period) {
+        if p.bump_matching(Token::IdUpper) && p.bump_matching(Token::SymDot) {
             match p.peek() {
-                TokenType::Token(Token::VarName) => {
+                TokenType::Token(Token::IdLower) => {
                     p.bump();
                     m.complete(p, Context::Scoped);
                     break;
                 }
-                TokenType::Token(Token::Namespace) => continue,
+                TokenType::Token(Token::IdUpper) => continue,
                 _ => todo!("ERROR"),
             }
         } else {
@@ -142,8 +142,8 @@ fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) -> bool {
                 TokenType::None => break true,
                 TokenType::Token(Token::OpAdd) => Operator::Add,
                 TokenType::Token(Token::OpAnd) => Operator::And,
-                TokenType::Token(Token::OpJoin) => Operator::Concat,
-                TokenType::Token(Token::OpCons) => Operator::Cons,
+                TokenType::Token(Token::OpConcat) => Operator::Concat,
+                // TokenType::Token(Token::OpCons) => Operator::Cons,
                 TokenType::Token(Token::OpDiv) => Operator::Div,
                 TokenType::Token(Token::OpEq) => Operator::Eq,
                 TokenType::Token(Token::OpGte) => Operator::Gte,
@@ -152,7 +152,7 @@ fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) -> bool {
                 TokenType::Token(Token::OpLt) => Operator::Lt,
                 TokenType::Token(Token::OpMod) => Operator::Mod,
                 TokenType::Token(Token::OpMul) => Operator::Mul,
-                TokenType::Token(Token::OpNotEq) => Operator::Neq,
+                TokenType::Token(Token::OpNeq) => Operator::Neq,
                 TokenType::Token(Token::OpOr) => Operator::Or,
                 TokenType::Token(Token::OpPipe) => Operator::Pipe,
                 TokenType::Token(Token::OpSub) => Operator::Sub,
@@ -174,11 +174,11 @@ fn parse_subexpression(p: &mut Parser, minimum_binding_power: u8) -> bool {
                     } else {
                         // todo!("ERROR: Application args must be single terms. peek = {:?}", p.peek());
                     }
-                } else if p.bump_matching(Token::Period) {
-                    if p.bump_matching(Token::VarName) {
+                } else if p.bump_matching(Token::SymDot) {
+                    if p.bump_matching(Token::IdLower) {
                         start.commit(p, Context::Access);
                     } else {
-                        todo!("ERROR: Access key is not VarName");
+                        todo!("ERROR: Access key is not IdLower");
                     }
                 } else {
                     break;
@@ -203,10 +203,10 @@ pub(crate) fn parse_prefix_op(p: &mut Parser, operator: Operator) {
 
 fn parse_let(p: &mut Parser) {
     let declaration = p.start("let_expr");
-    if p.bump_matching(Token::KWLet) && parse_pattern(p) && p.bump_matching(Token::OpAssign) {
+    if p.bump_matching(Token::KWLet) && parse_pattern(p) && p.bump_matching(Token::SymEquals) {
         let expr_m = p.start("let_body");
         expr(p);
-        if p.peek().is(Token::SemiColon) {
+        if p.peek().is(Token::OpSeq) {
             expr_m.complete(p, Context::Expr);
             p.bump();
             expr(p);
@@ -226,7 +226,7 @@ fn parse_lambda(p: &mut Parser) {
     let params = p.start("lambda_params");
     loop {
         super::parse_pattern(p);
-        if p.bump_matching(Token::OpFatArrow) {
+        if p.bump_matching(Token::SymArrow) {
             params.complete(p, Context::Params);
             expr(p);
             lambda.complete(p, Context::Lambda);
@@ -235,24 +235,27 @@ fn parse_lambda(p: &mut Parser) {
     }
 }
 
-fn parse_where(p: &mut Parser) {
-    assert!(p.peek().is(Token::KWWhere));
-    let where_m = p.start("where");
+fn parse_switch(p: &mut Parser) {
+    assert!(p.peek().is(Token::KWSwitch));
+    let where_m = p.start("switch");
     p.bump();
-    let mut expr_m = p.start("where_expr");
+    let mut expr_m = p.start("switch_expr");
     expr(p);
     expr_m.complete(p, Context::Expr);
+    if !p.bump_matching(Token::KWOn) {
+        todo!("ERROR expected KWOn");
+    }
     loop {
-        let branch_m = p.start("where_branch");
-        if p.bump_matching(Token::KWIs) {
+        let branch_m = p.start("case");
+        if p.bump_matching(Token::KWCase) {
             super::parse_pattern(p);
             if p.peek().is(Token::KWIf) {
-                let guard_m = p.start("where_guard");
+                let guard_m = p.start("case_guard");
                 p.bump();
                 expr(p);
                 guard_m.complete(p, Context::Guard);
             }
-            if !p.bump_matching(Token::OpFatArrow) {
+            if !p.bump_matching(Token::SymArrow) {
                 todo!("ERROR");
             }
             expr_m = p.start("branch_expr");
@@ -264,7 +267,7 @@ fn parse_where(p: &mut Parser) {
             break;
         }
     }
-    where_m.complete(p, Context::Where);
+    where_m.complete(p, Context::Switch);
 }
 
 fn infix_binding_power(operator: Operator) -> (u8, u8) {

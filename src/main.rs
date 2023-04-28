@@ -1,5 +1,3 @@
-//mod ast;
-//mod parser;
 #[allow(dead_code)]
 mod value;
 

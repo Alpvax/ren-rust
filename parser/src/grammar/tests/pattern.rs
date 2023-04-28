@@ -13,7 +13,7 @@ fn parse_any() {
         "_",
         expect![[r#"
         Context(Pattern)@0..1
-          Token(Placeholder)@0..1 "_""#]],
+          Token(SymUnderscore)@0..1 "_""#]],
     );
 }
 
@@ -23,7 +23,7 @@ fn parse_var() {
         "varName1",
         expect![[r#"
         Context(Pattern)@0..8
-          Token(VarName)@0..8 "varName1""#]],
+          Token(IdLower)@0..8 "varName1""#]],
     )
 }
 
@@ -34,11 +34,11 @@ fn parse_constructor() {
         expect![[r##"
             Context(Pattern)@0..10
               Context(Constructor)@0..10
-                Token(Hash)@0..1 "#"
-                Token(VarName)@1..4 "foo"
+                Token(SymHash)@0..1 "#"
+                Token(IdLower)@1..4 "foo"
                 Token(Whitespace)@4..5 " "
                 Context(Args)@5..10
-                  Token(VarName)@5..8 "bar"
+                  Token(IdLower)@5..8 "bar"
                   Token(Whitespace)@8..9 " "
                   Token(Number)@9..10 "3""##]],
     )
@@ -48,14 +48,14 @@ fn parse_constructor() {
 fn parse_type_match() {
     check(
         "@Number num",
-        expect![[r##"
+        expect![[r#"
             Context(Pattern)@0..11
               Context(TypeMatch)@0..11
-                Token(At)@0..1 "@"
-                Token(Namespace)@1..7 "Number"
+                Token(SymAt)@0..1 "@"
+                Token(IdUpper)@1..7 "Number"
                 Token(Whitespace)@7..8 " "
                 Context(Pattern)@8..11
-                  Token(VarName)@8..11 "num""##]],
+                  Token(IdLower)@8..11 "num""#]],
     )
 }
 
@@ -79,7 +79,7 @@ mod literal {
             expect![[r#"
             Context(Pattern)@0..13
               Context(String)@0..13
-                Token(DoubleQuote)@0..1 "\""
+                Token(SymDoubleQuote)@0..1 "\""
                 StringToken(Text)@1..12 "Hello World"
                 StringToken(Delimiter)@12..13 "\"""#]],
         )
@@ -92,7 +92,7 @@ mod literal {
             expect![[r#"
             Context(Pattern)@0..16
               Context(String)@0..16
-                Token(DoubleQuote)@0..1 "\""
+                Token(SymDoubleQuote)@0..1 "\""
                 StringToken(Text)@1..6 "Hello"
                 StringToken(Escape)@6..8 "\\n"
                 StringToken(Escape)@8..10 "\\t"
@@ -108,19 +108,19 @@ mod literal {
             expect![[r#"
             Context(Pattern)@0..30
               Context(String)@0..30
-                Token(DoubleQuote)@0..1 "\""
+                Token(SymDoubleQuote)@0..1 "\""
                 StringToken(Text)@1..6 "Hello"
                 StringToken(Escape)@6..8 "\\n"
                 StringToken(ExprStart)@8..10 "${"
                 Context(Expr)@10..28
                   Context(String)@10..28
-                    Token(DoubleQuote)@10..11 "\""
+                    Token(SymDoubleQuote)@10..11 "\""
                     StringToken(Escape)@11..13 "\\t"
                     StringToken(Text)@13..19 "world "
                     StringToken(Escape)@19..21 "\\$"
                     StringToken(Text)@21..27 "{text}"
                     StringToken(Delimiter)@27..28 "\""
-                Token(CurlyClose)@28..29 "}"
+                Token(SymRBrace)@28..29 "}"
                 StringToken(Delimiter)@29..30 "\"""#]],
         )
     }
@@ -132,14 +132,14 @@ mod literal {
             expect![[r#"
                 Context(Pattern)@0..10
                   Context(Array)@0..10
-                    Token(SquareOpen)@0..1 "["
+                    Token(SymLBracket)@0..1 "["
                     Context(Item)@1..4
-                      Token(VarName)@1..4 "foo"
-                    Token(Comma)@4..5 ","
+                      Token(IdLower)@1..4 "foo"
+                    Token(SymComma)@4..5 ","
                     Token(Whitespace)@5..6 " "
                     Context(Item)@6..9
-                      Token(VarName)@6..9 "bar"
-                    Token(SquareClose)@9..10 "]""#]],
+                      Token(IdLower)@6..9 "bar"
+                    Token(SymRBracket)@9..10 "]""#]],
         )
     }
     #[test]
@@ -149,17 +149,17 @@ mod literal {
             expect![[r#"
                 Context(Pattern)@0..15
                   Context(Record)@0..15
-                    Token(CurlyOpen)@0..1 "{"
-                    Context(Field)@1..5
-                      Token(VarName)@1..4 "foo"
-                      Token(Comma)@4..5 ","
+                    Token(SymLBrace)@0..1 "{"
+                    Context(Field)@1..4
+                      Token(IdLower)@1..4 "foo"
+                    Token(SymComma)@4..5 ","
                     Context(Field)@5..14
                       Token(Whitespace)@5..6 " "
-                      Token(VarName)@6..9 "bar"
-                      Token(Colon)@9..10 ":"
+                      Token(IdLower)@6..9 "bar"
+                      Token(SymColon)@9..10 ":"
                       Token(Whitespace)@10..11 " "
-                      Token(VarName)@11..14 "baz"
-                    Token(CurlyClose)@14..15 "}""#]],
+                      Token(IdLower)@11..14 "baz"
+                    Token(SymRBrace)@14..15 "}""#]],
         )
     }
 }

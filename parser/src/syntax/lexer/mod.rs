@@ -27,7 +27,7 @@ impl TokenType {
 
 pub(crate) type Lexeme<'source> = (TokenType, &'source str);
 
-pub(super) enum LexerHolder<'source> {
+enum LexerHolder<'source> {
     Main(logos::Lexer<'source, Token>),
     String(logos::Lexer<'source, StringToken>),
     /// Should only be used when morphing in order to take the lexer instance
@@ -111,7 +111,7 @@ impl<'source> Iterator for Lexer<'source> {
             let parent_ctx = self.context.last();
             if let Some((t, _)) = res {
                 match (t, parent_ctx) {
-                    (TokenType::Token(Token::DoubleQuote), _) => {
+                    (TokenType::Token(Token::SymDoubleQuote), _) => {
                         self.internal.morph_to_string();
                     }
                     (TokenType::String(StringToken::Delimiter), _) => {
@@ -121,13 +121,13 @@ impl<'source> Iterator for Lexer<'source> {
                         self.internal.morph_to_main();
                         self.context.push(NestedContext::String)
                     }
-                    (TokenType::Token(Token::CurlyClose), Some(NestedContext::String)) => {
+                    (TokenType::Token(Token::SymRBrace), Some(NestedContext::String)) => {
                         self.internal.morph_to_string();
                     }
-                    (TokenType::Token(Token::CurlyClose), Some(NestedContext::Expr)) => {
+                    (TokenType::Token(Token::SymRBrace), Some(NestedContext::Expr)) => {
                         self.context.pop();
                     }
-                    (TokenType::Token(Token::CurlyOpen), _) => {
+                    (TokenType::Token(Token::SymLBrace), _) => {
                         self.context.push(NestedContext::Expr);
                     }
                     _ => {}

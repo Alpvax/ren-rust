@@ -165,7 +165,7 @@ mod variable {
 
     #[test]
     fn local() {
-        check("varName1", Expr::Var("varName1".to_string()));
+        check("IdLower1", Expr::Var("IdLower1".to_string()));
     }
 
     #[test]

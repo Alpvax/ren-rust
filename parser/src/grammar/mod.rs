@@ -75,12 +75,12 @@ impl NestedParser {
 pub(crate) fn parse_literal(p: &mut Parser, nested: NestedParser) {
     match p.peek() {
         TokenType::Token(tok) => match tok {
-            Token::Number | /*Token::Bool |*/ Token::Placeholder | Token::VarName => p.bump(),
+            Token::Number | /*Token::Bool |*/ Token::SymUnderscore | Token::IdLower => p.bump(),
             Token::OpSub => expression::parse_prefix_op(p, Operator::Sub),
-            Token::DoubleQuote => parse_string(p, nested),
-            Token::CurlyOpen => parse_record(p, nested),
-            Token::SquareOpen => parse_array(p, nested),
-            Token::ParenOpen => parse_parenthesised(p, nested),
+            Token::SymDoubleQuote => parse_string(p, nested),
+            Token::SymLBrace => parse_record(p, nested),
+            Token::SymLBracket => parse_array(p, nested),
+            Token::SymLParen => parse_parenthesised(p, nested),
             _ => {}
         },
         TokenType::None => {}
@@ -89,7 +89,7 @@ pub(crate) fn parse_literal(p: &mut Parser, nested: NestedParser) {
 }
 
 fn parse_string(p: &mut Parser, nested: NestedParser) {
-    assert_eq!(p.peek(), TokenType::Token(Token::DoubleQuote));
+    assert_eq!(p.peek(), TokenType::Token(Token::SymDoubleQuote));
     let str_m = p.start("string");
     p.bump();
     loop {
@@ -100,7 +100,7 @@ fn parse_string(p: &mut Parser, nested: NestedParser) {
             let nested_m = p.start("string_nested");
             nested.call(p);
             nested_m.complete(p, Context::Expr);
-            if !p.bump_matching(Token::CurlyClose) {
+            if !p.bump_matching(Token::SymRBrace) {
                 todo!("ERROR");
             }
         }
@@ -118,40 +118,40 @@ fn parse_parenthesised(p: &mut Parser, nested: NestedParser) {
     let m = p.start("paren");
     p.bump();
     nested.call(p);
-    if p.peek() == TokenType::Token(Token::ParenClose) {
+    if p.peek() == TokenType::Token(Token::SymRParen) {
         p.bump();
         m.complete(p, Context::Parenthesised);
     } //else error
 }
 
 fn parse_record(p: &mut Parser, nested: NestedParser) {
-    assert!(p.peek().is(Token::CurlyOpen));
+    assert!(p.peek().is(Token::SymLBrace));
     let rec_m = p.start("record");
     p.bump();
-    if nested.record_allow_empty && p.peek().is(Token::CurlyClose) {
+    if nested.record_allow_empty && p.peek().is(Token::SymRBrace) {
         p.bump();
         rec_m.complete(p, Context::Record);
     } else {
         loop {
             let field = p.start("field");
-            p.bump_matching(Token::VarName);
-            if p.bump_matching(Token::Colon) {
+            p.bump_matching(Token::IdLower);
+            if p.bump_matching(Token::SymColon) {
                 nested.call(p)
             } else if nested.record_value_required {
                 todo!("Error! required `: value` part of record")
             }
-            if p.peek().is(Token::Comma) {
+            if p.peek().is(Token::SymComma) {
                 field.complete(p, Context::Field);
                 p.bump();
                 continue; // No dangling comma
             }
-            if p.peek().is(Token::CurlyClose) {
+            if p.peek().is(Token::SymRBrace) {
                 field.complete(p, Context::Field);
                 p.bump();
                 rec_m.complete(p, Context::Record);
                 break;
             } else {
-                todo!("ERROR");
+                todo!("ERROR: {:?}", p.peek());
             }
         }
     }
@@ -161,16 +161,16 @@ fn parse_array(p: &mut Parser, nested: NestedParser) {
     let m = p.start("array");
     p.bump();
     loop {
-        if p.bump_matching(Token::SquareClose) {
+        if p.bump_matching(Token::SymRBracket) {
             m.complete(p, Context::Array);
             break;
         }
         let item_m = p.start("array_item");
         nested.call(p);
         item_m.complete(p, Context::Item);
-        if p.bump_matching(Token::Comma) {
+        if p.bump_matching(Token::SymComma) {
             continue; // No dangling comma
-        } else if !p.peek().is(Token::SquareClose) {
+        } else if !p.peek().is(Token::SymRBracket) {
             todo!("ERROR: non-comma following item in array");
         }
     }

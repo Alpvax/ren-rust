@@ -39,7 +39,7 @@ pub trait FromSyntaxElement {
     {
         match element.kind() {
             SyntaxPart::Token(
-                Token::Whitespace | Token::Comment | Token::ParenOpen | Token::Error,
+                Token::Whitespace | Token::Comment | Token::SymLParen | Token::Error,
             ) => None,
             SyntaxPart::Token(token_type) => {
                 Self::from_token(token_type, element.into_token().unwrap())

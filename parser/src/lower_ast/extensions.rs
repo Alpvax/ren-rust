@@ -52,7 +52,7 @@ pub(super) trait TokenTypeWrapper {
         use crate::syntax::{StringToken, SyntaxPart, Token};
         match self.token_type() {
             SyntaxPart::Token(
-                Token::Whitespace | Token::Comment | Token::DoubleQuote | Token::ParenOpen,
+                Token::Whitespace | Token::Comment | Token::SymDoubleQuote | Token::SymLParen,
             )
             | SyntaxPart::StringToken(StringToken::ExprStart | StringToken::Delimiter) => true,
             _ => false,

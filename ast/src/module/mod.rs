@@ -51,7 +51,9 @@ impl Module {
         self.1.iter().any(|imp| imp.path == name)
     }
     pub fn imports_local(&self, name: &str) -> bool {
-        self.1.iter().any(|imp| imp.is_local() && imp.path == name)
+        self.1
+            .iter()
+            .any(|imp| imp.is_project() && imp.path == name)
     }
     pub fn imports_package(&self, name: &str) -> bool {
         self.1
@@ -81,17 +83,17 @@ impl Module {
     pub fn exports(&self, name: &str) -> bool {
         self.2
             .iter()
-            .any(|decl| decl.is_public() && decl.name() == name)
+            .any(|decl| decl.is_exposed() && decl.name() == name)
     }
     pub fn exports_local(&self, name: &str) -> bool {
         self.2
             .iter()
-            .any(|decl| decl.is_public() && decl.is_local() && decl.name() == name)
+            .any(|decl| decl.is_exposed() && decl.is_local() && decl.name() == name)
     }
     pub fn exports_external(&self, name: &str) -> bool {
         self.2
             .iter()
-            .any(|decl| decl.is_public() && decl.is_external() && decl.name() == name)
+            .any(|decl| decl.is_exposed() && decl.is_external() && decl.name() == name)
     }
 
     // MANIPULATIONS ---------------------------------------------------------------

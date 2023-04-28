@@ -138,60 +138,60 @@ make_modes! {
             Import(imp, line_lookup) => Ok(println!("{:?}", imp.to_higher_ast(line_lookup))),
         }
     }
-    Json {
-        "json",
-        commands: {},
-        {
-            Decl(decl, line_lookup) => {
-                if let Err(e) = decl.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
-                    println!("{}", e);
-                }
-                print!("\n"); // Force flush
-                Ok(())
-            },
-            Expr(expr, line_lookup) => {
-                if let Err(e) = expr.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
-                    println!("{}", e);
-                }
-                print!("\n"); // Force flush
-                Ok(())
-            },
-            Import(imp, line_lookup) => {
-                if let Err(e) = imp.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
-                    println!("{}", e);
-                }
-                print!("\n"); // Force flush
-                Ok(())
-            },
-        }
-    }
-    JsonPretty {
-        "json (pretty)",
-        commands: {},
-        {
-            Decl(decl, line_lookup) => {
-                if let Err(e) = decl.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
-                    println!("{}", e);
-                }
-                print!("\n"); // Force flush
-                Ok(())
-            },
-            Expr(expr, line_lookup) => {
-                if let Err(e) = expr.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
-                    println!("{}", e);
-                }
-                print!("\n"); // Force flush
-                Ok(())
-            },
-            Import(imp, line_lookup) => {
-                if let Err(e) = imp.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
-                    println!("{}", e);
-                }
-                print!("\n"); // Force flush
-                Ok(())
-            },
-        }
-    }
+    // Json {
+    //     "json",
+    //     commands: {},
+    //     {
+    //         Decl(decl, line_lookup) => {
+    //             if let Err(e) = decl.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
+    //                 println!("{}", e);
+    //             }
+    //             print!("\n"); // Force flush
+    //             Ok(())
+    //         },
+    //         Expr(expr, line_lookup) => {
+    //             if let Err(e) = expr.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
+    //                 println!("{}", e);
+    //             }
+    //             print!("\n"); // Force flush
+    //             Ok(())
+    //         },
+    //         Import(imp, line_lookup) => {
+    //             if let Err(e) = imp.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), false) {
+    //                 println!("{}", e);
+    //             }
+    //             print!("\n"); // Force flush
+    //             Ok(())
+    //         },
+    //     }
+    // }
+    // JsonPretty {
+    //     "json (pretty)",
+    //     commands: {},
+    //     {
+    //         Decl(decl, line_lookup) => {
+    //             if let Err(e) = decl.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
+    //                 println!("{}", e);
+    //             }
+    //             print!("\n"); // Force flush
+    //             Ok(())
+    //         },
+    //         Expr(expr, line_lookup) => {
+    //             if let Err(e) = expr.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
+    //                 println!("{}", e);
+    //             }
+    //             print!("\n"); // Force flush
+    //             Ok(())
+    //         },
+    //         Import(imp, line_lookup) => {
+    //             if let Err(e) = imp.to_higher_ast(line_lookup).to_json_writer(std::io::stdout(), true) {
+    //                 println!("{}", e);
+    //             }
+    //             print!("\n"); // Force flush
+    //             Ok(())
+    //         },
+    //     }
+    // }
 }
 // pub(super) struct Rowan;
 // impl ReplMode for Rowan {
