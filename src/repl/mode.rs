@@ -78,14 +78,15 @@ macro_rules! make_modes {
                     #[allow(unused_imports)]
                     use crate::repl::command::ReplCommand;
                     if "help".starts_with(cmd) {
-                        println!(r"Commands:
-                            help                Display this message
-                            mode [mode_name]    Print the current mode or switch mode
-                        ")
+                        println!(
+r"Commands:
+    help                Display this message
+    mode [mode_name]    Print the current mode or switch mode");
                         $({
                             let (args, desc) = <$cmd as ReplCommand>::description();
                             println!("\t{} {}\t\t\t\t{}", <$cmd as ReplCommand>::ident(), args, description);
                         })*
+                        return Ok(());
                     }
                     $({
                         type Cmd = <$cmd as ReplCommand>;

@@ -5,7 +5,7 @@ authors = ["Alpvax <alpvax@netscape.net>"]
 edition = "2021"
 
 [workspace]
-members = ["ast", "parser", "ren_json_derive"]
+members = ["ast", "lsp", "parser", "ren_json_derive"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
@@ -17,9 +17,10 @@ cli = []
 ast = { path = "./ast" }
 clap = { version = "4.0.29", features = ["cargo", "derive"] }
 line-col = "0.2.1"
+ren_lsp = { package = "lsp", path = "./lsp" }
 parser = { path = "./parser" }
 reqwest = { version = "0.11", features = ["blocking"], optional = true }
-rustyline = "10.0.0"
+rustyline = "11.0.0"
 
 [dev-dependencies]
 expect-test = "1.3"

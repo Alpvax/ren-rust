@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use parser::parse_stmt_ast;
-use rustyline::{error::ReadlineError, Editor};
+use rustyline::error::ReadlineError;
 
 mod command;
 // mod config;
@@ -22,7 +22,7 @@ where
 {
     let mut mode = start_mode;
     // `()` can be used when no completer is required
-    let mut rl = Editor::<()>::new()?;
+    let mut rl = rustyline::DefaultEditor::new()?;
     if rl.load_history(history_file_path).is_err() {
         println!("No previous history.");
     }
@@ -32,7 +32,9 @@ where
         let readline = rl.readline(">> ");
         match readline {
             Ok(line) => {
-                rl.add_history_entry(line.as_str());
+                if let Err(e) = rl.add_history_entry(line.as_str()) {
+                    eprintln!("{}", e);
+                }
                 if line.starts_with(COMMAND_START) {
                     if let Err(e) = mode.handle_command(line[COMMAND_START.len()..].trim()) {
                         println!("{}", e);
