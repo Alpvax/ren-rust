@@ -54,12 +54,18 @@ impl<'source> LexerHolder<'source> {
     }
 }
 impl<'source> Iterator for LexerHolder<'source> {
-    type Item = Lexeme<'source>;
+    type Item = Result<Lexeme<'source>, &'source str>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            LexerHolder::Main(lex) => lex.next().map(|t| (TokenType::Token(t), lex.slice())),
-            LexerHolder::String(lex) => lex.next().map(|t| (TokenType::String(t), lex.slice())),
+            LexerHolder::Main(lex) => lex.next().map(|r| {
+                r.map(|t| (TokenType::Token(t), lex.slice()))
+                    .map_err(|_| lex.slice())
+            }),
+            LexerHolder::String(lex) => lex.next().map(|r| {
+                r.map(|t| (TokenType::String(t), lex.slice()))
+                    .map_err(|_| lex.slice())
+            }),
             LexerHolder::None => unimplemented!("Should not call methods on LexerType::None"),
         }
     }
@@ -74,7 +80,8 @@ enum NestedContext {
 pub(crate) struct Lexer<'source> {
     internal: LexerHolder<'source>,
     context: Vec<NestedContext>,
-    peeked: Option<(TokenType, &'source str)>,
+    peeked: Option<Lexeme<'source>>,
+    lex_errors: Vec<&'source str>,
 }
 impl<'source> Lexer<'source> {
     pub fn new(input: &'source str) -> Self {
@@ -82,6 +89,7 @@ impl<'source> Lexer<'source> {
             internal: LexerHolder::Main(Token::lexer(input)),
             context: Vec::new(),
             peeked: None,
+            lex_errors: Vec::new(),
         }
     }
     // pub fn slice(&self) -> &'source str {
@@ -93,7 +101,7 @@ impl<'source> Lexer<'source> {
     //         _ => false,
     //     }
     // }
-    pub fn peek(&mut self) -> Option<(TokenType, &'source str)> {
+    pub fn peek(&mut self) -> Option<Lexeme<'source>> {
         if self.peeked.is_none() {
             self.peeked = self.next();
         }
@@ -107,33 +115,39 @@ impl<'source> Iterator for Lexer<'source> {
         if self.peeked.is_some() {
             self.peeked.take()
         } else {
-            let res = self.internal.next();
-            let parent_ctx = self.context.last();
-            if let Some((t, _)) = res {
-                match (t, parent_ctx) {
-                    (TokenType::Token(Token::SymDoubleQuote), _) => {
-                        self.internal.morph_to_string();
+            loop {
+                match self.internal.next() {
+                    Some(Err(s)) => {
+                        self.lex_errors.push(s);
                     }
-                    (TokenType::String(StringToken::Delimiter), _) => {
-                        self.internal.morph_to_main();
+                    Some(Ok(res @ (t, _))) => {
+                        match (t, self.context.last()) {
+                            (TokenType::Token(Token::SymDoubleQuote), _) => {
+                                self.internal.morph_to_string();
+                            }
+                            (TokenType::String(StringToken::Delimiter), _) => {
+                                self.internal.morph_to_main();
+                            }
+                            (TokenType::String(StringToken::ExprStart), _) => {
+                                self.internal.morph_to_main();
+                                self.context.push(NestedContext::String)
+                            }
+                            (TokenType::Token(Token::SymRBrace), Some(NestedContext::String)) => {
+                                self.internal.morph_to_string();
+                            }
+                            (TokenType::Token(Token::SymRBrace), Some(NestedContext::Expr)) => {
+                                self.context.pop();
+                            }
+                            (TokenType::Token(Token::SymLBrace), _) => {
+                                self.context.push(NestedContext::Expr);
+                            }
+                            _ => {}
+                        }
+                        break Some(res);
                     }
-                    (TokenType::String(StringToken::ExprStart), _) => {
-                        self.internal.morph_to_main();
-                        self.context.push(NestedContext::String)
-                    }
-                    (TokenType::Token(Token::SymRBrace), Some(NestedContext::String)) => {
-                        self.internal.morph_to_string();
-                    }
-                    (TokenType::Token(Token::SymRBrace), Some(NestedContext::Expr)) => {
-                        self.context.pop();
-                    }
-                    (TokenType::Token(Token::SymLBrace), _) => {
-                        self.context.push(NestedContext::Expr);
-                    }
-                    _ => {}
+                    None => break None,
                 }
             }
-            res
         }
     }
 }

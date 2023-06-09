@@ -8,14 +8,15 @@ edition = "2021"
 
 [dependencies]
 higher_ast = { path = "../ast", package = "ast" }
-drop_bomb = "0.1.5"
-line-col = "0.2.1"
-logos = "0.12"
+derive_more = "0.99"
+drop_bomb = "0.1"
+either = "1.7"
+line-col = "0.2"
+logos = "0.13"
 num-derive = "0.3"
 num-traits = "0.2"
 rowan = "0.15"
-smol_str = "0.1"
-either = "1.7"
+smol_str = "0.2"
 
 [dev-dependencies]
 expect-test = "1.3"

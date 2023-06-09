@@ -59,20 +59,20 @@ pub fn parse_repl_stmt(
     Ok(stmt(p.parse()))
 }
 
-pub(crate) struct NestedParser {
-    func: fn(&mut Parser),
+pub(crate) struct NestedParser<E> {
+    func: fn(&mut Parser<E>),
     /// Whether the value part of a record literal is required
     record_value_required: bool,
     /// Whether {} is a valid record
     record_allow_empty: bool,
 }
-impl NestedParser {
-    pub fn call(&self, p: &mut Parser) {
+impl<E> NestedParser<E> {
+    pub fn call(&self, p: &mut Parser<E>) {
         (self.func)(p)
     }
 }
 
-pub(crate) fn parse_literal(p: &mut Parser, nested: NestedParser) {
+pub(crate) fn parse_literal<E>(p: &mut Parser<E>, nested: NestedParser<E>) {
     match p.peek() {
         TokenType::Token(tok) => match tok {
             Token::Number | /*Token::Bool |*/ Token::SymUnderscore | Token::IdLower => p.bump(),

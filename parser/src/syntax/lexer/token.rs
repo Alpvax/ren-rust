@@ -6,9 +6,6 @@ use num_derive::{FromPrimitive, ToPrimitive};
 )]
 // #[logos(extras = LexerExtras)]
 pub enum Token {
-    #[error]
-    Error = 0,
-
     #[regex(r"//[^\r\n]*\r?\n?")]
     Comment,
 
@@ -165,9 +162,6 @@ pub enum Token {
     Logos, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, FromPrimitive, ToPrimitive,
 )]
 pub enum StringToken {
-    #[error]
-    Error = 0,
-
     #[regex(r#"\\[\\nrt$"]"#, priority = 5)]
     Escape,
 

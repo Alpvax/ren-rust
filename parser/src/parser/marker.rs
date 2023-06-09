@@ -17,7 +17,7 @@ impl Marker {
             bomb: drop_bomb::DropBomb::new(format!("Incomplete marker {}", label)),
         }
     }
-    pub fn complete<K: Into<SyntaxPart>>(mut self, p: &mut Parser, kind: K) {
+    pub fn complete<K: Into<SyntaxPart>, E>(mut self, p: &mut Parser<E>, kind: K) {
         self.bomb.defuse();
         p.builder
             .start_node_at(self.checkpoint, RenLang::kind_to_raw(kind.into()));
@@ -26,7 +26,7 @@ impl Marker {
     pub fn discard(mut self) {
         self.bomb.defuse();
     }
-    pub fn commit<K: Into<SyntaxPart>>(&mut self, p: &mut Parser, kind: K) {
+    pub fn commit<K: Into<SyntaxPart>, E>(&mut self, p: &mut Parser<E>, kind: K) {
         std::mem::replace(self, Marker::new(self.checkpoint, self.label)).complete(p, kind);
     }
 }

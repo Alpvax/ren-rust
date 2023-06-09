@@ -8,20 +8,22 @@ use crate::syntax::{
 mod marker;
 pub(crate) use marker::Marker;
 
-pub(crate) struct Parser<'source> {
+pub(crate) struct Parser<'source, E> {
     lexer: Lexer<'source>,
     builder: GreenNodeBuilder<'static>,
     line_lookup: line_col::LineColLookup<'source>,
     whitespace_token: Option<Lexeme<'source>>,
+    errors: Vec<E>,
 }
 
-impl<'source> Parser<'source> {
+impl<'source, E> Parser<'source, E> {
     pub fn new(input: &'source str) -> Self {
         Self {
             lexer: Lexer::new(input),
             builder: GreenNodeBuilder::new(),
             line_lookup: line_col::LineColLookup::new(input),
             whitespace_token: None,
+            errors: Vec::new(),
         }
     }
     pub fn start(&mut self, label: &'static str) -> Marker {
